@@ -14,8 +14,8 @@ public class Map {
 
     //General Map Infos
     private int anzPlayers;
-    private int anzOverwriteStones;
-    private int anzBombsAtStrat;
+    private int[] overwriteStonesPerPlayer = new int[]{-1, -1, -1, -1, -1, -1, -1, -1};
+    private int[] bombsPerPlayer = new int[]{-1, -1, -1, -1, -1, -1, -1, -1};
     private int explosionRadius;
     private int height;
     private int width;
@@ -24,11 +24,17 @@ public class Map {
      * Constructor imports Map from given Filepath
      * @param fileName is the Filepath
      */
+<<<<<<< HEAD
     
     public Map()
     {	
     	Dialogfenster Mapöffnen = new Dialogfenster();
     	importMap(Mapöffnen.oeffnen());
+=======
+    public Map(String fileName)
+    {
+    	importMap(fileName);
+>>>>>>> 7de00b56820f00f2de508c290826b6365e19f162
     }
     
     
@@ -103,8 +109,8 @@ public class Map {
 
         //write infos
         fw.write(((Integer)anzPlayers).toString() + '\r'+'\n');
-        fw.write(((Integer)anzOverwriteStones).toString() + '\n'+'\r');
-        fw.write( ((Integer)anzBombsAtStrat).toString() + ' ' + ((Integer)explosionRadius).toString() + '\n');
+        fw.write( ((Integer)overwriteStonesPerPlayer[0]).toString() + '\n');
+        fw.write(((Integer)bombsPerPlayer[0]).toString()  + ' ' + ((Integer)explosionRadius).toString() + '\n');
         fw.write( ((Integer)height).toString() + ' ' + ((Integer)width).toString() + '\n');
 
         //write map
@@ -138,8 +144,9 @@ public class Map {
      */
     public void print() {
         System.out.println("Player count: " + anzPlayers);
-        System.out.println("Overwrite-stones count: " + anzOverwriteStones);
-        System.out.println("Bomb count: " + anzBombsAtStrat + ", Explosion radius: " + explosionRadius);
+        System.out.println("Overwrite Stones per Player (0-8) " + Arrays.toString(overwriteStonesPerPlayer) + "\n");
+        System.out.println("Bombs per Player (0-8) " + Arrays.toString(bombsPerPlayer) + "\n");
+        System.out.println("Explosion radius: " + explosionRadius);
         System.out.println("Height: " + height + ", Width: " + width);
 
         System.out.println(Arrays.deepToString(map).replaceAll("],","]\n"));
@@ -200,10 +207,14 @@ public class Map {
                 anzPlayers = ((Double)st.nval).intValue();
                 break;
             case 1:
-                anzOverwriteStones = ((Double)st.nval).intValue();
+                int overweriteStonesAtStart = ((Double)st.nval).intValue();
+                for (int i = 0; i < anzPlayers; i++)
+                    overwriteStonesPerPlayer[i] = overweriteStonesAtStart;
                 break;
             case 2:
-                anzBombsAtStrat = ((Double)st.nval).intValue();
+                int bombsAtStart = ((Double)st.nval).intValue();
+                for (int i = 0; i < anzPlayers; i++)
+                    bombsPerPlayer[i] = bombsAtStart;
                 break;
             case 3:
                 explosionRadius = ((Double)st.nval).intValue();
