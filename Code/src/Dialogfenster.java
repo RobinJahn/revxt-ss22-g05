@@ -12,7 +12,7 @@ public class Dialogfenster {
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         chooser.setFileHidingEnabled(false);
 
-        String currentPath = Paths.get(".").toAbsolutePath().normalize().toString();
+        String currentPath = Paths.get("./Maps").toAbsolutePath().normalize().toString();
         final File file = new File(currentPath);
 
         chooser.setCurrentDirectory(file);

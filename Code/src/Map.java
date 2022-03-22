@@ -25,10 +25,11 @@ public class Map {
      */
     public Map() {
     	Dialogfenster Mapöffnen = new Dialogfenster();
-    	importMap(Mapöffnen.oeffnen());
+    	boolean importedCorrectly = importMap(Mapöffnen.oeffnen());
+        if (!importedCorrectly) {
+            System.err.println("Map didn't import correctly.");
+        }
     }
-   
-    
     
     //public Methods
 
@@ -54,6 +55,7 @@ public class Map {
         int tokenCounter = 0;
         int x = 0, y = 0;
         boolean readTransitionsNow = false;
+        boolean noErrorsInMethod = true;
 
         //Set up File reader
         try {
@@ -68,20 +70,52 @@ public class Map {
         st.wordChars('-','-');
 
         //read file
-        tokenCounter = 0; //counts with which token it is currently at
+        tokenCounter = 0; //counts which token it is currently at
         while (true){
-            //cantch end of file and other exceptions
+            //catch end of file and other exceptions
             try {
                 if (st.nextToken() == StreamTokenizer.TT_EOF) break;
             } catch (IOException e) {
                 e.printStackTrace(); //prints error to stderr
                 return false;
             }
+            //handle false Tokens - generally defined
+            if (st.ttype == StreamTokenizer.TT_WORD){
+                char cur = st.sval.charAt(0);
+                if (cur != 'c' && cur != 'i' && cur != 'b' && cur != 'x'){
+                    System.err.println("Read invalid char. Valid chars: {c, i, b, x}");
+                    return false;
+                }
+            }
+            if (st.ttype == StreamTokenizer.TT_NUMBER){
+                int currentNumber = ((Double)st.nval).intValue();
+                if (currentNumber < 0){
+                    System.err.println("No negative Numbers allowed");
+                }
+            }
+
             //handle read token
-            //TODO: handle false Tokens
-            if (tokenCounter < 6) handleFirst5(st, tokenCounter);
-            else if (tokenCounter < (width*height)+6) handleMap(st, tokenCounter);
-            else handleTransitions(st, tokenCounter);
+            if (tokenCounter < 6) {
+                noErrorsInMethod = handleFirst5(st, tokenCounter);
+                if (!noErrorsInMethod) {
+                    System.err.println("Method handleFirst5() failed");
+                    return false;
+                }
+            }
+            else if (tokenCounter < (width*height)+6) {
+                noErrorsInMethod = handleMap(st, tokenCounter);
+                if (!noErrorsInMethod) {
+                    System.err.println("Method handleMap() failed");
+                    return false;
+                }
+            }
+            else {
+                noErrorsInMethod = handleTransitions(st, tokenCounter);
+                if (!noErrorsInMethod) {
+                    System.err.println("Method handleTransitions() failed");
+                    return false;
+                }
+            }
 
             tokenCounter++;
         }
@@ -142,8 +176,14 @@ public class Map {
     public String toString() {
         String mapString = "";
         mapString += "Player count: " + anzPlayers + "\n";
-        mapString += "Overwrite Stones per Player (0-8) " + Arrays.toString(overwriteStonesPerPlayer) + "\n";
-        mapString += "Bombs per Player (0-8) " + Arrays.toString(bombsPerPlayer) + "\n";
+        mapString += "Overwrite Stones per Player:\n";
+        for (int i = 0; i < anzPlayers; i++) {
+            mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i] + "\n";
+        }
+        mapString += "Bombs per Player:\n";
+        for (int i = 0; i < anzPlayers; i++) {
+            mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i] + "\n";
+        }
         mapString += "Explosion radius: " + explosionRadius + "\n";
         mapString += "Height: " + height + ", Width: " + width + "\n\n";
 
@@ -198,39 +238,48 @@ public class Map {
         return result;
     }
 
-    private void handleFirst5(StreamTokenizer st, int tokenCounter) {
-        if (tokenCounter < 0 || tokenCounter > 5) {
-            System.err.println("In Map.handleFirst5() the tokenCounter had an invalid Value");
-            return;
-        }
+    private boolean handleFirst5(StreamTokenizer st, int tokenCounter) {
+        int currentNumber = ((Double)st.nval).intValue();
         switch (tokenCounter) {
             case 0:
-                anzPlayers = ((Double)st.nval).intValue();
+                if (currentNumber > 8) { //check for valid number
+                    System.err.println("Count of Players cant be over 8");
+                    return false;
+                }
+                anzPlayers = currentNumber;
                 break;
             case 1:
-                int overweriteStonesAtStart = ((Double)st.nval).intValue();
                 for (int i = 0; i < anzPlayers; i++)
-                    overwriteStonesPerPlayer[i] = overweriteStonesAtStart;
+                    overwriteStonesPerPlayer[i] = currentNumber;
                 break;
             case 2:
-                int bombsAtStart = ((Double)st.nval).intValue();
                 for (int i = 0; i < anzPlayers; i++)
-                    bombsPerPlayer[i] = bombsAtStart;
+                    bombsPerPlayer[i] = currentNumber;
                 break;
             case 3:
-                explosionRadius = ((Double)st.nval).intValue();
+                explosionRadius = currentNumber;
                 break;
             case 4:
-                height = ((Double)st.nval).intValue();
+                if (currentNumber > 50) { //check for valid number
+                    System.err.println("Map height cant be over 50");
+                    return false; //check for valid number
+                }
+                height = currentNumber;
                 break;
             case 5:
-                width = ((Double)st.nval).intValue();
+                if (currentNumber > 50) { //check for valid number
+                    System.err.println("Map width cant be over 50");
+                    return false; //check for valid number
+                }
+                width = currentNumber;
                 map = new char[height][width];
                 break;
         }
+        return true;
     }
 
-    private void handleMap(StreamTokenizer st, int tokenCounter) {
+    private boolean handleMap(StreamTokenizer st, int tokenCounter) {
+        char minus = '-';
         //calculates x and y coordinates out of token counter, width and height
         int x = (tokenCounter-6)%width;
         int y = (tokenCounter-6)/width;
@@ -239,20 +288,57 @@ public class Map {
             setCharAt(x, y, st.sval.charAt(0));
         }
         if (st.ttype == StreamTokenizer.TT_NUMBER) {
-            setCharAt(x, y, ((Integer)((Double)st.nval).intValue()).toString().charAt(0)); //TODO: check if all that is neccessarry
+            int currentNumber = ((Double)st.nval).intValue();
+            if (currentNumber > anzPlayers){
+                System.err.println("No values over " + anzPlayers + " allowed");
+                return false;
+            }
+            setCharAt(x, y, Integer.toString(currentNumber).charAt(0));
         }
-        if (st.ttype == 45) { //TODO: do that right
+        if (st.ttype == minus) { //TODO: check if thats ok
             setCharAt(x, y, '-');
         }
+        return true;
     }
 
-    private void handleTransitions(StreamTokenizer st, int tokenCounter) {
-        if (st.ttype != StreamTokenizer.TT_NUMBER) return;
+    private boolean handleTransitions(StreamTokenizer st, int tokenCounter) {
+        if (st.ttype != StreamTokenizer.TT_NUMBER) {
+            char greater = '>';
+            char less = '<';
+            char minus = '-';
+            if (st.ttype != greater && st.ttype != less && st.ttype != minus) { //TODO: check if thats ok
+                System.err.println("No characters allowed in the transition section except <, - ,>");
+                return false;
+            }
+        }
 
-        int posInTransitionBuffer = (tokenCounter - (width*height)+6) % 3; //TODO: Ã¼bersprint <-> sind  3 - besser machen
+        int posInTransitionBuffer = (tokenCounter - (width*height)+6) % 3; //TODO: Übersprint <-> sind  3 - besser machen
         char buffer;
+        int currentNumber = ((Double)st.nval).intValue();
 
-        transitionsBuffer[posInTransitionBuffer] = ((Double)st.nval).intValue(); //saves the 3 values of one transition end in the buffer
+        //check for valid number
+        switch (posInTransitionBuffer){
+            case 0: //represents x
+                if (currentNumber >= width) {
+                    System.err.println("x Value of transition out of range");
+                    return false;
+                }
+                break;
+            case 1: //represents y
+                if (currentNumber >= height) {
+                    System.err.println("y Value of transition out of range");
+                    return false;
+                }
+                break;
+            case 2: //represents rotation
+                if (currentNumber > 7) {
+                    System.err.println("rotation can't be greater than 7");
+                    return false;
+                }
+                break;
+        }
+
+        transitionsBuffer[posInTransitionBuffer] = currentNumber; //saves the 3 values of one transition end in the buffer
 
         //if one transition end is complete
         if (posInTransitionBuffer == 2) {
@@ -271,6 +357,7 @@ public class Map {
             //toggle if transition is the first end or the second one
             isFirst = !isFirst;
         }
+        return true;
     }
 
 }
