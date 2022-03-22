@@ -24,18 +24,13 @@ public class Map {
      * Constructor imports Map from given Filepath
      * @param fileName is the Filepath
      */
-<<<<<<< HEAD
-    
+
     public Map()
     {	
     	Dialogfenster Mapöffnen = new Dialogfenster();
     	importMap(Mapöffnen.oeffnen());
-=======
-    public Map(String fileName)
-    {
-    	importMap(fileName);
->>>>>>> 7de00b56820f00f2de508c290826b6365e19f162
     }
+   
     
     
     //public Methods
