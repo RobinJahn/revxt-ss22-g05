@@ -20,6 +20,17 @@ public class Map {
     private int height;
     private int width;
 
+    /**
+     * Constructor imports Map from given Filepath
+     * @param fileName is the Filepath
+     */
+    
+    public Map(String fileName)
+    {
+    	importMap(fileName);
+    }
+    
+    
     //public Methods
 
     /**
