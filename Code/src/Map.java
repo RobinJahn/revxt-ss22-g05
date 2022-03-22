@@ -13,6 +13,7 @@ public class Map {
     private boolean isFirst = true;
 
     //General Map Infos
+    private int currentlyPlaying;
     private int anzPlayers;
     private int[] overwriteStonesPerPlayer = new int[]{-1, -1, -1, -1, -1, -1, -1, -1};
     private int[] bombsPerPlayer = new int[]{-1, -1, -1, -1, -1, -1, -1, -1};
@@ -24,8 +25,8 @@ public class Map {
      * Constructor imports Map from given Filepath
      */
     public Map() {
-    	Dialogfenster Mapöffnen = new Dialogfenster();
-    	boolean importedCorrectly = importMap(Mapöffnen.oeffnen());
+    	Dialogfenster openMap = new Dialogfenster();
+    	boolean importedCorrectly = importMap(openMap.oeffnen());
         if (!importedCorrectly) {
             System.err.println("Map didn't import correctly.");
         }
@@ -43,19 +44,17 @@ public class Map {
     }
 
     /**
-     * Method Imports a Map from the given File Name.
+     * Method Imports a Map from the given File Path.
      * @param fileName Path and Name of the file to import.
      * @return Returns true if map was imported correctly and false otherwise.
      */
     public boolean importMap(String fileName) {
         //Variables
-        FileReader fr = null;
-        BufferedReader br = null;
-        StreamTokenizer st = null;
-        int tokenCounter = 0;
-        int x = 0, y = 0;
-        boolean readTransitionsNow = false;
-        boolean noErrorsInMethod = true;
+        FileReader fr;
+        BufferedReader br;
+        StreamTokenizer st;
+        int tokenCounter;
+        boolean noErrorsInMethod;
 
         //Set up File reader
         try {
@@ -127,45 +126,42 @@ public class Map {
      * For Testing Purposes. Exports Map to given FileName in the directory of the Project
      * @param fileName Name of the File
      * @return returns true if the file was created successfully and otherwise false
-     * @throws IOException
      */
-    public boolean exportMap(String fileName) throws IOException {
+    public boolean exportMap(String fileName) {
         File newFile;
         FileWriter fw;
 
         //setup File and File Writer
         newFile = new File(fileName);
-        newFile.createNewFile();
-        fw = new FileWriter(fileName, false);
 
-        //write infos
-        fw.write(((Integer)anzPlayers).toString() + '\n');
-        fw.write( ((Integer)overwriteStonesPerPlayer[0]).toString() + '\n');
-        fw.write(((Integer)bombsPerPlayer[0]).toString()  + ' ' + ((Integer)explosionRadius).toString() + '\n');
-        fw.write( ((Integer)height).toString() + ' ' + ((Integer)width).toString() + '\n');
+        try {
+            newFile.createNewFile();
+            fw = new FileWriter(fileName, false);
 
-        //write map
-        for (int y = 0; y < height; y++){
-            for (int x = 0; x < width; x++){
-                fw.write(((Character)getCharAt(x,y)).toString() + ' ');
+            //write infos
+            fw.write("" + anzPlayers + '\n');
+            fw.write( "" + overwriteStonesPerPlayer[0] + '\n');
+            fw.write("" + bombsPerPlayer[0]  + ' ' + explosionRadius + '\n');
+            fw.write( "" + height + ' ' + width + '\n');
+
+            //write map
+            for (int y = 0; y < height; y++){
+                for (int x = 0; x < width; x++){
+                    fw.write(((Character)getCharAt(x,y)).toString() + ' ');
+                }
+                fw.write('\n');
             }
-            fw.write('\n');
+
+            //write transitions
+            for (char[] pair : transitions){
+                fw.write(Transitions.pairToString(pair));
+            }
+
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
-
-        //write transitions
-        for (char[] pair : transitions){
-            int x1 = Transitions.getX(pair[0]);
-            int y1 = Transitions.getY(pair[0]);
-            int r1 = Transitions.getR(pair[0]);
-
-            int x2 = Transitions.getX(pair[1]);
-            int y2 = Transitions.getY(pair[1]);
-            int r2 = Transitions.getR(pair[1]);
-
-            fw.write(x1 + " " + y1 + " " + r1 + " <-> " + x2 + " " + y2 + " " + r2 + '\n');
-        }
-
-        fw.close();
 
         return true;
     }
@@ -192,15 +188,7 @@ public class Map {
         mapString += "\n\n";
 
         for (char[] pair : transitions){
-            int x1 = Transitions.getX(pair[0]);
-            int y1 = Transitions.getY(pair[0]);
-            int r1 = Transitions.getR(pair[0]);
-
-            int x2 = Transitions.getX(pair[1]);
-            int y2 = Transitions.getY(pair[1]);
-            int r2 = Transitions.getR(pair[1]);
-
-            mapString += x1 + " " + y1 + " " + r1 + " <-> " + x2 + " " + y2 + " " + r2 + "\n";
+            mapString += Transitions.pairToString(pair);
         }
         return mapString;
     }
@@ -222,20 +210,6 @@ public class Map {
         }
         map[y][x] = charToChangeTo;
         return true;
-    }
-
-    /**
-     * In progress...
-     * @param st Stream Tokenizer to read the Char out of
-     * @return Returns the current Token as a char
-     */
-    private char getCharFromStreamTokenizer(StreamTokenizer st){
-        char result = 0;
-        if (st.ttype == StreamTokenizer.TT_WORD) result = st.sval.charAt(0);
-        if (st.ttype == StreamTokenizer.TT_NUMBER) result = ((Integer)((Double)st.nval).intValue()).toString().charAt(0); //TODO: check if all that is neccessarry
-        if (st.ttype == 45) result = '-'; //TODO: do that right
-
-        return result;
     }
 
     private boolean handleFirst5(StreamTokenizer st, int tokenCounter) {

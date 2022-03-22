@@ -18,5 +18,17 @@ public class Transitions {
         return mem%10;
     }
 
+    public static String pairToString(char[] pair) {
+        int x1 = Transitions.getX(pair[0]);
+        int y1 = Transitions.getY(pair[0]);
+        int r1 = Transitions.getR(pair[0]);
+
+        int x2 = Transitions.getX(pair[1]);
+        int y2 = Transitions.getY(pair[1]);
+        int r2 = Transitions.getR(pair[1]);
+
+        return x1 + " " + y1 + " " + r1 + " <-> " + x2 + " " + y2 + " " + r2 + '\n';
+    }
+
 
 }

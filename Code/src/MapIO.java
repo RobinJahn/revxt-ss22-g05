@@ -10,10 +10,6 @@ public class MapIO {
         System.out.println(myMap);
 
         //for testing Purposes
-        try {
-            myMap.exportMap("exportedMap.txt");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        if (myMap.exportMap("exportedMap.txt")) System.err.println("Map wasn't exported correctly");
     }
 }
