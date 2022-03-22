@@ -1,18 +1,19 @@
 package src;
 
 import java.io.File;
+import java.nio.file.Paths;
 import javax.swing.JFileChooser;
 
 public class Dialogfenster {
-
-   
 
     public String oeffnen() {
         final JFileChooser chooser = new JFileChooser("Verzeichnis wählen");
         chooser.setDialogType(JFileChooser.OPEN_DIALOG);
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         chooser.setFileHidingEnabled(false);
-        final File file = new File("/home");
+
+        String currentPath = Paths.get(".").toAbsolutePath().normalize().toString();
+        final File file = new File(currentPath);
 
         chooser.setCurrentDirectory(file);
 

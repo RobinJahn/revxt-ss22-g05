@@ -22,11 +22,8 @@ public class Map {
 
     /**
      * Constructor imports Map from given Filepath
-     * @param fileName is the Filepath
      */
-
-    public Map()
-    {	
+    public Map() {
     	Dialogfenster Mapöffnen = new Dialogfenster();
     	importMap(Mapöffnen.oeffnen());
     }
@@ -92,18 +89,23 @@ public class Map {
         return true;
     }
 
-    //for testing purposes
+    /**
+     * For Testing Purposes. Exports Map to given FileName in the directory of the Project
+     * @param fileName Name of the File
+     * @return returns true if the file was created successfully and otherwise false
+     * @throws IOException
+     */
     public boolean exportMap(String fileName) throws IOException {
         File newFile;
         FileWriter fw;
 
+        //setup File and File Writer
         newFile = new File(fileName);
         newFile.createNewFile();
-
         fw = new FileWriter(fileName, false);
 
         //write infos
-        fw.write(((Integer)anzPlayers).toString() + '\r'+'\n');
+        fw.write(((Integer)anzPlayers).toString() + '\n');
         fw.write( ((Integer)overwriteStonesPerPlayer[0]).toString() + '\n');
         fw.write(((Integer)bombsPerPlayer[0]).toString()  + ' ' + ((Integer)explosionRadius).toString() + '\n');
         fw.write( ((Integer)height).toString() + ' ' + ((Integer)width).toString() + '\n');
@@ -113,7 +115,7 @@ public class Map {
             for (int x = 0; x < width; x++){
                 fw.write(((Character)getCharAt(x,y)).toString() + ' ');
             }
-            fw.write('\r');
+            fw.write('\n');
         }
 
         //write transitions
@@ -126,7 +128,7 @@ public class Map {
             int y2 = Transitions.getY(pair[1]);
             int r2 = Transitions.getR(pair[1]);
 
-            fw.write(x1 + " " + y1 + " " + r1 + " <-> " + x2 + " " + y2 + " " + r2 + '\r' + '\n');
+            fw.write(x1 + " " + y1 + " " + r1 + " <-> " + x2 + " " + y2 + " " + r2 + '\n');
         }
 
         fw.close();
@@ -135,16 +137,19 @@ public class Map {
     }
 
     /**
-     * Prints Infos, Map and Transitions in the std.out.
+     * Returns Infos, Map and Transitions in a formatted String
      */
-    public void print() {
-        System.out.println("Player count: " + anzPlayers);
-        System.out.println("Overwrite Stones per Player (0-8) " + Arrays.toString(overwriteStonesPerPlayer) + "\n");
-        System.out.println("Bombs per Player (0-8) " + Arrays.toString(bombsPerPlayer) + "\n");
-        System.out.println("Explosion radius: " + explosionRadius);
-        System.out.println("Height: " + height + ", Width: " + width);
+    public String toString() {
+        String mapString = "";
+        mapString += "Player count: " + anzPlayers + "\n";
+        mapString += "Overwrite Stones per Player (0-8) " + Arrays.toString(overwriteStonesPerPlayer) + "\n";
+        mapString += "Bombs per Player (0-8) " + Arrays.toString(bombsPerPlayer) + "\n";
+        mapString += "Explosion radius: " + explosionRadius + "\n";
+        mapString += "Height: " + height + ", Width: " + width + "\n\n";
 
-        System.out.println(Arrays.deepToString(map).replaceAll("],","]\n"));
+        mapString += Arrays.deepToString(map).replaceAll("],","]\n");
+
+        mapString += "\n\n";
 
         for (char[] pair : transitions){
             int x1 = Transitions.getX(pair[0]);
@@ -155,8 +160,9 @@ public class Map {
             int y2 = Transitions.getY(pair[1]);
             int r2 = Transitions.getR(pair[1]);
 
-            System.out.println(x1 + " " + y1 + " " + r1 + " <-> " + x2 + " " + y2 + " " + r2);
+            mapString += x1 + " " + y1 + " " + r1 + " <-> " + x2 + " " + y2 + " " + r2 + "\n";
         }
+        return mapString;
     }
 
     //private Methodes
