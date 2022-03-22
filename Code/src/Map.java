@@ -13,13 +13,15 @@ public class Map {
     private boolean isFirst = true;
 
     //General Map Infos
-    private int currentlyPlaying;
     private int anzPlayers;
     private int[] overwriteStonesPerPlayer = new int[]{-1, -1, -1, -1, -1, -1, -1, -1};
     private int[] bombsPerPlayer = new int[]{-1, -1, -1, -1, -1, -1, -1, -1};
     private int explosionRadius;
     private int height;
     private int width;
+
+    //Extended Map Info
+    private int currentlyPlaying = 0;
 
     /**
      * Constructor imports Map from given Filepath
@@ -37,9 +39,10 @@ public class Map {
     /**
      * @param x x corrdinate
      * @param y y coordinate
-     * @return Returns the Character at the given x and y position in the Map.
+     * @return Returns the Character at the given x and y position in the Map. If it is out of boundaries it returns '-'
      */
     public char getCharAt(int x, int y){
+        if (x >= width || y >= height) return '-';
         return map[y][x];
     }
 
@@ -191,6 +194,36 @@ public class Map {
             mapString += Transitions.pairToString(pair);
         }
         return mapString;
+    }
+
+
+    //getter
+    public int getCurrentlyPlaying() {
+        return currentlyPlaying;
+    }
+
+    public int getAnzPlayers() {
+        return anzPlayers;
+    }
+
+    public int getOverwriteStonesForPlayer(int playerId) {
+        return overwriteStonesPerPlayer[playerId];
+    }
+
+    public int getBombsForPlayer(int playerId) {
+        return bombsPerPlayer[playerId];
+    }
+
+    public int getExplosionRadius() {
+        return explosionRadius;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
     }
 
     //private Methodes
