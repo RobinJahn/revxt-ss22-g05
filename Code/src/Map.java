@@ -25,9 +25,10 @@ public class Map {
      * @param fileName is the Filepath
      */
     
-    public Map(String fileName)
-    {
-    	importMap(fileName);
+    public Map()
+    {	
+    	Dialogfenster Mapöffnen = new Dialogfenster();
+    	importMap(Mapöffnen.oeffnen());
     }
     
     

@@ -8,6 +8,8 @@ public class Client {
 		Map Spielfeld = new Map();
 		
 		gueltige_Zuege(playernum, Spielfeld);
+		
+		Spielfeld.print();
 	}
 	
 	
