@@ -3,15 +3,20 @@ package src;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Set;
 
 public class Map {
     private char[][] map; //main data structure to store the Map Infos
 
     //Data Structure and needed Variables to store Transitions
-    ArrayList<char[]> transitions = new ArrayList<>(); //TODO: austauschen durch hash map
-    int[] transitionsBuffer = new int[3];
-    private boolean isFirst = true;
-
+    //ArrayList<char[]> transitions = new ArrayList<>(); //TODO: austauschen durch hash map
+    HashMap<Character,Character> transitionen = new HashMap<Character,Character>();
+    
+    
+    int[] transitionsBuffer = new int[9];
+    int posInTransitionBuffer=0;
+    
     //General Map Infos
     private int anzPlayers;
     private int[] overwriteStonesPerPlayer = new int[]{-1, -1, -1, -1, -1, -1, -1, -1};
@@ -156,10 +161,14 @@ public class Map {
             }
 
             //write transitions
+            transitionen.forEach(null);
+            Set a = transitionen.keySet();
+            System.out.println(a.toString());
+            /*
             for (char[] pair : transitions){
                 fw.write(Transitions.pairToString(pair));
             }
-
+			*/
             fw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -189,10 +198,12 @@ public class Map {
         mapString += Arrays.deepToString(map).replaceAll("],","]\n");
 
         mapString += "\n\n";
-
+        
+        /*
         for (char[] pair : transitions){
             mapString += Transitions.pairToString(pair);
         }
+        */
         return mapString;
     }
 
@@ -319,25 +330,25 @@ public class Map {
             }
         }
 
-        int posInTransitionBuffer = (tokenCounter - (width*height)+6) % 3; //TODO: Übersprint <-> sind  3 - besser machen
         char buffer;
+        char buffer2;
         int currentNumber = ((Double)st.nval).intValue();
 
         //check for valid number
         switch (posInTransitionBuffer){
-            case 0: //represents x
+            case 0,6: //represents x
                 if (currentNumber >= width) {
                     System.err.println("x Value of transition out of range");
                     return false;
                 }
                 break;
-            case 1: //represents y
+            case 1,7: //represents y
                 if (currentNumber >= height) {
                     System.err.println("y Value of transition out of range");
                     return false;
                 }
                 break;
-            case 2: //represents rotation
+            case 2,8: //represents rotation
                 if (currentNumber > 7) {
                     System.err.println("rotation can't be greater than 7");
                     return false;
@@ -345,24 +356,29 @@ public class Map {
                 break;
         }
 
-        transitionsBuffer[posInTransitionBuffer] = currentNumber; //saves the 3 values of one transition end in the buffer
+        transitionsBuffer[posInTransitionBuffer] = currentNumber; //saves the values of the transition in the buffer
 
-        //if one transition end is complete
-        if (posInTransitionBuffer == 2) {
+        //if one transition is complete
+        if (posInTransitionBuffer == 8) {
             //convert transition infos into a char
-            buffer = Transitions.saveInChar(transitionsBuffer[0],transitionsBuffer[1],transitionsBuffer[2]);
-            //Checks if transition end is the first or second one
-            if (isFirst) { //if it's the first one it creates a new transition pair and saves it in the transition List
-                char[] pair = new char[2];
-                pair[0] = buffer;
-                transitions.add(pair);
-            }
-            else { //If it's the second one it adds the second transition end to the pair in the transition List
-                transitions.get(transitions.size()-1)[1] = buffer;
-            }
-
-            //toggle if transition is the first end or the second one
-            isFirst = !isFirst;
+        	buffer = Transitions.saveInChar(transitionsBuffer[0],transitionsBuffer[1],transitionsBuffer[2]);
+        	buffer2 = Transitions.saveInChar(transitionsBuffer[6],transitionsBuffer[7],transitionsBuffer[8]);
+        	/*
+        	for(int i = 0; i< transitionsBuffer.length;i++)
+        	{
+        		System.out.println(transitionsBuffer[i]);
+        	}
+        	
+        	System.out.println((int)buffer + " , " + (int)buffer2);
+        	*/
+            transitionen.put(buffer, buffer2);
+            transitionen.put(buffer2, buffer);
+            
+            posInTransitionBuffer = 0;
+        }
+        else 
+        {
+        posInTransitionBuffer++;	
         }
         return true;
     }
