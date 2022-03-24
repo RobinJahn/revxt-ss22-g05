@@ -161,14 +161,8 @@ public class Map {
             }
 
             //write transitions
-            transitionen.forEach(null);
-            Set a = transitionen.keySet();
-            System.out.println(a.toString());
-            /*
-            for (char[] pair : transitions){
-                fw.write(Transitions.pairToString(pair));
-            }
-			*/
+            fw.write(Transitions.AllToString(transitionen));
+            
             fw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -199,11 +193,8 @@ public class Map {
 
         mapString += "\n\n";
         
-        /*
-        for (char[] pair : transitions){
-            mapString += Transitions.pairToString(pair);
-        }
-        */
+        mapString += Transitions.AllToString(transitionen);
+        
         return mapString;
     }
 
