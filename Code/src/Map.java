@@ -26,7 +26,7 @@ public class Map {
     private int width;
 
     //Extended Map Info
-    private int currentlyPlaying = 0;
+    private int currentlyPlaying = 1;
 
     /**
      * Constructor imports Map from given Filepath
@@ -200,8 +200,11 @@ public class Map {
 
 
     //getter
-    public int getCurrentlyPlaying() {
+    public int getCurrentlyPlayingI() {
         return currentlyPlaying;
+    }
+    public char getCurrentlyPlayingC() {
+        return Integer.toString(currentlyPlaying).charAt(0);
     }
 
     public int getAnzPlayers() {
@@ -228,7 +231,7 @@ public class Map {
         return width;
     }
 
-    //private Methodes
+    //setter
 
     /**
      * Sets given Char at the given x and y position in the Map.
@@ -238,7 +241,7 @@ public class Map {
      * @param charToChangeTo character to set at the given position
      * @return returns true if char was set correctly
      */
-    private boolean setCharAt(int x, int y, char charToChangeTo){
+    public boolean setCharAt(int x, int y, char charToChangeTo){
         if (map == null) {
             System.err.println("The Map wasn't yet initialized");
             return false;
@@ -246,6 +249,8 @@ public class Map {
         map[y][x] = charToChangeTo;
         return true;
     }
+
+    //private Methodes
 
     private boolean handleFirst5(StreamTokenizer st, int tokenCounter) {
         int currentNumber = ((Double)st.nval).intValue();
@@ -327,19 +332,22 @@ public class Map {
 
         //check for valid number
         switch (posInTransitionBuffer){
-            case 0,6: //represents x
+            case 0:
+            case 6: //represents x
                 if (currentNumber >= width) {
                     System.err.println("x Value of transition out of range");
                     return false;
                 }
                 break;
-            case 1,7: //represents y
+            case 1:
+            case 7: //represents y
                 if (currentNumber >= height) {
                     System.err.println("y Value of transition out of range");
                     return false;
                 }
                 break;
-            case 2,8: //represents rotation
+            case 2:
+            case 8: //represents rotation
                 if (currentNumber > 7) {
                     System.err.println("rotation can't be greater than 7");
                     return false;
