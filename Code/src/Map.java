@@ -10,7 +10,7 @@ public class Map {
     private char[][] map; //main data structure to store the Map Infos
 
     //Data Structure and needed Variables to store Transitions
-    HashMap<Character,Character> transitionen = new HashMap<Character,Character>();
+    public HashMap<Character,Character> transitionen = new HashMap<Character,Character>();
     int[] transitionsBuffer = new int[9];
     int posInTransitionBuffer=0;
     
