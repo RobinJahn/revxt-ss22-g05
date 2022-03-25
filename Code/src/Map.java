@@ -10,10 +10,7 @@ public class Map {
     private char[][] map; //main data structure to store the Map Infos
 
     //Data Structure and needed Variables to store Transitions
-    //ArrayList<char[]> transitions = new ArrayList<>(); //TODO: austauschen durch hash map
     HashMap<Character,Character> transitionen = new HashMap<Character,Character>();
-    
-    
     int[] transitionsBuffer = new int[9];
     int posInTransitionBuffer=0;
     
@@ -29,7 +26,8 @@ public class Map {
     private int currentlyPlaying = 1;
 
     /**
-     * Constructor imports Map from given Filepath
+     * Constructor.
+     * Opens File Dialog to Import a Map
      */
     public Map() {
     	Dialogfenster openMap = new Dialogfenster();
@@ -39,17 +37,9 @@ public class Map {
         }
     }
     
-    //public Methods
+    //PUBLIC METHODS
 
-    /**
-     * @param x x corrdinate
-     * @param y y coordinate
-     * @return Returns the Character at the given x and y position in the Map. If it is out of boundaries it returns '-'
-     */
-    public char getCharAt(int x, int y){
-        if (x >= width || y >= height || x < 0 || y < 0) return '-';
-        return map[y][x];
-    }
+
 
     /**
      * Method Imports a Map from the given File Path.
@@ -76,24 +66,26 @@ public class Map {
         st.whitespaceChars(' ', ' ');
         st.wordChars('-','-');
 
-        //read file
+        //Read file
         tokenCounter = 0; //counts which token it is currently at
         while (true){
-            //catch end of file and other exceptions
+            //Catch end of file and other exceptions
             try {
                 if (st.nextToken() == StreamTokenizer.TT_EOF) break;
             } catch (IOException e) {
                 e.printStackTrace(); //prints error to stderr
                 return false;
             }
-            //handle false Tokens - generally defined
+            //Handle false Tokens - generally false
+            //Handle false chars
             if (st.ttype == StreamTokenizer.TT_WORD){
                 char cur = st.sval.charAt(0);
-                if (cur != 'c' && cur != 'i' && cur != 'b' && cur != 'x'){
-                    System.err.println("Read invalid char. Valid chars: {c, i, b, x}");
+                if (cur != 'c' && cur != 'i' && cur != 'b' && cur != 'x'){ //an imported map can't have a t to mark transitions
+                    System.err.println("Read invalid char! Valid chars: {c, i, b, x}");
                     return false;
                 }
             }
+            //Handle false Numbers
             if (st.ttype == StreamTokenizer.TT_NUMBER){
                 int currentNumber = ((Double)st.nval).intValue();
                 if (currentNumber < 0){
@@ -101,21 +93,24 @@ public class Map {
                 }
             }
 
-            //handle read token
+            //Handle read token
+            //First read infos
             if (tokenCounter < 6) {
                 noErrorsInMethod = handleFirst5(st, tokenCounter);
                 if (!noErrorsInMethod) {
-                    System.err.println("Method handleFirst5() failed");
+                    System.err.println("Method handleFirst5() failed.");
                     return false;
                 }
             }
-            else if (tokenCounter < (width*height)+6) {
+            //then read map
+            else if (tokenCounter < ((width-2)*(height-2))+6) { //-2 because of the ring around the map
                 noErrorsInMethod = handleMap(st, tokenCounter);
                 if (!noErrorsInMethod) {
                     System.err.println("Method handleMap() failed");
                     return false;
                 }
             }
+            //and then read transitions
             else {
                 noErrorsInMethod = handleTransitions(st, tokenCounter);
                 if (!noErrorsInMethod) {
@@ -199,7 +194,19 @@ public class Map {
     }
 
 
-    //getter
+    //GETTER
+    /**
+     * @param x x corrdinate
+     * @param y y coordinate
+     * @return Returns the Character at the given x and y position in the Map. If it is out of boundaries it returns '-'
+     */
+    public char getCharAt(int x, int y){
+        //check boundaries
+        if (x > width || y > height || x < 0 || y < 0) return '-';
+        //return value
+        return map[y][x];
+    }
+
     public int getCurrentlyPlayingI() {
         return currentlyPlaying;
     }
@@ -231,7 +238,7 @@ public class Map {
         return width;
     }
 
-    //setter
+    //SETTER
 
     /**
      * Sets given Char at the given x and y position in the Map.
@@ -242,22 +249,29 @@ public class Map {
      * @return returns true if char was set correctly
      */
     public boolean setCharAt(int x, int y, char charToChangeTo){
+        //check if map is initialized
         if (map == null) {
             System.err.println("The Map wasn't yet initialized");
             return false;
         }
+        //check boundaries
+        if (x >= width || y >= height || x < 0 || y < 0) {
+            System.err.println("Position out of Map");
+            return false;
+        }
+        //set char
         map[y][x] = charToChangeTo;
         return true;
     }
 
-    //private Methodes
+    //PRIVATE METHODS
 
     private boolean handleFirst5(StreamTokenizer st, int tokenCounter) {
         int currentNumber = ((Double)st.nval).intValue();
         switch (tokenCounter) {
             case 0:
                 if (currentNumber > 8) { //check for valid number
-                    System.err.println("Count of Players cant be over 8");
+                    System.err.println("Count of Players can't be over 8");
                     return false;
                 }
                 anzPlayers = currentNumber;
@@ -278,15 +292,16 @@ public class Map {
                     System.err.println("Map height cant be over 50");
                     return false; //check for valid number
                 }
-                height = currentNumber;
+                height = currentNumber + 2; //+2 because of the ring around the map
                 break;
             case 5:
                 if (currentNumber > 50) { //check for valid number
                     System.err.println("Map width cant be over 50");
                     return false; //check for valid number
                 }
-                width = currentNumber;
-                map = new char[height+2][width+2];
+                width = currentNumber + 2; //+2 because of the ring around the map
+                //create map
+                map = new char[height][width];
                 initializeMap();
                 break;
         }
@@ -294,8 +309,8 @@ public class Map {
     }
 
     private void initializeMap(){
-        for (int y = 0; y < height+2; y++){
-            for (int x = 0; x < width+2; x++){
+        for (int y = 0; y < height; y++){
+            for (int x = 0; x < width; x++){
                 setCharAt(x,y,'-');
             }
         }
@@ -305,21 +320,23 @@ public class Map {
     private boolean handleMap(StreamTokenizer st, int tokenCounter) {
         char minus = '-';
         //calculates x and y coordinates out of token counter, width and height
-        int x = (tokenCounter-6)%width + 1;
-        int y = (tokenCounter-6)/width + 1;
+        int x = (tokenCounter-6)%(width-2) + 1; //-2 and +1 is index shift
+        int y = (tokenCounter-6)/(width-2) + 1; //-2 and +1 is index shift
         //save char in map
+        //if it's a char
         if (st.ttype == StreamTokenizer.TT_WORD) {
             setCharAt(x, y, st.sval.charAt(0));
         }
+        //if it's a number
         if (st.ttype == StreamTokenizer.TT_NUMBER) {
             int currentNumber = ((Double)st.nval).intValue();
             if (currentNumber > anzPlayers){
-                System.err.println("No values over " + anzPlayers + " allowed");
+                System.err.println("No values over " + anzPlayers + " allowed!");
                 return false;
             }
             setCharAt(x, y, Integer.toString(currentNumber).charAt(0));
         }
-        if (st.ttype == minus) { //TODO: check if thats ok
+        if (st.ttype == minus) {
             setCharAt(x, y, '-');
         }
         return true;
@@ -343,21 +360,21 @@ public class Map {
             currentNumber = ((Double) st.nval).intValue();
         }
         else {
-            currentNumber = ((Double) st.nval).intValue() + 1; //offset for transitions
+            currentNumber = ((Double) st.nval).intValue() + 1;  //+1 is index shift
         }
 
         //check for valid number
         switch (posInTransitionBuffer){
             case 0:
             case 6: //represents x
-                if (currentNumber >= width) {
+                if (currentNumber >= width) { //no index shift needed here
                     System.err.println("x Value of transition out of range");
                     return false;
                 }
                 break;
             case 1:
             case 7: //represents y
-                if (currentNumber >= height) {
+                if (currentNumber >= height) { //no index shift needed here
                     System.err.println("y Value of transition out of range");
                     return false;
                 }
@@ -386,13 +403,17 @@ public class Map {
         	
         	System.out.println((int)buffer + " , " + (int)buffer2);
         	*/
+            //Add transition to hash Map
             transitionen.put(buffer, buffer2);
             transitionen.put(buffer2, buffer);
 
+            //Add Transitions to Map
+            //first end
             Position endOne = new Position(transitionsBuffer[0], transitionsBuffer[1]);
             endOne = Position.gotInR(endOne, transitionsBuffer[2]);
             setCharAt(endOne.x, endOne.y, 't');
 
+            //second end
             Position endTwo = new Position(transitionsBuffer[6], transitionsBuffer[7]);
             endTwo = Position.gotInR(endTwo, transitionsBuffer[8]);
             setCharAt(endTwo.x, endTwo.y, 't');
