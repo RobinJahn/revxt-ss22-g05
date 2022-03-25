@@ -54,6 +54,7 @@ public class Client {
 
 			//do the move
 			map.setCharAt(x, y, map.getCurrentlyPlayingC());
+			map.nextPlayer();
 
 		}
 	}
@@ -115,7 +116,7 @@ public class Client {
 			currPos = startPos.clone(); //resets currPos to startPos
 
 			//change x and y according to direction
-			newR = doAStep(currPos,r,map);
+			newR = doAStep(currPos,r,map); //is only executed once per for loop so change of r doesn't affact it
 			if (newR == null) continue;
 
 			fieldInDirectionR = map.getCharAt(currPos);
@@ -172,11 +173,12 @@ public class Client {
 		if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) return true;
 
 		for (Integer r : directions){
-			//reset x and y
+			//reset values
 			currPos = pos.clone();
 			wasFirstStep = true;
+			newR = r;
 			while (true) {
-				newR = doAStep(currPos, r, map); //currPos is changed here
+				newR = doAStep(currPos, newR, map); //currPos is changed here
 				if (newR == null) break; //if the step wasn't possible
 
 				//check what's there

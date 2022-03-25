@@ -173,6 +173,7 @@ public class Map {
     public String toString() {
         String mapString = "";
         mapString += "Player count: " + anzPlayers + "\n";
+        mapString += "currently playing: " + currentlyPlaying + "\n";
         mapString += "Overwrite Stones per Player:\n";
         for (int i = 0; i < anzPlayers; i++) {
             mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i] + "\n";
@@ -199,6 +200,7 @@ public class Map {
         String bufferString;
 
         mapString += "Player count: " + anzPlayers + "\n";
+        mapString += "currently playing: " + currentlyPlaying + "\n";
         mapString += "Overwrite Stones per Player:\n";
         for (int i = 0; i < anzPlayers; i++) {
             mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i] + "\n";
@@ -305,6 +307,11 @@ public class Map {
         //set char
         map[y][x] = charToChangeTo;
         return true;
+    }
+
+    public void nextPlayer(){
+        currentlyPlaying++;
+        if (currentlyPlaying == anzPlayers+1) currentlyPlaying = 1;
     }
 
     //PRIVATE METHODS
