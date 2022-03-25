@@ -5,38 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
-class Position {
-	public int x;
-	public int y;
-
-	public Position(int x, int y){
-		this.x = x;
-		this.y = y;
-	}
-
-	public Position(int[] pos){
-		this.x = pos[0];
-		this.y = pos[1];
-	}
-
-	@Override
-	public int hashCode() {
-		return 100*y + x;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		Position p = (Position) obj;
-		if (this.x == p.x && this.y == p.y) return true;
-		return false;
-	}
-
-	@Override
-	public String toString() {
-		return "(" + x + "," + y + ")";
-	}
-}
-
 class Moves {
 	public ArrayList<Position> possibleMoves;
 	public HashMap<Position, ArrayList<Integer>> movesToCheck;
@@ -123,7 +91,7 @@ public class Client {
 				//check for expansions field
 				if (Character.isAlphabetic(currChar) && currChar == 'x' && map.getOverwriteStonesForPlayer(currentlyPlaying) > 0){
 					//Add finaly
-					//moves.possibleMoves.add(new Position(x,y)); //TODO: comment in
+					moves.possibleMoves.add(new Position(x,y)); //TODO: comment in
 				}
 				//if a player is there
 				if (Character.isDigit(currChar) && currChar != '0'){

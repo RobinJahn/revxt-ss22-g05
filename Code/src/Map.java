@@ -47,7 +47,7 @@ public class Map {
      * @return Returns the Character at the given x and y position in the Map. If it is out of boundaries it returns '-'
      */
     public char getCharAt(int x, int y){
-        if (x >= width || y >= height) return '-';
+        if (x >= width || y >= height || x < 0 || y < 0) return '-';
         return map[y][x];
     }
 
@@ -286,17 +286,27 @@ public class Map {
                     return false; //check for valid number
                 }
                 width = currentNumber;
-                map = new char[height][width];
+                map = new char[height+2][width+2];
+                initializeMap();
                 break;
         }
         return true;
     }
 
+    private void initializeMap(){
+        for (int y = 0; y < height+2; y++){
+            for (int x = 0; x < width+2; x++){
+                setCharAt(x,y,'-');
+            }
+        }
+
+    }
+
     private boolean handleMap(StreamTokenizer st, int tokenCounter) {
         char minus = '-';
         //calculates x and y coordinates out of token counter, width and height
-        int x = (tokenCounter-6)%width;
-        int y = (tokenCounter-6)/width;
+        int x = (tokenCounter-6)%width + 1;
+        int y = (tokenCounter-6)/width + 1;
         //save char in map
         if (st.ttype == StreamTokenizer.TT_WORD) {
             setCharAt(x, y, st.sval.charAt(0));
@@ -328,7 +338,13 @@ public class Map {
 
         char buffer;
         char buffer2;
-        int currentNumber = ((Double)st.nval).intValue();
+        int currentNumber;
+        if (posInTransitionBuffer == 2 || posInTransitionBuffer == 8) { //special handling of rotation value and position value
+            currentNumber = ((Double) st.nval).intValue();
+        }
+        else {
+            currentNumber = ((Double) st.nval).intValue() + 1; //offset for transitions
+        }
 
         //check for valid number
         switch (posInTransitionBuffer){
@@ -372,6 +388,14 @@ public class Map {
         	*/
             transitionen.put(buffer, buffer2);
             transitionen.put(buffer2, buffer);
+
+            Position endOne = new Position(transitionsBuffer[0], transitionsBuffer[1]);
+            endOne = Position.gotInR(endOne, transitionsBuffer[2]);
+            setCharAt(endOne.x, endOne.y, 't');
+
+            Position endTwo = new Position(transitionsBuffer[6], transitionsBuffer[7]);
+            endTwo = Position.gotInR(endTwo, transitionsBuffer[8]);
+            setCharAt(endTwo.x, endTwo.y, 't');
             
             posInTransitionBuffer = 0;
         }
