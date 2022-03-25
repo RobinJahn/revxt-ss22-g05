@@ -39,7 +39,7 @@ class Position {
 
 class Moves {
 	public ArrayList<Position> possibleMoves;
-	public HashMap<Position, ArrayList<Integer>> movesToCheck; //TODO: Check if same pair of x and y are hashed to the same key
+	public HashMap<Position, ArrayList<Integer>> movesToCheck;
 
 	public Moves() {
 		possibleMoves = new ArrayList<>();
@@ -74,7 +74,7 @@ public class Client {
 		System.out.println(map);
 		while (true){
 			System.out.println("Possible Moves:");
-			ArrayList<Position> validMoves = validMoves(map);
+			ArrayList<Position> validMoves = getValidMoves(map);
 			System.out.println(Arrays.toString(validMoves.toArray()));
 
 			System.out.print("Geben Sie den naechsten zug ein (x,y): ");
@@ -100,20 +100,21 @@ public class Client {
 	}
 	
 	
-	static ArrayList<Position> validMoves(Map map) {
+	static ArrayList<Position> getValidMoves(Map map) {
 		Moves moves = new Moves();
 
 		//TODO: add seperation wich move finder should be jused
-		getFildsByNeighbour(map, moves);
+		getCandidatesByNeighbour(map, moves);
 		deleteNotPossibleMoves(map, moves);
 		
 		return moves.possibleMoves;
 	}
 
-	private static void getFildsByNeighbour(Map map, Moves moves){
+	private static void getCandidatesByNeighbour(Map map, Moves moves){
 		int currentlyPlaying = map.getCurrentlyPlayingI();
 		char currChar;
 
+		//goes over every field
 		for (int y = 0; y < map.getHeight(); y++){
 			for (int x = 0; x < map.getWidth(); x++){
 
@@ -128,7 +129,7 @@ public class Client {
 				if (Character.isDigit(currChar) && currChar != '0'){
 					int currNumber = Integer.parseInt(Character.toString(currChar));
 					//if it's one of the own keystones an overwrite-stone could be set
-					if (currNumber == currentlyPlaying){
+					if (currNumber == currentlyPlaying && map.getOverwriteStonesForPlayer(currentlyPlaying) > 0){
 						//add and check all directions
 						//moves.addPositionInAllDirections(x,y); //TODO: comment in
 					}
@@ -142,39 +143,49 @@ public class Client {
 	}
 
 	private static void checkAllNeighboures(Map map, Moves moves, int x, int y){
-		int x1 = x, y1 = y;
+		int xSaved = x, ySaved = y;
 		char blankField = '0';
+
+		// go in every direction and check if there's a free field where you could place a keystone
 		for (int r = 0; r <= 7; r++){
 			char fieldInDirectionR = '-'; //only neccessary to initialize because the compiler want's it initialized in all cases
-			x = x1;
-			y = y1;
+			//reset x and y
+			x = xSaved;
+			y = ySaved;
 
+			//change x and y according to direction
 			switch (r) {
 				case 0:
-					fieldInDirectionR = map.getCharAt(x, y = y - 1);
+					y = y - 1;
 					break;
 				case 1:
-					fieldInDirectionR = map.getCharAt(x = x + 1, y =y - 1);
+					x = x + 1;
+					y =y - 1;
 					break;
 				case 2:
-					fieldInDirectionR = map.getCharAt(x = x + 1, y);
+					x = x + 1;
 					break;
 				case 3:
-					fieldInDirectionR = map.getCharAt(x= x + 1, y = y + 1);
+					x= x + 1;
+					y = y + 1;
 					break;
 				case 4:
-					fieldInDirectionR = map.getCharAt(x, y = y + 1);
+					y = y + 1;
 					break;
 				case 5:
-					fieldInDirectionR = map.getCharAt(x = x - 1, y = y + 1);
+					x = x - 1;
+					y = y + 1;
 					break;
 				case 6:
-					fieldInDirectionR = map.getCharAt(x = x - 1, y);
+					x = x - 1;
 					break;
 				case 7:
-					fieldInDirectionR = map.getCharAt(x = x - 1,  y = y - 1);
+					x = x - 1;
+					y = y - 1;
 					break;
 			}
+			fieldInDirectionR = map.getCharAt(x,y);
+
 			//TODO: TEST
 			//for a blank field add apossible move
 			if (fieldInDirectionR == blankField){
@@ -220,14 +231,16 @@ public class Client {
 	}
 
 	private static boolean searchForConnections(Position pos, ArrayList<Integer> directions, Map map){
-		int x = pos.x, y = pos.y;
+		int xSaved = pos.x,
+				ySaved = pos.y;
 		boolean stepPossible;
 		boolean wasFirstStep = true;
 		char currChar;
 
 		for (Integer r : directions){
-			pos.x = x;
-			pos.y = y;
+			//reset x and y
+			pos.x = xSaved;
+			pos.y = ySaved;
 			while (true) {
 				stepPossible = doAStep(pos, r, map); //call by reference
 				if (!stepPossible) break;
@@ -242,8 +255,8 @@ public class Client {
 					wasFirstStep = false;
 				} else {
 					if (currChar == map.getCurrentlyPlayingC()) {
-						pos.x = x;
-						pos.y = y;
+						pos.x = xSaved;
+						pos.y = ySaved;
 						return true;
 					}
 				}
