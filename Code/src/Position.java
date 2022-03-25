@@ -31,7 +31,7 @@ public class Position {
         return "(" + x + "," + y + ")";
     }
 
-    public static Position gotInR(Position pos, int r) {
+    public static Position goInR(Position pos, int r) {
         int x = pos.x;
         int y = pos.y;
         switch (r) {
@@ -64,6 +64,11 @@ public class Position {
                 y = y - 1;
                 break;
         }
+        return new Position(x,y);
+    }
+
+    @Override
+    protected Position clone() {
         return new Position(x,y);
     }
 }

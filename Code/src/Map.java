@@ -207,6 +207,13 @@ public class Map {
         return map[y][x];
     }
 
+    public char getCharAt(Position pos){
+        //check boundaries
+        if (pos.x > width || pos.y > height || pos.x < 0 || pos.y < 0) return '-';
+        //return value
+        return map[pos.y][pos.x];
+    }
+
     public int getCurrentlyPlayingI() {
         return currentlyPlaying;
     }
@@ -410,12 +417,12 @@ public class Map {
             //Add Transitions to Map
             //first end
             Position endOne = new Position(transitionsBuffer[0], transitionsBuffer[1]);
-            endOne = Position.gotInR(endOne, transitionsBuffer[2]);
+            endOne = Position.goInR(endOne, transitionsBuffer[2]);
             setCharAt(endOne.x, endOne.y, 't');
 
             //second end
             Position endTwo = new Position(transitionsBuffer[6], transitionsBuffer[7]);
-            endTwo = Position.gotInR(endTwo, transitionsBuffer[8]);
+            endTwo = Position.goInR(endTwo, transitionsBuffer[8]);
             setCharAt(endTwo.x, endTwo.y, 't');
             
             posInTransitionBuffer = 0;

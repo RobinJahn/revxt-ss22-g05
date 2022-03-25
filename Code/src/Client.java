@@ -26,15 +26,6 @@ class Moves {
 public class Client {
 	
 	public static void main(String[] args) {
-		/* Test
-		HashMap<Position, Integer> map = new HashMap<>();
-		Position a = new Position(1,2),
-				b = new Position(3,4);
-		map.put(a, 15);
-		map.put(b,2);
-
-		System.out.println(map.get(new Position(1,2)));
-		*/
 
 		Map map = new Map();
 		Scanner sc = new Scanner(System.in);
@@ -53,7 +44,7 @@ public class Client {
 			//check the move
 			ArrayList<Integer> directions = new ArrayList<>();
 			for (int i = 0; i <= 7; i++) directions.add(i);
-			boolean movePossible = searchForConnections(new Position(x,y), directions, map);
+			boolean movePossible = checkIfMoveIsPossible(new Position(x,y), directions, map);
 			if (!movePossible) {
 				System.err.println("Move isn't possible");
 				continue;
@@ -91,7 +82,7 @@ public class Client {
 				//check for expansions field
 				if (Character.isAlphabetic(currChar) && currChar == 'x' && map.getOverwriteStonesForPlayer(currentlyPlaying) > 0){
 					//Add finaly
-					moves.possibleMoves.add(new Position(x,y)); //TODO: comment in
+					moves.possibleMoves.add(new Position(x,y));
 				}
 				//if a player is there
 				if (Character.isDigit(currChar) && currChar != '0'){
@@ -99,7 +90,7 @@ public class Client {
 					//if it's one of the own keystones an overwrite-stone could be set
 					if (currNumber == currentlyPlaying && map.getOverwriteStonesForPlayer(currentlyPlaying) > 0){
 						//add and check all directions
-						//moves.addPositionInAllDirections(x,y); //TODO: comment in
+						moves.addPositionInAllDirections(x,y);
 					}
 					else if (currNumber > 0){
 						//check all neighboures and add it if the field is 0
@@ -111,60 +102,31 @@ public class Client {
 	}
 
 	private static void checkAllNeighboures(Map map, Moves moves, int x, int y){
-		int xSaved = x, ySaved = y;
+		Position startPos = new Position(x,y);
+		Position currPos;
 		char blankField = '0';
 
 		// go in every direction and check if there's a free field where you could place a keystone
 		for (int r = 0; r <= 7; r++){
 			char fieldInDirectionR = '-'; //only neccessary to initialize because the compiler want's it initialized in all cases
 			//reset x and y
-			x = xSaved;
-			y = ySaved;
+			currPos = startPos; //resets currPos to startPos
 
 			//change x and y according to direction
-			switch (r) {
-				case 0:
-					y = y - 1;
-					break;
-				case 1:
-					x = x + 1;
-					y =y - 1;
-					break;
-				case 2:
-					x = x + 1;
-					break;
-				case 3:
-					x= x + 1;
-					y = y + 1;
-					break;
-				case 4:
-					y = y + 1;
-					break;
-				case 5:
-					x = x - 1;
-					y = y + 1;
-					break;
-				case 6:
-					x = x - 1;
-					break;
-				case 7:
-					x = x - 1;
-					y = y - 1;
-					break;
-			}
-			fieldInDirectionR = map.getCharAt(x,y);
+			currPos = Position.goInR(currPos,r);
+
+			fieldInDirectionR = map.getCharAt(currPos);
 
 			//TODO: TEST
 			//for a blank field add apossible move
 			if (fieldInDirectionR == blankField){
 				int oppositeDirection = (r+4)%8;
-				Position pos = new Position(x,y);
-				ArrayList<Integer> directions = moves.movesToCheck.get(pos);
+				ArrayList<Integer> directions = moves.movesToCheck.get(currPos);
 				//if position didn't exist yet
 				if (directions == null) {
 					directions = new ArrayList<>();
 					directions.add(oppositeDirection);
-					moves.movesToCheck.put(pos,directions);
+					moves.movesToCheck.put(currPos,directions);
 				}
 				//if position already existed
 				else {
@@ -193,29 +155,30 @@ public class Client {
 			ArrayList<Integer> directions;
 			directions = moves.movesToCheck.get(pos);
 
-			connectionFound = searchForConnections(pos, directions, map);
+			connectionFound = checkIfMoveIsPossible(pos, directions, map);
 			if (connectionFound) moves.possibleMoves.add(pos);
 		}
 	}
 
-	private static boolean searchForConnections(Position pos, ArrayList<Integer> directions, Map map){
-		int xSaved = pos.x,
-				ySaved = pos.y;
+	private static boolean checkIfMoveIsPossible(Position pos, ArrayList<Integer> directions, Map map){
+		Position currPos;
 		boolean stepPossible;
-		boolean wasFirstStep = true;
+		boolean wasFirstStep;
 		char currChar;
+
+		if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) return true;
 
 		for (Integer r : directions){
 			//reset x and y
-			pos.x = xSaved;
-			pos.y = ySaved;
+			currPos = pos.clone();
+			wasFirstStep = true;
 			while (true) {
-				stepPossible = doAStep(pos, r, map); //call by reference
+				stepPossible = doAStep(currPos, r, map); //call by reference
 				if (!stepPossible) break;
 
 				//check what's there
 				//check for blank or not in field
-				currChar = map.getCharAt(pos.x, pos.y);
+				currChar = map.getCharAt(currPos);
 				if (currChar == '-' || currChar == '0') break;
 				//check for players
 				if (wasFirstStep) {
@@ -223,8 +186,6 @@ public class Client {
 					wasFirstStep = false;
 				} else {
 					if (currChar == map.getCurrentlyPlayingC()) {
-						pos.x = xSaved;
-						pos.y = ySaved;
 						return true;
 					}
 				}
@@ -249,36 +210,9 @@ public class Client {
 			if (r == 3 || r == 4 || r == 5) return false;
 		}
 
-		switch (r){
-			case 0:
-				pos.y -= 1;
-				break;
-			case 1:
-				pos.x += 1;
-				pos.y -= 1;
-				break;
-			case 2:
-				pos.x += 1;
-				break;
-			case 3:
-				pos.x += 1;
-				pos.y += 1;
-				break;
-			case 4:
-				pos.y += 1;
-				break;
-			case 5:
-				pos.y += 1;
-				pos.x -= 1;
-				break;
-			case 6:
-				pos.x -= 1;
-				break;
-			case 7:
-				pos.x -= 1;
-				pos.y -= 1;
-				break;
-		}
+		Position newPos = Position.goInR(pos, r);
+		pos.x = newPos.x;
+		pos.y = newPos.y;
 		return true;
 	}
 
