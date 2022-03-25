@@ -193,6 +193,42 @@ public class Map {
         return mapString;
     }
 
+    //not very clean code - just for testing purposes
+    public String toString(ArrayList<Position> possibleMoves){
+        String mapString = "";
+        String bufferString;
+
+        mapString += "Player count: " + anzPlayers + "\n";
+        mapString += "Overwrite Stones per Player:\n";
+        for (int i = 0; i < anzPlayers; i++) {
+            mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i] + "\n";
+        }
+        mapString += "Bombs per Player:\n";
+        for (int i = 0; i < anzPlayers; i++) {
+            mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i] + "\n";
+        }
+        mapString += "Explosion radius: " + explosionRadius + "\n";
+        mapString += "Height: " + height + ", Width: " + width + "\n\n";
+
+        for (int i = -1 ; i < width; i++) mapString += i + "\t";
+        mapString += "\n";
+        for (int y = 0; y < height; y++){
+            mapString += y + "\t";
+            for (int x = 0; x < width; x++){
+                bufferString = "" + getCharAt(x,y);
+                if (possibleMoves != null && possibleMoves.contains(new Position(x,y))) bufferString += "'";
+                mapString += bufferString + "\t";
+            }
+            mapString += "\n";
+        }
+
+        mapString += "\n\n";
+
+        mapString += Transitions.AllToString(transitionen);
+
+        return mapString;
+    }
+
 
     //GETTER
     /**

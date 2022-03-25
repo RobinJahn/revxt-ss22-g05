@@ -30,7 +30,7 @@ public class Client {
 		Map map = new Map();
 		Scanner sc = new Scanner(System.in);
 
-		System.out.println(map);
+		System.out.println(map.toString(null));
 		while (true){
 			System.out.println("Possible Moves:");
 			ArrayList<Position> validMoves = getValidMoves(map);
@@ -53,7 +53,7 @@ public class Client {
 			//do the move
 			map.setCharAt(x, y, map.getCurrentlyPlayingC());
 
-			System.out.println(map);
+			System.out.println(map.toString(validMoves));
 
 		}
 	}
