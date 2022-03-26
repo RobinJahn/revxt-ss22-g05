@@ -195,7 +195,17 @@ public class Map {
     }
 
     //not very clean code - just for testing purposes
-    public String toString(ArrayList<Position> possibleMoves){
+    public String toString(ArrayList<Position> possibleMoves, boolean showTransitions, boolean addColorsForIntelliJ){
+        final String ANSI_RESET = "\u001B[0m";
+        final String ANSI_BLACK = "\u001B[30m";
+        final String ANSI_RED = "\u001B[31m";
+        final String ANSI_GREEN = "\u001B[32m";
+        final String ANSI_YELLOW = "\u001B[33m";
+        final String ANSI_BLUE = "\u001B[34m";
+        final String ANSI_PURPLE = "\u001B[35m";
+        final String ANSI_CYAN = "\u001B[36m";
+        final String ANSI_WHITE = "\u001B[37m";
+
         String mapString = "";
         String bufferString;
 
@@ -217,16 +227,45 @@ public class Map {
         for (int y = 0; y < height; y++){
             mapString += y + "\t";
             for (int x = 0; x < width; x++){
-                bufferString = "" + getCharAt(x,y);
+                bufferString = "";
+
+                if (addColorsForIntelliJ) {
+                    switch (getCharAt(x,y)){
+                        case '1':
+                            bufferString += ANSI_RED;
+                            break;
+                        case '2':
+                            bufferString += ANSI_BLUE;
+                            break;
+                        case '3':
+                            bufferString += ANSI_YELLOW;
+                            break;
+                        case '4':
+                            bufferString += ANSI_GREEN;
+                            break;
+                        case '5':
+                            bufferString += ANSI_CYAN;
+                            break;
+                        case '6':
+                            bufferString += ANSI_PURPLE;
+                            break;
+                    }
+                }
+                bufferString += getCharAt(x,y);
                 if (possibleMoves != null && possibleMoves.contains(new Position(x,y))) bufferString += "'";
+
+                if (addColorsForIntelliJ) bufferString += ANSI_RESET;
+
                 mapString += bufferString + "\t";
             }
             mapString += "\n";
         }
 
-        mapString += "\n\n";
+        mapString += '\n';
 
-        mapString += Transitions.AllToString(transitionen);
+        if (showTransitions) {
+            mapString += Transitions.AllToString(transitionen);
+        }
 
         return mapString;
     }
