@@ -55,8 +55,66 @@ public class Client {
 				continue;
 			}
 
-			//do the move
-			colorMap(posToSetKeystone, map);
+			char fieldvalue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
+			switch(fieldvalue)
+			{
+				case 'b': {
+					colorMap(posToSetKeystone, map);
+					System.out.println("Wollen sie eine Bombe (b) oder einen Überschreibstein (u)?");
+					byte choice = sc.nextByte();
+					if(choice == 'b')
+					{
+						map.IncreaseBombsofPlayer();
+					}
+					else if(choice == 'u')
+					{
+						map.IncreaseOverrideStonesofPlayer();
+					}
+					else
+					{
+						System.err.println("Kein gültige Eingabe bei Wahl des Bonus");
+					}
+					break;
+
+				}
+				case 'c':{
+					colorMap(posToSetKeystone, map);
+					System.out.println("Mit wem wollen sie die Farbe tauschen ?");
+					int choice = sc.nextInt();
+					map.swapStonesWithOnePlayer(choice);
+					break;
+				}
+
+				case 'i':{
+					colorMap(posToSetKeystone, map);
+					map.Inversion();
+					break;
+				}
+
+				case '0':
+				{
+					colorMap(posToSetKeystone, map);
+					break;
+				}
+
+				case 'x':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				{
+					colorMap(posToSetKeystone, map);
+					map.DecreaseOverrideStonesofPlayer();
+					break;
+				}
+				default: {
+					System.err.println("Fieldvalue ist ungültig");
+				}
+			}
 			map.nextPlayer();
 
 		}
@@ -84,7 +142,6 @@ public class Client {
 	 */
 	private static void getCandidatesByNeighbour(Map map, Moves moves){
 		int currentlyPlaying = map.getCurrentlyPlayingI();
-		int currNumber;
 		char currChar;
 
 		//goes over every field
@@ -102,18 +159,14 @@ public class Client {
 
 				//if a player is there
 				if (Character.isDigit(currChar) && currChar != '0'){
-					//get int of player
-					currNumber = Integer.parseInt(Character.toString(currChar));
-					//if it's one of the own keystones an overwrite-stone could be set
-					if (currNumber == currentlyPlaying){
-						if (map.getOverwriteStonesForPlayer(currentlyPlaying) > 0) //split into two so the else keeps working
-							//add and check all directions
-							moves.addPositionInAllDirections(x,y);
+
+					//If the spot is taken, and you own an OverrideStone you have to check this spot
+					if (map.getOverwriteStonesForPlayer(currentlyPlaying) > 0)
+					{
+						moves.addPositionInAllDirections(x, y);
 					}
-					else if (currNumber > 0){
-						//check all neighboures and add it if the field is 0
-						checkAllNeighboures(map, moves, x, y);
-					}
+					//check all neighboures and add it if the field is 0
+					checkAllNeighboures(map, moves, x, y);
 				}
 			}
 		}
@@ -246,7 +299,6 @@ public class Client {
 		}
 		return false;
 	}
-
 	/**
 	 * colores the map when the keystone is placed in the specified position
 	 * @param pos position where the keystone is placed

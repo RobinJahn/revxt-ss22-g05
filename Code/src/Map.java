@@ -270,6 +270,50 @@ public class Map {
         return mapString;
     }
 
+    /**
+     * Swaps Stones with another player
+     * @param playerId Id of the player with whom to swap stones
+     */
+    public void swapStonesWithOnePlayer(int playerId)
+    {
+        if(playerId != currentlyPlaying)
+        {
+            for(int y = 0;y< height;y++)
+            {
+                for(int x = 0;x< width;x++)
+                {
+                    if(map[y][x] == playerId)
+                    {
+                        setCharAt(x,y,(char)currentlyPlaying);
+                    }
+                    else if(map[y][x] == currentlyPlaying)
+                    {
+                        setCharAt(x,y,(char) playerId);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Die Farben aller Spieler werden um eins verschoben
+     */
+    public void Inversion()
+    {
+        for(int y = 0;y < height;y++)
+        {
+            for(int x = 0;x < width;x++)
+            {
+                if(map[y][x] != '0' && map[y][x]!='t'){
+                    map[y][x] = (char)((int)map[y][x]+1);
+                    if(map[y][x] > anzPlayers)
+                    {
+                        map[y][x] = 1;
+                    }
+                }
+            }
+        }
+    }
 
     //GETTER
     /**
@@ -346,6 +390,22 @@ public class Map {
         //set char
         map[y][x] = charToChangeTo;
         return true;
+    }
+
+    public void IncreaseBombsofPlayer(){
+        bombsPerPlayer[currentlyPlaying]++;
+    }
+
+    public void DecreaseBombsofPlayer(){
+        bombsPerPlayer[currentlyPlaying]--;
+    }
+
+    public void IncreaseOverrideStonesofPlayer(){
+        overwriteStonesPerPlayer[currentlyPlaying]++;
+    }
+
+    public void DecreaseOverrideStonesofPlayer(){
+        overwriteStonesPerPlayer[currentlyPlaying]--;
     }
 
     public void nextPlayer(){
