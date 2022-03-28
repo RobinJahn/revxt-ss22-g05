@@ -1,0 +1,26 @@
+private static int calcSum(int[][] feld, int x, int y, int xOffset, int yOffset){
+	int sum = 0;
+	for (int i=x; i<x+xOffset; i++) {
+		for (int j=y; j<y+yOffset; j++) {
+			sum += feld[i][j];
+		}
+	}
+	return sum;
+}
+
+public static int maxTeilSum2DBruteForce(int[][] feld) {
+	int maxSum = Integer.MIN_VALUE;
+	for (int i=0; i<feld.length; i++) {			// x-start
+		for (int j=0; j<feld[0].length; j++) {  // y-start
+			for (int xSize=1; xSize<=feld.length-i; xSize++) {
+				for (int ySize=1; ySize<=feld[0].length-j; ySize++) {
+					// Aufaddieren
+					int tmpSum = calcSum(feld, i,j,xSize, ySize);
+					if (tmpSum > maxSum)
+						maxSum = tmpSum;
+				}
+			}
+		}
+	}
+	return maxSum;
+}

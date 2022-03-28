@@ -1,0 +1,306 @@
+\documentclass[12pt,a4paper,bibliography=totocnumbered,listof=totocnumbered]{article}
+\input{lib/includes}
+\input{lib/commands}
+
+\begin{document}
+
+% ----------------------------------------------------------------------------------------------------------
+% Titelseite
+% ----------------------------------------------------------------------------------------------------------
+\MyTitlepage[pics/gamefield02]{05}{
+\texttt{robin.jahn@st.oth-regensburg.de}\\
+\texttt{simon1.melcher@st.oth-regensburg.de}\\
+\texttt{alexander1.wess@st.oth-regensburg.de}}
+{??.??.\the\year} % FIXME optional: Gruppenlogo als PNG, Pflichtfelder: Gruppe, Authoren durch "\\" getrennt und Abgabedatum eingeben
+
+\setcounter{page}{1} 
+% ----------------------------------------------------------------------------------------------------------
+% Inhaltsverzeichnis
+% ----------------------------------------------------------------------------------------------------------
+\tableofcontents
+\pagebreak
+
+
+% ----------------------------------------------------------------------------------------------------------
+% Inhalt
+% ----------------------------------------------------------------------------------------------------------
+% Abstände Überschrift
+%\titlespacing{\section}{0pt}{12pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
+%\titlespacing{\subsection}{0pt}{12pt plus 4pt minus 2pt}{4pt plus 2pt minus 2pt}
+%\titlespacing{\subsubsection}{0pt}{12pt plus 4pt minus 2pt}{2pt plus 2pt minus 2pt}
+
+% Kopfzeile
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+\renewcommand{\subsectionmark}[1]{}
+\renewcommand{\subsubsectionmark}[1]{}
+\lhead{Kapitel \thesection}
+\rhead{\rightmark}
+
+\onehalfspacing
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\theHsection}{\arabic{section}}
+\setcounter{section}{0}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% ----------------------------------------------------------------------------------
+% Kapitel: Einleitung
+% ----------------------------------------------------------------------------------
+\section{Einleitung}
+Leiten Sie in diesem Abschnitt in das Wahlpflichtfach \emph{ZOCK} und das in diesem Zusammenhang zu erstellende Projekt ein.
+
+Beschreiben Sie dazu das Spiel ReversiXT in einigen Sätzen (wie funktioniert das Grundspiel und welche Besonderheiten gibt es gegenüber dem üblichen Reversi). Fügen Sie evtl.\ auch einen Screenshot einer Spielkarte ein (mit dem im April bereitgestellten Spielfeld-Editor), der interessante Eigenschaften des Spiels widerspiegelt. Denken Sie immer daran, eingefügte Bilder sowohl aus dem Text heraus zu referenzieren als auch diese Bilder mit eigenen Worten zu erklären. Erläutern Sie dann ebenfalls die Fragestellung, die in diesem Wahlpflichtfach gelöst werden soll.
+
+Beschreiben Sie in diesem Kapitel zusätzlich in einigen Sätzen, was Sie sich von diesem Wahlpflichtfach versprechen, um zu einem späteren Zeitpunkt im Fazit zu klären, welche persönlichen Erwartungen sich erfüllt haben und welche vielleicht offen geblieben sind.
+
+Der Umfang dieses Abschnitts sollte bei finaler Abgabe mindestens eine DIN-A4-Seite betragen.
+
+\bigskip
+
+\textbf{Wichtige Hinweise zum gesamten Projektbericht:}
+\begin{itemize}
+  \item Achten Sie im ganzen Dokument auf korrekte Ausdrucksweise, Rechtschreibung, Zeichensetzung und Grammatik. Nutzen Sie für die Rechtschreibkorrektur einen Spellchecker (in \href{http://www.xm1math.net/texmaker/}{Texmaker} bereits integriert) und lassen Sie alle Abschnitte von allen Gruppenmitgliedern vor der Abgabe intensiv Korrektur lesen. Stellen Sie sich vor, dass das vorliegende Dokument für Sie eine Abschlussarbeit darstellt, die bei Abgabe eine sehr gute Form haben muss. Die Form der Arbeit und die Anzahl der darin enthaltenen Fehler wird - wie auch beim Praxisbericht im 5.\ Semester bzw.\ bei der Bachelorarbeit im 7.\ Semester - eine Auswirkung auf die Note des Projektberichts haben.
+  \item Sobald Sie Bilder, Tabellen oder andere Arten von Abbildungen verwenden, so geben Sie ihnen eine Nummer samt Kurzbeschreibung und referenzieren Sie diese im Text. Ein Beispiel dafür finden Sie in Abschnitt \ref{Kap:Minipage} (damit die Referenz im PDF auch angezeigt wird, muss das Dokument u.\,U.\ zweimal kompiliert werden). Beschreiben Sie an der Stelle, an der die Abbildung referenziert wird auch immer deren Sinn/Inhalt/Bedeutung mit eigenen Worten. Eine Abbildung spricht niemals für sich selbst.
+\end{itemize}
+
+\newpage
+% ----------------------------------------------------------------------------------
+% Kapitel: Allgemeine Informationen
+% ----------------------------------------------------------------------------------
+\section{Allgemeine Informationen}
+Versuchen Sie eine \emph{weiche} Überleitung in dieses Kapitel zu formulieren, indem Sie kurz beschreiben, was den Leser in diesem Kapitel erwartet und warum das interessant ist.
+\subsection{Team und Kommunikation}
+Beschreiben Sie in diesem Abschnitt ausführlich Ihr Team. Welche Personen aus welchen Studiengängen in welchem Semester bilden Ihr Team? Stellen Sie jeweils das vorhandene Vorwissen der Personen dar, das in dieser Veranstaltung für Sie von Nutzen sein könnte/ist/war, etc. Beschreiben Sie auch, wie/mit welchen Mitteln im Team regelmäßig kommuniziert wurde. Sollten Sie außerhalb der Vorlesungen und Übungen von ZOCK weitere regelmäßige Treffen vereinbart und abgehalten haben, so sollten Sie dies hier auch beschreiben.
+
+Halten Sie außerdem in jeder Woche fest (z.\,B.\ in Form einer Tabelle), welche Person welche Aufgaben wahrgenommen hat, wie Aufgaben aufgeteilt wurden etc.
+
+
+\subsection{Technische Daten}
+Beschreiben Sie u.a.\ in welcher Programmiersprache (inkl.\ Version) und unter welchem Betriebssystem(en) (inkl.\ Version(en)) Sie entwickeln, welche IDEs (inkl. Versionen) Sie nutzen, welche zusätzlichen Tools bei Ihrer Projektentwicklung Einsatz gefunden haben und auf welcher Hardware Sie entwickelt und getestet haben etc.
+
+Beschreiben Sie auch, warum Sie sich für diese Sprachen/Tools etc.\ entschieden haben (z.\,B.: welche Vorteile erhoffen Sie sich dadurch).
+
+
+
+\newpage
+% ----------------------------------------------------------------------------------
+% Kapitel: Spielfeldbewertung
+% ----------------------------------------------------------------------------------
+\section{Spielfeldbewertung}
+Versuchen Sie eine \emph{weiche} Überleitung in dieses Kapitel zu formulieren, indem Sie kurz beschreiben, was den Leser in diesem Kapitel erwartet und warum das für die entstehende K.\,I.\ interessant ist.
+
+\subsection{Bestandteile}\label{kap:Heuristik_Beschreibung}
+Eine mögliche Heuristik zur Spielfeldbewertung ist die eigene Flexibilität in Bezug auf durchführ"-bare Spielzüge, die sich aus der jeweiligen Situation ergeben. Hierbei ist der Grundgedanke der, dass der Spieler nicht nur darauf achtet möglichst viele Steine auf dem Feld zu haben bzw. beim Tätigen eines Spielzugs möglichst viele Steine einzufärben (Greedy-Verfahren), sondern ebenfalls zu berücksichtigen wie viele Optionen er hat das Spiel weiterzuführen. Mehr valide Züge als die Gegner zu haben ist dementsprechend von Vorteil. Dadurch soll sichergestellt werden, dass die eigene Strategie weiterverfolgt werden kann und nicht der Gegner den Spielverlauf vorgibt oder man zu \glqq schlechten\grqq{} Zügen gezwungen wird.
+
+Die zuvor beschriebene Situation ist in Abbildung \ref{fig:example_heuristics_flexibility_simple} zu sehen. Der Spieler mit den blauen Steinen hat zwar mehr eingefärbt, kann jedoch nicht mehr ziehen (sofern keine Überschreibsteine verfügbar sind) und muss abwarten, was der Spieler mit den roten Steinen als nächstes macht. Dieser kann hingegen frei entscheiden in welche Richtung die Karte als Nächstes bespielt werden soll, da er in jede Richtung ziehen kann.
+
+\vspace{1em}
+\begin{minipage}{\linewidth}
+	\centering
+	\includegraphics[width=0.3\linewidth]{pics/heuristics_flexibility_simple.png}
+	\captionof{figure}[Bsp. 1 Heuristik Flexibilität]{Situation Blau kann nicht mehr ziehen}
+	\label{fig:example_heuristics_flexibility_simple}
+\end{minipage}
+\\
+
+Jedoch bringt dieses Verfahren auch Nachteile mit sich, da das Ziel des Spiels, am Ende der Partie die meisten Steine auf dem Spielfeld zu haben, vernachlässigt wird. Somit gestaltet es sich viel mehr am Anfang bis zur Mitte einer Runde als sinnvoll bzw. sollte noch mit anderen Verfahren kombiniert werden.
+
+
+Ein weiterer Ansatz der Spielfeldbewertung ist die \glqq Sicherheit\grqq{} der einnehmbaren Felder. In diesem Fall soll darauf geachtete werden, ob und wie leicht die jeweiligen Felder vom Gegner eingefärbt werden können. Folglich muss hierbei überprüft werden, ob ein Feld, nachdem es das erste Mal besetzt wird, überhaupt noch einmal den Besitzer wechseln kann oder aus wie vielen Richtungen die Gegner noch Möglichkeiten haben, dieses Feld zurückzugewinnen. Diese Analyse kann anhand eines Punktesystems realisiert werden.
+
+
+Das naheliegendste Beispiel für ein solches sicheres Feld ist eine Ecke wie in Abbildung \ref{fig:example_heuristics_safe_fields_corner} dargestellt. Dieser Stein kann weder horizontal noch vertikal oder diagonal von einem Gegner eingefärbt werden und stellt somit eine wertvolle Position dar. %evtl noch ergänzen, dass solche Situationen auch entstehen können, wenn Steinen von eigenen anderen Steinen umschlossen werden + Beispiel?
+
+%ToDo: Pfeile einfügen
+\vspace{1em}
+\begin{minipage}{\linewidth}
+	\centering
+	\includegraphics[width=0.3\linewidth]{pics/heuristics_safe_fields_corner.png}
+	\captionof{figure}[Bsp. 1 Heuristik sichere Felder]{Nicht einnehmbares Feld}
+	\label{fig:example_heuristics_safe_fields_corner}
+\end{minipage}
+\\
+
+Ein Feld, das sich am Rand der Karte befindet, kann zwar eingenommen werden, jedoch sind die Möglichkeiten beschränkt, da es lediglich vertikal, also aus zwei Richtungen, von gegnerischen Spielern eingefärbt werden kann, wie es in Abbildung \ref{fig:example_heuristics_safe_fields_outer_side} zu sehen ist.
+
+%ToDo: Pfeile einfügen
+\vspace{1em}
+\begin{minipage}{\linewidth}
+	\centering
+	\includegraphics[width=0.3\linewidth]{pics/heuristics_safe_fields_outer_side.png}
+	\captionof{figure}[Bsp. 2 Heuristik sichere Felder]{Beschränkt einnehmbares Feld}
+	\label{fig:example_heuristics_safe_fields_outer_side}
+\end{minipage}
+\\
+
+Wenn jedoch keine Seite durch das Ende der Karte geschützt ist, ist dieses Feld von allen Seiten für den Gegner erreichbar und kann mit einer niedrigeren Priorität berücksichtigt werden. In Abbildung \ref{fig:example_heuristics_safe_fields_middle} wird dies durch ein Feld inmitten der Spielfläche verdeutlicht.
+%ToDo: Abbildung machen und einfügen
+
+%ToDo: Pfeile einfügen
+\vspace{1em}
+\begin{minipage}{\linewidth}
+	\centering
+	\includegraphics[width=0.3\linewidth]{pics/heuristics_safe_fields_middle.png}
+	\captionof{figure}[Bsp. 3 Heuristik sichere Felder]{Voll einnehmbares Feld}
+	\label{fig:example_heuristics_safe_fields_middle}
+\end{minipage}
+\\
+
+Die Schwierigkeit dieser Heuristik besteht darin, dass die Sonderregeln von ReversiXT nicht vernachlässigt werden dürfen. Ein vermeintlich sicheres Feld (z. B. eine Ecke), kann durch Transitionen gar kein uneinnehmbares Feld sein und muss auch als dieses behandelt werden.
+
+\subsection{Implementierung}\label{kap:Heurisitk_Implementierung}
+%Vorübergehend in zwei Unterkapitel getrennt. Also Idee der Heuristik und Umsetzung
+
+
+\newpage
+% ----------------------------------------------------------------------------------
+% Kapitel: Fazit
+% ----------------------------------------------------------------------------------
+\section{Fazit}
+Beschreiben Sie in diesem Abschnitt u.a.\ was Ihnen an diesem Fach gefallen hat und welche Verbesserungsvorschläge Sie für künftige Veranstaltungen haben. Was konnten Sie dazulernen, in welchen Bereichen haben Sie sich verbessert. Welche Problemsituationen gab es während der Projekterstellung, wie sind Sie diese angegangen und wie haben Sie diese gelöst. Was haben Sie evtl.\ vermisst.
+
+
+\newpage
+% ----------------------------------------------------------------------------------
+% Kleine Einführung in LaTeX-Elemente
+% ----------------------------------------------------------------------------------
+\section{\LaTeX-Elemente}
+Dieser Abschnitt soll nicht Bestandteil des Projektberichtes sein, sondern beinhaltet lediglich einige Informationen über \LaTeX-Distributionen, Editoren und \LaTeX-Elemente, die Ihnen beim Einstieg in das \LaTeX-Textsatzsystem helfen sollen.
+
+\subsection{\LaTeX-Distributionen nach Betriebssystemen}
+
+\subsubsection{\LaTeX-Distributionen}
+Folgende Haupt-\LaTeX-Distributionen stehen Ihnen zur Verfügung:
+\begin{itemize}
+  \item Windows:\quad \texttt{MiKTeX}\quad Webseite:\quad\url{http://www.miktex.org}
+  \item Linux/Unix:\quad \texttt{TeX Live}\quad Webseite:\quad\url{http://tug.org/texlive/}
+  \item Mac OS:\quad \texttt{MacTeX}\quad Webseite:\quad\url{http://www.tug.org/mactex/}
+\end{itemize}
+
+\subsubsection{\LaTeX-Editoren}
+Auf folgenden Webseiten können Sie einige hilfreiche \LaTeX-Editoren finden:
+\begin{itemize}
+  \item Windows/Linux/Mac OS: \url{http://www.xm1math.net/texmaker/}
+  \item Windiws: \url{http://www.texniccenter.org/}
+  \item Mac OS: \url{http://pages.uoregon.edu/koch/texshop/}
+\end{itemize}
+
+Falls bei den oben genannten Editoren kein passender vorhanden war, findet sich auf Wikipedia eine Zusammenstellung vieler weiterer \LaTeX-Editoren:\\[1em]
+\hspace*{3cm}\url{https://en.wikipedia.org/wiki/Comparison_of_TeX_editors}
+
+
+\subsection{Unterabschnitt}\label{Kap:Minipage}
+Zum Einfügen eines Bildes, siehe Abbildung \ref{fig:reversi01}, wird die \textit{minipage}-Umgebung genutzt, da die Bilder so gut positioniert werden können.
+
+\vspace{1em}
+\begin{minipage}{\linewidth}
+	\centering
+	\includegraphics[width=0.6\linewidth]{pics/gamefield01.png}
+	\captionof{figure}[Spielfeld 01]{Unbespieltes Spielfeld\footnotemark }
+	\label{fig:reversi01}
+\end{minipage}
+\footnotetext{Diesem Spielfeld wurden noch keine Spieler zugewiesen (daher die dunklen Spielsteine)}
+
+Nachdem das Spielt gestartet wurde und beide Spielphasen durchlaufen wurden, siegt schließlich der Spieler mit der Farbe rot.
+
+\vspace{1em}
+\begin{minipage}{\linewidth}
+	\centering
+	\includegraphics[width=0.6\linewidth]{pics/gamefield02.png}
+	\captionof{figure}[Spielfeld 02]{Finales Spielfeld\footnotemark }
+	\label{fig:reversi2}
+\end{minipage}
+\footnotetext{Das Spielfeld nach der Zug- und Bombenphase. Spieler rot gewinnt eindeutig.}
+
+\subsection{Tabellen}
+In diesem Abschnitt wird eine Tabelle (siehe Tabelle \ref{tab:beispiel}) dargestellt.
+
+\vspace{1em}
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{|l|l|l|}
+		\hline
+		\textbf{Name} & \textbf{Name} & \textbf{Name}\\
+		\hline
+		1 & 2 & 3\\
+		\hline
+		4 & 5 & 6\\
+		\hline
+		7 & 8 & 9\\
+		\hline
+	\end{tabular}
+	\caption{Beispieltabelle}
+	\label{tab:beispiel}
+\end{table}
+
+
+\subsection{Auflistung}
+Für Auflistungen wird die \texttt{enumerate}- oder \texttt{itemize}-Umgebung genutzt.
+
+\begin{itemize}
+	\item Nur
+	\item ein
+	\item Beispiel.
+\end{itemize}
+
+\subsection{Listings}
+\subsection{Listings}
+Zuletzt sehen Sie in Listing \ref{lst:maxTeilsumZweiD} ein Beispiel für das Einbinden von Quellcode mit Syntax-Highlighting.
+
+\vspace{1em}
+\lstinputlisting[caption=Brute Force-Ansatz für das MaxTeilsum2D-Problem, label=lst:maxTeilsumZweiD,basicstyle=\ttfamily\scriptsize]{code/maxTeilsum2DBruteForce.txt}
+
+\subsection{Selbstgestaltete Abbildungen}
+Mithilfe des Paketes \texttt{tikz} können sehr schöne Abbildungen (z.\,B.\ Automaten, Graphen etc.) direkt in \LaTeX generiert werden. Viele Beispiele dazu finden Sie auf folgender Webseite:\\[1em]
+\hspace*{3cm}\url{http://www.texample.net/tikz/}.
+
+\subsection{Tipps}
+Die Quellen befinden sich in der Datei \textit{quellen.bib}. Eine Buch- und eine Online-Quelle sind beispielhaft eingefügt. [Vgl. \cite{buch}, \cite{online}]
+
+\pagebreak
+
+% ----------------------------------------------------------------------------------------------------------
+% Kapitel
+% ----------------------------------------------------------------------------------------------------------
+\section{Kapitel}
+Lorem ipsum dolor sit amet.
+
+\subsection{Unterkapitel}
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+
+\subsection{Unterkapitel}
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+\pagebreak
+
+% ----------------------------------------------------------------------------------------------------------
+% Literatur
+% ----------------------------------------------------------------------------------------------------------
+\renewcommand\refname{Quellenverzeichnis}
+\bibliographystyle{alpha}
+\bibliography{quellen}
+\pagebreak
+
+% ----------------------------------------------------------------------------------------------------------
+% Anhang
+% ----------------------------------------------------------------------------------------------------------
+\pagenumbering{Roman}
+\setcounter{page}{1}
+\lhead{Anhang \thesection}
+
+\begin{appendix}
+\section*{Anhang}
+\phantomsection
+\addcontentsline{toc}{section}{Anhang}
+\addtocontents{toc}{\vspace{-0.5em}}
+
+\section{GUI}
+Ein toller Anhang.
+
+\subsection*{Screenshot}
+\label{app:screenshot}
+Unterkategorie, die nicht im Inhaltsverzeichnis auftaucht.
+
+\end{appendix}
+
+
+\end{document}
