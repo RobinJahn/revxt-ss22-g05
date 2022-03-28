@@ -127,6 +127,8 @@ public class Client {
 						map = new Map();
 						AnzahlPlayers = map.getAnzPlayers();
 						SkippedTurns = 0;
+						map.setPlayer(1);
+						continue;
 					}
 					else if (answer == 'N')
 					{

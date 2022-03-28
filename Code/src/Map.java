@@ -422,6 +422,11 @@ public class Map {
         if (currentlyPlaying == anzPlayers+1) currentlyPlaying = 1;
     }
 
+    public void setPlayer(int PlayerID)
+    {
+        currentlyPlaying = PlayerID;
+    }
+
     //PRIVATE METHODS
 
     private boolean handleFirst5(StreamTokenizer st, int tokenCounter) {
