@@ -268,6 +268,7 @@ public class Client {
 	 * @return returns true if the move is possible and false otherwise
 	 */
 	private static boolean checkIfMoveIsPossible(Position pos, ArrayList<Integer> directions, Map map){
+		Position StartingPos;
 		Position currPos;
 		Integer newR;
 		boolean wasFirstStep;
@@ -279,6 +280,7 @@ public class Client {
 		//go over every direction that needs to be checked
 		for (Integer r : directions){
 			//reset values
+			StartingPos = pos.clone();
 			currPos = pos.clone();
 			wasFirstStep = true;
 			newR = r;
@@ -293,6 +295,7 @@ public class Client {
 				currChar = map.getCharAt(currPos);
 				//check for blank or not in field
 				if (currChar == '-' || currChar == '0') break;
+				if(currPos.equals(StartingPos)) break;
 				//check for players
 				//if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
 				if (wasFirstStep) {
@@ -315,6 +318,7 @@ public class Client {
 	 * @param map the map on wich it is placed
 	 */
 	private static void colorMap(Position pos, Map map){
+		Position StartingPos;
 		Position currPos;
 		Integer newR;
 		boolean wasFirstStep;
@@ -329,6 +333,7 @@ public class Client {
 		//checks every direction for a connection and adds the positions in between to color them later
 		for (int r = 0; r <= 7; r++){
 			//reset values
+			StartingPos = pos.clone();
 			currPos = pos.clone();
 			wasFirstStep = true;
 			newR = r;
@@ -341,7 +346,7 @@ public class Client {
 				//does one step
 				newR = doAStep(currPos, newR, map); //currPos is changed here
 				if (newR == null) break; //if the step wasn't possible
-
+				if(currPos.equals(StartingPos)) break;
 				//check what's there
 				currChar = map.getCharAt(currPos);
 				//check for blank or not in field
