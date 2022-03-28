@@ -168,6 +168,16 @@ public class Client {
 					//check all neighboures and add it if the field is 0
 					checkAllNeighboures(map, moves, x, y);
 				}
+				
+				if(currChar == 'i') {
+					moves.addPositionInAllDirections(x, y);
+				}
+				if(currChar == 'c') {
+					moves.addPositionInAllDirections(x, y);
+				}
+				if(currChar == 'b') {
+					moves.addPositionInAllDirections(x, y);
+				}
 			}
 		}
 	}

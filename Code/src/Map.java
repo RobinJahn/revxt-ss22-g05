@@ -276,22 +276,29 @@ public class Map {
      */
     public void swapStonesWithOnePlayer(int playerId)
     {
-        if(playerId != currentlyPlaying)
+        if(playerId <= anzPlayers)
         {
-            for(int y = 0;y< height;y++)
-            {
-                for(int x = 0;x< width;x++)
+        	if(playerId != currentlyPlaying)
+        	{
+        		for(int y = 0;y< height;y++)
                 {
-                    if(map[y][x] == playerId)
+                    for(int x = 0;x< width;x++)
                     {
-                        setCharAt(x,y,(char)currentlyPlaying);
-                    }
-                    else if(map[y][x] == currentlyPlaying)
-                    {
-                        setCharAt(x,y,(char) playerId);
+                        if(map[y][x] == playerId+48)
+                        {
+                            setCharAt(x,y,(char)(currentlyPlaying+48));
+                        }
+                        else if(map[y][x] == currentlyPlaying+48)
+                        {
+                            setCharAt(x,y,(char) (playerId+48));
+                        }
                     }
                 }
-            }
+        	}
+        }
+        else
+        {
+        	System.err.println("Der Spieler mit dieser ID spielt nicht mit");
         }
     }
 
@@ -304,11 +311,13 @@ public class Map {
         {
             for(int x = 0;x < width;x++)
             {
-                if(map[y][x] != '0' && map[y][x]!='t'){
+                if(map[y][x] != '0' && map[y][x]!='t' && map[y][x] !='-'){
                     map[y][x] = (char)((int)map[y][x]+1);
-                    if(map[y][x] > anzPlayers)
+                    if(map[y][x] > anzPlayers+48)
                     {
-                        map[y][x] = 1;
+                    	System.out.println((int)map[y][x]);
+                    	System.out.println(anzPlayers);
+                        map[y][x] = '1';
                     }
                 }
             }
