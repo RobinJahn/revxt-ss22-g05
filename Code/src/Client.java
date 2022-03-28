@@ -27,96 +27,120 @@ public class Client {
 		Map map = new Map();
 		Position posToSetKeystone;
 		Scanner sc = new Scanner(System.in);
+		int AnzahlPlayers = map.getAnzPlayers();
+		int SkippedTurns = 0;
+		boolean GameOngoing = true;
 
 		System.out.println(map.toString(null, false, true));
-		while (true){
+		while (GameOngoing){
 			//calculate possible moves and print map with these
 			ArrayList<Position> validMoves = getValidMoves(map);
 			System.out.println(map.toString(validMoves, false, true));
+			if(!validMoves.isEmpty()) {
+				//
+				SkippedTurns = 0;
+				//print possible moves
+				System.out.println("Possible Moves:");
+				System.out.println(Arrays.toString(validMoves.toArray()));
 
-			//print possible moves
-			System.out.println("Possible Moves:");
-			System.out.println(Arrays.toString(validMoves.toArray()));
+				//enter the move
+				System.out.print("Geben Sie den naechsten zug ein (x,y): ");
 
-			//enter the move
-			System.out.print("Geben Sie den naechsten zug ein (x,y): ");
+				posToSetKeystone = new Position(0, 0);
+				posToSetKeystone.x = sc.nextInt();
+				posToSetKeystone.y = sc.nextInt();
+				System.out.println();
 
-			posToSetKeystone = new Position(0,0);
-			posToSetKeystone.x = sc.nextInt();
-			posToSetKeystone.y = sc.nextInt();
-			System.out.println();
+				//check the move
+				ArrayList<Integer> directions = new ArrayList<>();
+				for (int i = 0; i <= 7; i++) directions.add(i);
+				boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
+				if (!movePossible) {
+					System.err.println("Move isn't possible");
+					continue;
+				}
 
-			//check the move
-			ArrayList<Integer> directions = new ArrayList<>();
-			for (int i = 0; i <= 7; i++) directions.add(i);
-			boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
-			if (!movePossible) {
-				System.err.println("Move isn't possible");
-				continue;
-			}
+				char fieldvalue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
+				switch (fieldvalue) {
+					case 'b': {
+						colorMap(posToSetKeystone, map);
+						System.out.println("Wollen sie eine Bombe (b) oder einen Überschreibstein (u)?");
+						char choice = sc.next().charAt(0);
+						if (choice == 'b') {
+							map.IncreaseBombsofPlayer();
+						} else if (choice == 'u') {
+							map.IncreaseOverrideStonesofPlayer();
+						} else {
+							System.err.println("Kein gültige Eingabe bei Wahl des Bonus");
+						}
+						break;
 
-			char fieldvalue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
-			switch(fieldvalue)
-			{
-				case 'b': {
-					colorMap(posToSetKeystone, map);
-					System.out.println("Wollen sie eine Bombe (b) oder einen Überschreibstein (u)?");
-					byte choice = sc.nextByte();
-					if(choice == 'b')
-					{
-						map.IncreaseBombsofPlayer();
 					}
-					else if(choice == 'u')
+					case 'c': {
+						colorMap(posToSetKeystone, map);
+						System.out.println("Mit wem wollen sie die Farbe tauschen ?");
+						int choice = sc.nextInt();
+						map.swapStonesWithOnePlayer(choice);
+						break;
+					}
+
+					case 'i': {
+						colorMap(posToSetKeystone, map);
+						map.Inversion();
+						break;
+					}
+
+					case '0': {
+						colorMap(posToSetKeystone, map);
+						break;
+					}
+
+					case 'x':
+					case '1':
+					case '2':
+					case '3':
+					case '4':
+					case '5':
+					case '6':
+					case '7':
+					case '8': {
+						colorMap(posToSetKeystone, map);
+						map.DecreaseOverrideStonesofPlayer();
+						break;
+					}
+					default: {
+						System.err.println("Fieldvalue ist ungültig");
+					}
+				}
+			}
+			else
+			{
+				SkippedTurns++;
+				if(SkippedTurns == AnzahlPlayers)
+				{
+					System.out.println("Kein Spielzug mehr moeglich");
+					System.out.println("Lade neue Karte? (Y/N)");
+					char answer = sc.next().charAt(0);
+					System.out.println(answer);
+					if(answer == 'Y')
 					{
-						map.IncreaseOverrideStonesofPlayer();
+						map = new Map();
+						AnzahlPlayers = map.getAnzPlayers();
+						SkippedTurns = 0;
+					}
+					else if (answer == 'N')
+					{
+						GameOngoing = false;
 					}
 					else
 					{
-						System.err.println("Kein gültige Eingabe bei Wahl des Bonus");
+						System.err.println("Ungueltige Eingabe bei Spielende.\nSpiel wird abgebrochen");
+						break;
 					}
-					break;
 
-				}
-				case 'c':{
-					colorMap(posToSetKeystone, map);
-					System.out.println("Mit wem wollen sie die Farbe tauschen ?");
-					int choice = sc.nextInt();
-					map.swapStonesWithOnePlayer(choice);
-					break;
-				}
-
-				case 'i':{
-					colorMap(posToSetKeystone, map);
-					map.Inversion();
-					break;
-				}
-
-				case '0':
-				{
-					colorMap(posToSetKeystone, map);
-					break;
-				}
-
-				case 'x':
-				case '1':
-				case '2':
-				case '3':
-				case '4':
-				case '5':
-				case '6':
-				case '7':
-				case '8':
-				{
-					colorMap(posToSetKeystone, map);
-					map.DecreaseOverrideStonesofPlayer();
-					break;
-				}
-				default: {
-					System.err.println("Fieldvalue ist ungültig");
 				}
 			}
 			map.nextPlayer();
-
 		}
 	}
 
