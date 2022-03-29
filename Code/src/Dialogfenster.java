@@ -6,6 +6,8 @@ import javax.swing.JFileChooser;
 
 public class Dialogfenster {
 
+    static File savedPath = new File(Paths.get("./Maps").toAbsolutePath().normalize().toString());
+
     public String oeffnen() {
         final JFileChooser chooser = new JFileChooser("Verzeichnis wählen");
         chooser.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -15,7 +17,7 @@ public class Dialogfenster {
         String currentPath = Paths.get("./Maps").toAbsolutePath().normalize().toString();
         final File file = new File(currentPath);
 
-        chooser.setCurrentDirectory(file);
+        chooser.setCurrentDirectory(savedPath);
 
         chooser.setVisible(true);
         
@@ -26,6 +28,7 @@ public class Dialogfenster {
         	 File inputVerzFile = chooser.getSelectedFile();
              String inputVerzStr = inputVerzFile.getPath();
              System.out.println(inputVerzStr);
+             savedPath = new File(chooser.getSelectedFile().toString());
              return inputVerzStr;
         }
         else
@@ -33,5 +36,6 @@ public class Dialogfenster {
         	System.out.println("Keine Datei gewählt");
         	return null;
         }
+
     }
 } 
