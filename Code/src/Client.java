@@ -30,6 +30,7 @@ public class Client {
 		int AnzahlPlayers = map.getAnzPlayers();
 		int SkippedTurns = 0;
 		boolean GameOngoing = true;
+		boolean moveRandom = true;
 
 		System.out.println(map.toString(null, false, true));
 		while (GameOngoing){
@@ -47,8 +48,14 @@ public class Client {
 				System.out.print("Geben Sie den naechsten zug ein (x,y): ");
 
 				posToSetKeystone = new Position(0, 0);
-				posToSetKeystone.x = sc.nextInt();
-				posToSetKeystone.y = sc.nextInt();
+				if (moveRandom) {
+					int index = (int)(Math.random() * validMoves.size());
+					posToSetKeystone = validMoves.get(index);
+				}
+				if (!moveRandom) {
+					posToSetKeystone.x = sc.nextInt();
+					posToSetKeystone.y = sc.nextInt();
+				}
 				System.out.println();
 
 				//check the move

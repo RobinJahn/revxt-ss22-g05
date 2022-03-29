@@ -203,8 +203,10 @@ public class Map {
         final String ANSI_YELLOW = "\u001B[33m";
         final String ANSI_BLUE = "\u001B[34m";
         final String ANSI_PURPLE = "\u001B[35m";
-        final String ANSI_CYAN = "\u001B[36m";
+        final String ANSI_BRIGHT_CYAN = "\u001B[96m";
         final String ANSI_WHITE = "\u001B[37m";
+        final String ANSI_BRIGHT_YELLOW = "\u001B[93m";
+        final String ANSI_BRIGHT_GREEN = "\u001B[92m";
 
         String mapString = "";
         String bufferString;
@@ -244,10 +246,16 @@ public class Map {
                             bufferString += ANSI_GREEN;
                             break;
                         case '5':
-                            bufferString += ANSI_CYAN;
+                            bufferString += ANSI_BRIGHT_CYAN;
                             break;
                         case '6':
                             bufferString += ANSI_PURPLE;
+                            break;
+                        case '7':
+                            bufferString += ANSI_BRIGHT_YELLOW;
+                            break;
+                        case '8':
+                            bufferString += ANSI_BRIGHT_GREEN;
                             break;
                     }
                 }
@@ -355,8 +363,9 @@ public class Map {
         return anzPlayers;
     }
 
+
     public int getOverwriteStonesForPlayer(int playerId) {
-        return overwriteStonesPerPlayer[playerId];
+        return overwriteStonesPerPlayer[playerId-1];
     }
 
     public int getBombsForPlayer(int playerId) {
@@ -402,19 +411,19 @@ public class Map {
     }
 
     public void IncreaseBombsofPlayer(){
-        bombsPerPlayer[currentlyPlaying]++;
+        bombsPerPlayer[currentlyPlaying-1]++;
     }
 
     public void DecreaseBombsofPlayer(){
-        bombsPerPlayer[currentlyPlaying]--;
+        bombsPerPlayer[currentlyPlaying-1]--;
     }
 
     public void IncreaseOverrideStonesofPlayer(){
-        overwriteStonesPerPlayer[currentlyPlaying]++;
+        overwriteStonesPerPlayer[currentlyPlaying-1]++;
     }
 
     public void DecreaseOverrideStonesofPlayer(){
-        overwriteStonesPerPlayer[currentlyPlaying]--;
+        overwriteStonesPerPlayer[currentlyPlaying-1]--;
     }
 
     public void nextPlayer(){
