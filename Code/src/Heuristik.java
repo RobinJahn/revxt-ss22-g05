@@ -5,22 +5,22 @@ import java.util.Arrays;
 
 public class Heuristik {
 
-    Map map;
+    private Map map; //is automaticly updated because of the reference here
     //the color of the player for wich the map is rated
-    int myColorI;
-    final char myColorC;
+    private int myColorI;
+    private final char myColorC;
     //the matrix that rates the different fields
-    double[][] matrix;
+    private double[][] matrix;
     //information that may be worth saving
-    ArrayList<Position> myFileds = new ArrayList<>();
-    ArrayList<Position> bonusFields = new ArrayList<>();
-    ArrayList<Position> inversionFields = new ArrayList<>();
-    ArrayList<Position> coiseFields = new ArrayList<>();
-    int validFields = 0;
+    private ArrayList<Position> myFileds = new ArrayList<>();
+    private ArrayList<Position> bonusFields = new ArrayList<>();
+    private ArrayList<Position> inversionFields = new ArrayList<>();
+    private ArrayList<Position> coiseFields = new ArrayList<>();
+    private int validFields = 0;
     //relevant information
-    double stonePercentage = 0;
-    double movesPercentage = 0;
-    double sumOfMyFields = 0;
+    private double stonePercentage = 0;
+    private double movesPercentage = 0;
+    private double sumOfMyFields = 0;
 
 
     /**
@@ -35,6 +35,7 @@ public class Heuristik {
         this.myColorC = Integer.toString(myColor).charAt(0);
         matrix = new double[map.getHeight()][map.getWidth()];
         setStaticRelevantInfos();
+
     }
 
     /**
@@ -53,6 +54,18 @@ public class Heuristik {
         result += stonePercentage - 1;
         //value
         return result;
+    }
+
+    public void printMatrix(){
+        System.out.println("Matrix of map:");
+        for (int y = 0; y < matrix.length; y++){
+            for (int x = 0; x < matrix[y].length; x++){
+                if (matrix[y][x] != Double.NEGATIVE_INFINITY) System.out.printf("%4d", (int)matrix[y][x]);
+                else  System.out.printf("%4c", '-');
+            }
+            System.out.println();
+        }
+        System.out.println();
     }
 
     /**
@@ -84,7 +97,7 @@ public class Heuristik {
                 //if it's a valid field
                 if (currChar != '-' && currChar != 't'){
                     validFields++;
-                    //calc edges //TODO: revise and perhaps merge
+                    //calculate edges
                     matrix[y][x] += checkForEdges(currPos);
                 }
 
@@ -117,14 +130,23 @@ public class Heuristik {
         }
     }
 
+    /**
+     * checks if the current position is an edge position and wich kind
+     * for the different kinds it returns a different value
+     * @param pos position to check
+     * @return
+     */
     private double checkForEdges(Position pos){
         int backedUpOutgoings = 0; //count's the axes across wich the stone could be captured
-        boolean firstDirectionIsWall = false;
-        boolean secondDirectionIsWall = false;
+        int oppositeDirection;
+        boolean firstDirectionIsWall;
+        boolean secondDirectionIsWall;
         char charAtPos;
         Position savedPos = pos;
 
         for (int r = 0; r <= 3; r++) { //checks the 4 axes
+            firstDirectionIsWall = false;
+            secondDirectionIsWall = false;
             //check first direction
             pos = Position.goInR(pos,r);
             charAtPos = map.getCharAt(pos);
@@ -134,13 +156,14 @@ public class Heuristik {
             }
             //check if there's a transition and if it's relevant
             if(charAtPos == 't'){
-                if (map.transitionen.get(Transitions.saveInChar(pos.x,pos.y,r)) == null) firstDirectionIsWall = true;
+                if (map.transitionen.get(Transitions.saveInChar(savedPos.x,savedPos.y,r)) == null) firstDirectionIsWall = true;
             }
             //reset position
-            pos = savedPos;
+            pos = savedPos.clone();
 
             //check second direction
-            Position.goInR(pos,(r+4)%8);
+            oppositeDirection = (r+4)%8;
+            pos = Position.goInR(pos,oppositeDirection);
             charAtPos = map.getCharAt(pos);
             //check if there's a wall
             if(charAtPos == '-') {
@@ -148,10 +171,10 @@ public class Heuristik {
             }
             //check if there's a transition and if it's relevant
             if(charAtPos == 't'){
-                if (map.transitionen.get(Transitions.saveInChar(pos.x,pos.y,r)) == null) secondDirectionIsWall = true;
+                if (map.transitionen.get(Transitions.saveInChar(savedPos.x,savedPos.y,oppositeDirection)) == null) secondDirectionIsWall = true;
             }
             //reset position
-            pos = savedPos;
+            pos = savedPos.clone();
 
             //increase axis count
             if (firstDirectionIsWall ^ secondDirectionIsWall) backedUpOutgoings++; //xor - if one of them is a wall and the other isn't
@@ -173,6 +196,9 @@ public class Heuristik {
         return 0;
     }
 
+    /**
+     * updates the values that are relevant for the heuristical evaluation
+     */
     private void setRelevantInfos(){
         sumOfMyFields = 0;
         myFileds.clear();
@@ -232,7 +258,5 @@ public class Heuristik {
         System.out.println("myPossibleMoves: " + myPossibleMoves + " possibleMovesOfEnemys: " + possibleMovesOfEnemys);
     }
 
-    private double evaluateEdges(){
-        return 0;
-    }
+
 }

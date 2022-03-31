@@ -23,6 +23,7 @@ class Moves {
 public class Client {
 	
 	public static void main(String[] args) {
+		boolean moveRandom = false;
 
 		Map map = new Map();
 		Position posToSetKeystone;
@@ -30,10 +31,11 @@ public class Client {
 		int AnzahlPlayers = map.getAnzPlayers();
 		int SkippedTurns = 0;
 		boolean GameOngoing = true;
-		boolean moveRandom = true;
 		Random randomIndex = new Random(1);
 		Heuristik heuristik = new Heuristik(map, 1);
 		double valueOfMap;
+
+		heuristik.printMatrix();
 
 		while (GameOngoing){
 			//calculate possible moves and print map with these
@@ -43,7 +45,6 @@ public class Client {
 			valueOfMap = (double)Math.round(heuristik.evaluate()*100)/100;
 			System.out.println("Value of Map is " + valueOfMap);
 			if(!validMoves.isEmpty()) {
-				//
 				SkippedTurns = 0;
 				//print possible moves
 				System.out.println("Possible Moves:");
