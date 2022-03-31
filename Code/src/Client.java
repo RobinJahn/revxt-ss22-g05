@@ -31,12 +31,17 @@ public class Client {
 		int SkippedTurns = 0;
 		boolean GameOngoing = true;
 		boolean moveRandom = true;
+		Random randomIndex = new Random(1);
+		Heuristik heuristik = new Heuristik(map, 1);
+		double valueOfMap;
 
-		System.out.println(map.toString(null, false, true));
 		while (GameOngoing){
 			//calculate possible moves and print map with these
 			ArrayList<Position> validMoves = getValidMoves(map);
 			System.out.println(map.toString(validMoves, false, true));
+
+			valueOfMap = (double)Math.round(heuristik.evaluate()*100)/100;
+			System.out.println("Value of Map is " + valueOfMap);
 			if(!validMoves.isEmpty()) {
 				//
 				SkippedTurns = 0;
@@ -49,7 +54,7 @@ public class Client {
 
 				posToSetKeystone = new Position(0, 0);
 				if (moveRandom) {
-					int index = (int)(Math.random() * validMoves.size());
+					int index = randomIndex.nextInt(validMoves.size());
 					posToSetKeystone = validMoves.get(index);
 				}
 				if (!moveRandom) {
@@ -158,7 +163,7 @@ public class Client {
 	 * @param map map to check for possible moves
 	 * @return returns an Array List of Positions
 	 */
-	static ArrayList<Position> getValidMoves(Map map) {
+	public static ArrayList<Position> getValidMoves(Map map) {
 		Moves moves = new Moves();
 
 		//TODO: add seperation wich move finder should be jused

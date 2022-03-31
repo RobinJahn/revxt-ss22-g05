@@ -31,7 +31,7 @@ public class Map {
      */
     public Map() {
     	Dialogfenster openMap = new Dialogfenster();
-    	boolean importedCorrectly = importMap(openMap.oeffnen());
+    	boolean importedCorrectly = importMap(openMap.oeffnen()); //TODO: map also imports when cancel is cklicked
         if (!importedCorrectly) {
             System.err.println("Map didn't import correctly.");
         }
