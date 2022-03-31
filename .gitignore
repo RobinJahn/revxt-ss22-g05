@@ -1,0 +1,15 @@
+/Code
+/out
+/.idea
+/exportedMap.txt
+/README.md
+/revxt-ss22-g05.iml
+/src/.idea
+/src/out
+/projektbericht/*.gz
+/projektbericht/*.pdf
+/projektbericht/*.out
+/projektbericht/*.log
+/projektbericht/*.aux
+/projektbericht/*.toc
+/src/*.iml
