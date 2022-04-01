@@ -23,7 +23,7 @@ class Moves {
 public class Client {
 	
 	public static void main(String[] args) {
-		boolean moveRandom = false;
+		boolean moveRandom = true;
 
 		Map map = new Map();
 		Position posToSetKeystone;

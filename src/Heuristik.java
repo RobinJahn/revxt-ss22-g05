@@ -48,7 +48,7 @@ public class Heuristik {
         //update relevant infos
         setRelevantInfos();
         result += sumOfMyFields/myFileds.size(); //durchschnittswert meiner felder
-
+        System.out.println("Sum of my field %: " + result);
         //result += get%myKeystones(result)*ModifierKeytones(Gamelength,TurnNumber,Playercount,Tiefe)
         result += movesPercentage - 1;
         result += stonePercentage - 1;
@@ -205,9 +205,13 @@ public class Heuristik {
         //get my stone positions in %
         int countOfOwnStones = 0;
         int countOfEnemyStones = 0;
+        //get enemy stone percentage
+        double enemyStonesPercentage;
+        double enemyMovesPercentage;
         //get possible moves in %
         int myPossibleMoves = 0;
         int possibleMovesOfEnemys = 0;
+
 
         char currChar;
         Position currPos = new Position(0,0); //position that goes throu whole map
@@ -245,18 +249,20 @@ public class Heuristik {
             map.nextPlayer();
         } //reset to currently playing
 
+        //get percentages out of the values
+        enemyStonesPercentage = (double)countOfEnemyStones/((double)map.getAnzPlayers()-1);
+        enemyMovesPercentage = (double)possibleMovesOfEnemys/((double)map.getAnzPlayers()-1);
+
         //set relevant infos
 
         //set stone percentage
-        if (countOfEnemyStones != 0) stonePercentage = (double)countOfOwnStones/(double)countOfEnemyStones;
+        if (enemyStonesPercentage != 0) stonePercentage = (double)countOfOwnStones/ enemyStonesPercentage; //  myStones/ average stones of enemy
         else stonePercentage = 10; //if enemy has no stones you have 10.000 % of his stones
         //set posible moves percentage
-        if (possibleMovesOfEnemys != 0) movesPercentage = (double)myPossibleMoves/(double)possibleMovesOfEnemys;
+        if (enemyMovesPercentage != 0) movesPercentage = (double)myPossibleMoves/ enemyMovesPercentage;
         else movesPercentage = 10;
 
-        System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones: " + countOfEnemyStones);
-        System.out.println("myPossibleMoves: " + myPossibleMoves + " possibleMovesOfEnemys: " + possibleMovesOfEnemys);
+        System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones %: " + enemyStonesPercentage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
+        System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys %: " +  enemyMovesPercentage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
     }
-
-
 }
