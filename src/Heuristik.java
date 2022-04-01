@@ -21,6 +21,8 @@ public class Heuristik {
     private double stonePercentage = 0;
     private double movesPercentage = 0;
     private double sumOfMyFields = 0;
+    //heuristic values
+    private final int base = 3;
 
 
     /**
@@ -35,7 +37,7 @@ public class Heuristik {
         this.myColorC = Integer.toString(myColor).charAt(0);
         matrix = new double[map.getHeight()][map.getWidth()];
         setStaticRelevantInfos();
-
+        addWaveMatrix();
     }
 
     /**
@@ -47,6 +49,7 @@ public class Heuristik {
 
         //update relevant infos
         setRelevantInfos();
+
         result += sumOfMyFields/myFileds.size(); //durchschnittswert meiner felder
         System.out.println("Sum of my field %: " + result);
         //result += get%myKeystones(result)*ModifierKeytones(Gamelength,TurnNumber,Playercount,Tiefe)
@@ -131,72 +134,6 @@ public class Heuristik {
     }
 
     /**
-     * checks if the current position is an edge position and wich kind
-     * for the different kinds it returns a different value
-     * @param pos position to check
-     * @return
-     */
-    private double checkForEdges(Position pos){
-        int backedUpOutgoings = 0; //count's the axes across wich the stone could be captured
-        int oppositeDirection;
-        boolean firstDirectionIsWall;
-        boolean secondDirectionIsWall;
-        char charAtPos;
-        Position savedPos = pos;
-
-        for (int r = 0; r <= 3; r++) { //checks the 4 axes
-            firstDirectionIsWall = false;
-            secondDirectionIsWall = false;
-            //check first direction
-            pos = Position.goInR(pos,r);
-            charAtPos = map.getCharAt(pos);
-            //check if there's a wall
-            if(charAtPos == '-') {
-                firstDirectionIsWall = true;
-            }
-            //check if there's a transition and if it's relevant
-            if(charAtPos == 't'){
-                if (map.transitionen.get(Transitions.saveInChar(savedPos.x,savedPos.y,r)) == null) firstDirectionIsWall = true;
-            }
-            //reset position
-            pos = savedPos.clone();
-
-            //check second direction
-            oppositeDirection = (r+4)%8;
-            pos = Position.goInR(pos,oppositeDirection);
-            charAtPos = map.getCharAt(pos);
-            //check if there's a wall
-            if(charAtPos == '-') {
-                secondDirectionIsWall = true;
-            }
-            //check if there's a transition and if it's relevant
-            if(charAtPos == 't'){
-                if (map.transitionen.get(Transitions.saveInChar(savedPos.x,savedPos.y,oppositeDirection)) == null) secondDirectionIsWall = true;
-            }
-            //reset position
-            pos = savedPos.clone();
-
-            //increase axis count
-            if (firstDirectionIsWall ^ secondDirectionIsWall) backedUpOutgoings++; //xor - if one of them is a wall and the other isn't
-
-        }
-        //heuristik
-        switch (backedUpOutgoings){
-            case 0:
-                return 0;
-            case 1:
-                return 2;
-            case 2:
-                return 4;
-            case 3:
-                return 8;
-            case 4:
-                return 16;
-        }
-        return 0;
-    }
-
-    /**
      * updates the values that are relevant for the heuristical evaluation
      */
     private void setRelevantInfos(){
@@ -264,5 +201,135 @@ public class Heuristik {
 
         System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones %: " + enemyStonesPercentage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
         System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys %: " +  enemyMovesPercentage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
+    }
+
+    /**
+     * checks if the current position is an edge position and wich kind
+     * for the different kinds it returns a different value
+     * @param pos position to check
+     * @return
+     */
+    private double checkForEdges(Position pos){
+        int backedUpOutgoings = 0; //count's the axes across wich the stone could be captured
+        int oppositeDirection;
+        boolean firstDirectionIsWall;
+        boolean secondDirectionIsWall;
+        char charAtPos;
+        Position savedPos = pos;
+
+        for (int r = 0; r <= 3; r++) { //checks the 4 axes
+            firstDirectionIsWall = false;
+            secondDirectionIsWall = false;
+            //check first direction
+            pos = Position.goInR(pos,r);
+            charAtPos = map.getCharAt(pos);
+            //check if there's a wall
+            if(charAtPos == '-') {
+                firstDirectionIsWall = true;
+            }
+            //check if there's a transition and if it's relevant
+            if(charAtPos == 't'){
+                if (map.transitionen.get(Transitions.saveInChar(savedPos.x,savedPos.y,r)) == null) firstDirectionIsWall = true;
+            }
+            //reset position
+            pos = savedPos.clone();
+
+            //check second direction
+            oppositeDirection = (r+4)%8;
+            pos = Position.goInR(pos,oppositeDirection);
+            charAtPos = map.getCharAt(pos);
+            //check if there's a wall
+            if(charAtPos == '-') {
+                secondDirectionIsWall = true;
+            }
+            //check if there's a transition and if it's relevant
+            if(charAtPos == 't'){
+                if (map.transitionen.get(Transitions.saveInChar(savedPos.x,savedPos.y,oppositeDirection)) == null) secondDirectionIsWall = true;
+            }
+            //reset position
+            pos = savedPos.clone();
+
+            //increase axis count
+            if (firstDirectionIsWall ^ secondDirectionIsWall) backedUpOutgoings++; //xor - if one of them is a wall and the other isn't
+
+        }
+        //heuristik
+        return Math.pow(base,backedUpOutgoings); //backed up outgoings can have values from 0 to 4
+    }
+
+    //create waves
+    private void addWaveMatrix(){
+        int[][] waveMatrix = new int[matrix.length][matrix[0].length];
+        ArrayList<Position> heighValues = new ArrayList<>();
+        int lowerLimit = 4;
+        Position currPos = new Position(0,0);
+        double currValue;
+
+        //goes through every position of the map
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+
+                //set new position
+                currPos.x = x;
+                currPos.y = y;
+                //get int at position
+                currValue = matrix[y][x];
+
+                if(currValue >= lowerLimit){
+                    heighValues.add(currPos.clone());
+                }
+            }
+        }
+
+        for (Position pos : heighValues){
+            createWave(waveMatrix, pos);
+        }
+
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+                if (matrix[y][x] != Double.NEGATIVE_INFINITY) matrix[y][x] += waveMatrix[y][x];
+                System.out.printf("%4d", waveMatrix[y][x]);
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
+    private void createWave(int[][] waveMatrix, Position pos){
+        int x1, x2, y1, y2;
+        x1 = pos.x;
+        x2 = pos.x;
+        y1 = pos.y;
+        y2 = pos.y;
+        int loopSign = -1;
+        int threshhold = base;
+        double value = matrix[pos.y][pos.x]/base; //sets value to value of field/2
+
+        while(value >= threshhold) {
+            x1-=1;
+            x2+=1;
+            y1-=1;
+            y2+=1;
+
+            //  *   *   *   * if
+            //  *           * else
+            //  *           * else
+            //  *           * else
+            //  *   *   *   * if
+            for (int yi = y1; yi <= y2; yi++) {
+                if (yi == y1 || yi == y2) { //first and last one is row
+                    for (int xi = x1; xi <= x2; xi++) {
+                        if(yi >= 0 && yi < waveMatrix.length && xi >= 0 && xi < waveMatrix[0].length)  waveMatrix[yi][xi] += loopSign * value; //if catches indices that went over the edge
+                    }
+                }
+                else { //column between the rows
+                    for (int xi : new int[]{x1,x2}){
+                        if(yi >= 0 && yi < waveMatrix.length && xi >= 0 && xi < waveMatrix[0].length) waveMatrix[yi][xi] += loopSign * value; //if catches indices that went over the edge
+                    }
+                }
+            }
+            loopSign *= -1; //swap loop vorzeichen
+            value /= base;
+        }
     }
 }
