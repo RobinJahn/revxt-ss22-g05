@@ -13,3 +13,6 @@
 /projektbericht/*.aux
 /projektbericht/*.toc
 /src/*.iml
+/projektbericht/Projektbericht.synctex.gz
+/projektbericht/Projektbericht.pdf
+/projektbericht/*.bat
