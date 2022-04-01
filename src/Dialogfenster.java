@@ -20,22 +20,21 @@ public class Dialogfenster {
         chooser.setCurrentDirectory(savedPath);
 
         chooser.setVisible(true);
-        
-        chooser.showOpenDialog(null);
 
-        if(chooser.getSelectedFile() != null)
-        {
-        	 File inputVerzFile = chooser.getSelectedFile();
-             String inputVerzStr = inputVerzFile.getPath();
-             System.out.println(inputVerzStr);
-             savedPath = new File(chooser.getSelectedFile().toString());
-             return inputVerzStr;
-        }
-        else
-        {
-        	System.out.println("Keine Datei gewählt");
-        	return null;
-        }
+        int returnVal = chooser.showOpenDialog(null);
 
+        if(returnVal == JFileChooser.APPROVE_OPTION)
+        {
+            if(chooser.getSelectedFile() != null)
+            {
+                 File inputVerzFile = chooser.getSelectedFile();
+                 String inputVerzStr = inputVerzFile.getPath();
+                 System.out.println(inputVerzStr);
+                 savedPath = new File(chooser.getSelectedFile().toString());
+                 return inputVerzStr;
+            }
+        }
+        System.out.println("Keine Datei gewählt");
+        return null;
     }
 } 
