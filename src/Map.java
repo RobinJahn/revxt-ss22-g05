@@ -22,6 +22,8 @@ public class Map {
     private int height;
     private int width;
 
+    public boolean importedCorrectly = false;
+
     //Extended Map Info
     private int currentlyPlaying = 1;
 
@@ -31,9 +33,13 @@ public class Map {
      */
     public Map() {
     	Dialogfenster openMap = new Dialogfenster();
-    	boolean importedCorrectly = importMap(openMap.oeffnen()); //TODO: map also imports when cancel is cklicked
-        if (!importedCorrectly) {
-            System.err.println("Map didn't import correctly.");
+        String Filepath = openMap.oeffnen();
+        if(Filepath != null)
+        {
+            importedCorrectly = importMap(Filepath);
+            if (!importedCorrectly) {
+                System.err.println("Map didn't import correctly.");
+            }
         }
     }
     

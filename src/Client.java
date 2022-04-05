@@ -28,6 +28,10 @@ public class Client {
 		boolean moveRandom = true;
 
 		Map map = new Map();
+		if(!map.importedCorrectly)
+		{
+			return;
+		}
 		Position posToSetKeystone;
 		Scanner sc = new Scanner(System.in);
 		int AnzahlPlayers = map.getAnzPlayers();
@@ -164,6 +168,10 @@ public class Client {
 					if(answer == 'Y')
 					{
 						map = new Map();
+						if(!map.importedCorrectly)
+						{
+							return;
+						}
 						AnzahlPlayers = map.getAnzPlayers();
 						SkippedTurns = 0;
 						map.setPlayer(1);
