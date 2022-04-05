@@ -22,10 +22,11 @@ class Moves {
 }
 
 public class Client {
-	
+
 	public static void main(String[] args) {
 		//final variables
 		final boolean moveRandom = false;
+		final boolean printOn = true;
 
 		Map map;
 
@@ -34,13 +35,15 @@ public class Client {
 		Scanner sc = new Scanner(System.in);
 		int AnzahlPlayers;
 		int SkippedTurns = 0;
+		int myPlayerNr;
+		int messageType;
 		boolean GameOngoing = true;
 		Random randomIndex = new Random(1);
 		Heuristik heuristik;
 		double valueOfMap;
 
 		//variables for the server
-		ServerMessager serverM;
+		ServerMessenger serverM;
 		String ip = "127.0.0.1";
 		int port = 7777;
 
@@ -59,7 +62,7 @@ public class Client {
 
 		//try to connect with server
 		try {
-			serverM = new ServerMessager(ip,port);
+			serverM = new ServerMessenger(ip,port);
 		} catch (IOException e) {
 			System.err.println("Couln't connect to server");
 			return;
@@ -68,30 +71,50 @@ public class Client {
 		//get map from server
 		map = serverM.getMap();
 
-		if(!map.importedCorrectly) {
+		//check if it imported correctly
+		if(map == null || !map.importedCorrectly) {
 			System.err.println("Map coun't be loaded correctly");
 			return;
 		}
+
+		//get own player number
+		myPlayerNr = serverM.getPlayerNumber();
+		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
+
 		//set variables after map was imported
 		AnzahlPlayers = map.getAnzPlayers();
-		heuristik = new Heuristik(map, 1);
+		heuristik = new Heuristik(map, myPlayerNr,false);
 
 
+		//PLAY GAME
 		while (GameOngoing){
+
+			//wait for turn Message
+			if (printOn) System.out.println("Waiting for turn message");
+			messageType = serverM.waitForMessage();
+
+
+
 			//calculate possible moves and print map with these
 			ArrayList<Position> validMoves = getValidMoves(map);
-			System.out.println(map.toString(validMoves, false, true));
+			if (printOn) System.out.println(map.toString(validMoves, false, true));
 
+			//calculate value of map and print it
 			valueOfMap = (double)Math.round(heuristik.evaluate()*100)/100;
-			System.out.println("Value of Map is " + valueOfMap);
-			if(!validMoves.isEmpty()) {
+			if (printOn) System.out.println("Value of Map is " + valueOfMap);
+
+
+			if(!validMoves.isEmpty()) { //TODO: anders machen, da server einen eh überspringt
+
 				SkippedTurns = 0;
 				//print possible moves
-				System.out.println("Possible Moves:");
-				System.out.println(Arrays.toString(validMoves.toArray()));
+				if (printOn) {
+					System.out.println("Possible Moves:");
+					System.out.println(Arrays.toString(validMoves.toArray()));
+				}
 
 				//enter the move
-				System.out.print("Geben Sie den naechsten zug ein (x,y): ");
+				if (!moveRandom && printOn) System.out.print("Geben Sie den naechsten zug ein (x,y): ");
 
 				posToSetKeystone = new Position(0, 0);
 				if (moveRandom) {
@@ -102,26 +125,30 @@ public class Client {
 					posToSetKeystone.x = sc.nextInt();
 					posToSetKeystone.y = sc.nextInt();
 				}
-				System.out.println();
+				if (printOn) System.out.println();
 
-				//check the move
+				//check if the move is valid
 				ArrayList<Integer> directions = new ArrayList<>();
 				for (int i = 0; i <= 7; i++) directions.add(i);
 				boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
 				if (!movePossible) {
 					System.err.println("Move isn't possible");
-					continue;
+					continue; //TODO: falsch,da er sonst wieder auf zugaufforderung wartet
 				}
 
+				//check where we would set oure keystone on and act accordingly
 				char fieldvalue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
+
+				Character choiceChar = null;
+				Integer choiceInt = null;
 				switch (fieldvalue) {
 					case 'b': {
 						colorMap(posToSetKeystone, map);
-						System.out.println("Wollen sie eine Bombe (b) oder einen Überschreibstein (u)?");
-						char choice = sc.next().charAt(0);
-						if (choice == 'b') {
+						if (printOn) System.out.println("Wollen sie eine Bombe (b) oder einen Überschreibstein (u)?");
+						choiceChar = sc.next().charAt(0);
+						if (choiceChar == 'b') {
 							map.IncreaseBombsofPlayer();
-						} else if (choice == 'u') {
+						} else if (choiceChar == 'u') {
 							map.IncreaseOverrideStonesofPlayer();
 						} else {
 							System.err.println("Kein gültige Eingabe bei Wahl des Bonus");
@@ -131,9 +158,9 @@ public class Client {
 					}
 					case 'c': {
 						colorMap(posToSetKeystone, map);
-						System.out.println("Mit wem wollen sie die Farbe tauschen ?");
-						int choice = sc.nextInt();
-						map.swapStonesWithOnePlayer(choice);
+						if (printOn) System.out.println("Mit wem wollen sie die Farbe tauschen ?");
+						choiceInt = sc.nextInt();
+						map.swapStonesWithOnePlayer(choiceInt);
 						break;
 					}
 
@@ -165,16 +192,26 @@ public class Client {
 						System.err.println("Fieldvalue ist ungültig");
 					}
 				}
+
+				//send message where to move
+				char addidionalInfo = '0';
+				if (choiceChar != null) addidionalInfo = choiceChar;
+				if (choiceInt != null) addidionalInfo = choiceInt.toString().charAt(0);
+				serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, addidionalInfo, myPlayerNr);
+
+
 			}
 			else
 			{
 				SkippedTurns++;
 				if(SkippedTurns == AnzahlPlayers)
 				{
-					System.out.println("Kein Spielzug mehr moeglich");
-					System.out.println("Lade neue Karte? (Y/N)");
+					if (printOn) {
+						System.out.println("Kein Spielzug mehr moeglich");
+						System.out.println("Lade neue Karte? (Y/N)");
+					}
 					char answer = sc.next().charAt(0);
-					System.out.println(answer);
+					if (printOn) System.out.println(answer);
 					if(answer == 'Y')
 					{
 						map = new Map();

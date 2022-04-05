@@ -3,6 +3,7 @@ package src;
 import java.util.ArrayList;
 
 public class Heuristik {
+    final boolean printOn;
 
     private Map map; //is automaticly updated because of the reference here
     //the color of the player for wich the map is rated
@@ -30,7 +31,8 @@ public class Heuristik {
      * @param map the map in any state. Only the ststic information are relevant
      * @param myColor the number(color) of the player for wich the map is rated - doesn't change for the client
      */
-    public Heuristik(Map map, int myColor){
+    public Heuristik(Map map, int myColor, boolean printOn){
+        this.printOn = printOn;
         this.map = map;
         this.myColorI = myColor;
         this.myColorC = Integer.toString(myColor).charAt(0);
@@ -52,7 +54,7 @@ public class Heuristik {
         setDynamicRelevantInfos();
 
         result += sumOfMyFields/myFileds.size(); //durchschnittswert meiner felder
-        System.out.println("Sum of my field Ø: " + result);
+        if (printOn) System.out.println("Sum of my field Ø: " + result);
         //result += get%myKeystones(result)*ModifierKeytones(Gamelength,TurnNumber,Playercount,Tiefe)
         result += movesPercentage - 1;
         result += stonePercentage - 1;
@@ -200,8 +202,8 @@ public class Heuristik {
         if (enemyMovesPercentage != 0) movesPercentage = (double)myPossibleMoves/ enemyMovesPercentage;
         else movesPercentage = 10;
 
-        System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones Ø: " + enemyStonesPercentage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
-        System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys Ø: " +  enemyMovesPercentage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
+        if (printOn) System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones Ø: " + enemyStonesPercentage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
+        if (printOn) System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys Ø: " +  enemyMovesPercentage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
     }
 
     /**
@@ -286,14 +288,16 @@ public class Heuristik {
             createWave(waveMatrix, pos);
         }
 
-        for (int y = 0; y < map.getHeight(); y++) {
-            for (int x = 0; x < map.getWidth(); x++) {
-                if (matrix[y][x] != Double.NEGATIVE_INFINITY) matrix[y][x] += waveMatrix[y][x];
-                System.out.printf("%4d", waveMatrix[y][x]);
+        if (printOn) {
+            for (int y = 0; y < map.getHeight(); y++) {
+                for (int x = 0; x < map.getWidth(); x++) {
+                    if (matrix[y][x] != Double.NEGATIVE_INFINITY) matrix[y][x] += waveMatrix[y][x];
+                    System.out.printf("%4d", waveMatrix[y][x]);
+                }
+                System.out.println();
             }
             System.out.println();
         }
-        System.out.println();
     }
 
     private void createWave(int[][] waveMatrix, Position pos){
