@@ -24,30 +24,28 @@ class Moves {
 public class Client {
 	
 	public static void main(String[] args) {
-		//local variables
-		boolean moveRandom = true;
+		//final variables
+		final boolean moveRandom = false;
 
-		Map map = new Map();
-		if(!map.importedCorrectly)
-		{
-			return;
-		}
+		Map map;
+
+		//local variables
 		Position posToSetKeystone;
 		Scanner sc = new Scanner(System.in);
-		int AnzahlPlayers = map.getAnzPlayers();
+		int AnzahlPlayers;
 		int SkippedTurns = 0;
 		boolean GameOngoing = true;
 		Random randomIndex = new Random(1);
-		Heuristik heuristik = new Heuristik(map, 1);
+		Heuristik heuristik;
 		double valueOfMap;
 
 		//variables for the server
-		ServerMessager ServerM;
+		ServerMessager serverM;
 		String ip = "127.0.0.1";
 		int port = 7777;
 
 
-		//get argumets
+		//get call argumets
 		for (int i = 0; i < args.length-1; i++){
 			if (Objects.equals(args[i], "-i")){
 				i++;
@@ -59,12 +57,24 @@ public class Client {
 			}
 		}
 
+		//try to connect with server
 		try {
-			ServerM = new ServerMessager(ip,port);
+			serverM = new ServerMessager(ip,port);
 		} catch (IOException e) {
 			System.err.println("Couln't connect to server");
 			return;
 		}
+
+		//get map from server
+		map = serverM.getMap();
+
+		if(!map.importedCorrectly) {
+			System.err.println("Map coun't be loaded correctly");
+			return;
+		}
+		//set variables after map was imported
+		AnzahlPlayers = map.getAnzPlayers();
+		heuristik = new Heuristik(map, 1);
 
 
 		while (GameOngoing){

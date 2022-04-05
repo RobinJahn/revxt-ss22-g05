@@ -1,10 +1,9 @@
 package src;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class ServerMessager {
     Socket server;
@@ -26,6 +25,40 @@ public class ServerMessager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public Map getMap(){
+        int readByte;
+        byte[] readByteArray;
+        StringBuilder lengthStr = new StringBuilder();
+        int length = 0;
+        String mapString = "";
+        char[] mapArray;
+        Map map;
+
+        try {
+            //check if it's the right type of message
+            readByte = in.read();
+            if (readByte != 2) return null;
+
+            //read the length of the map
+            readByteArray = in.readNBytes(4);
+            for (byte aByte : readByteArray){
+                lengthStr.append(String.format("%02x",aByte));
+            }
+            //parse the length from hex to decimal
+            length = Integer.parseInt(lengthStr.toString(),16);
+
+            //read the whole map sting
+            readByteArray = in.readNBytes(length);
+            //create a map with it
+            map = new Map(readByteArray);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return map;
     }
 
     public void sendMove(int x, int y, char zusatzinfo){

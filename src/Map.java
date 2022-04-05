@@ -1,6 +1,7 @@
 package src;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,10 +43,15 @@ public class Map {
             }
         }
     }
+
+    public Map(byte[] mapByteArray){
+        importedCorrectly = importMap(mapByteArray);
+        if (!importedCorrectly) {
+            System.err.println("Map didn't import correctly.");
+        }
+    }
     
     //PUBLIC METHODS
-
-
 
     /**
      * Method Imports a Map from the given File Path.
@@ -69,6 +75,40 @@ public class Map {
         }
         br = new BufferedReader(fr);
         st = new StreamTokenizer(br);
+
+        return importMapWithStreamTokenizer(st);
+    }
+
+    /**
+     * Method Imports a Map from the given input Stream.
+     * @param mapByteArray byte array to import from
+     * @return Returns true if map was imported correctly and false otherwise.
+     */
+    public boolean importMap(byte[] mapByteArray) {
+        //Variables
+        BufferedReader br;
+        StreamTokenizer st;
+
+        String mapString = new String(mapByteArray);
+        char[] mapCharArray = mapString.toCharArray();
+
+        CharArrayReader car = new CharArrayReader(mapCharArray);
+        br = new BufferedReader(car);
+        st = new StreamTokenizer(br);
+
+        return importMapWithStreamTokenizer(st);
+    }
+
+    /**
+     * imports Map after a stream tokenizer was created - wich changes if you have a file or a strem
+     * @param st
+     * @return Returns true if map was imported correctly and false otherwise.
+     */
+    private boolean importMapWithStreamTokenizer(StreamTokenizer st){
+        //Variables
+        int tokenCounter;
+        boolean noErrorsInMethod;
+
         st.whitespaceChars(' ', ' ');
         st.wordChars('-','-');
 
@@ -130,6 +170,7 @@ public class Map {
         //TODO: check wether map was imported correctly
         return true;
     }
+
 
     /**
      * For Testing Purposes. Exports Map to given FileName in the directory of the Project
