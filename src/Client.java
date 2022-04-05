@@ -1,5 +1,6 @@
 package src;
 
+import java.io.IOException;
 import java.util.*;
 
 class Moves {
@@ -23,7 +24,8 @@ class Moves {
 public class Client {
 	
 	public static void main(String[] args) {
-		boolean moveRandom = false;
+		//local variables
+		boolean moveRandom = true;
 
 		Map map = new Map();
 		Position posToSetKeystone;
@@ -35,7 +37,31 @@ public class Client {
 		Heuristik heuristik = new Heuristik(map, 1);
 		double valueOfMap;
 
-		heuristik.printMatrix();
+		//variables for the server
+		ServerMessager ServerM;
+		String ip = "127.0.0.1";
+		int port = 7777;
+
+
+		//get argumets
+		for (int i = 0; i < args.length-1; i++){
+			if (Objects.equals(args[i], "-i")){
+				i++;
+				ip = args[i];
+			}
+			if (Objects.equals(args[i], "-p")){
+				i++;
+				port = Integer.parseInt(args[i]);
+			}
+		}
+
+		try {
+			ServerM = new ServerMessager(ip,port);
+		} catch (IOException e) {
+			System.err.println("Couln't connect to server");
+			return;
+		}
+
 
 		while (GameOngoing){
 			//calculate possible moves and print map with these

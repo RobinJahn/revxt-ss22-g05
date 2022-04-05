@@ -1,7 +1,6 @@
 package src;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Heuristik {
 
@@ -37,7 +36,9 @@ public class Heuristik {
         this.myColorC = Integer.toString(myColor).charAt(0);
         matrix = new double[map.getHeight()][map.getWidth()];
         setStaticRelevantInfos();
+        printMatrix();
         addWaveMatrix();
+        printMatrix();
     }
 
     /**
@@ -48,10 +49,10 @@ public class Heuristik {
         double result = 0;
 
         //update relevant infos
-        setRelevantInfos();
+        setDynamicRelevantInfos();
 
         result += sumOfMyFields/myFileds.size(); //durchschnittswert meiner felder
-        System.out.println("Sum of my field %: " + result);
+        System.out.println("Sum of my field Ø: " + result);
         //result += get%myKeystones(result)*ModifierKeytones(Gamelength,TurnNumber,Playercount,Tiefe)
         result += movesPercentage - 1;
         result += stonePercentage - 1;
@@ -136,7 +137,7 @@ public class Heuristik {
     /**
      * updates the values that are relevant for the heuristical evaluation
      */
-    private void setRelevantInfos(){
+    private void setDynamicRelevantInfos(){
         sumOfMyFields = 0;
         myFileds.clear();
         //get my stone positions in %
@@ -199,8 +200,8 @@ public class Heuristik {
         if (enemyMovesPercentage != 0) movesPercentage = (double)myPossibleMoves/ enemyMovesPercentage;
         else movesPercentage = 10;
 
-        System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones %: " + enemyStonesPercentage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
-        System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys %: " +  enemyMovesPercentage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
+        System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones Ø: " + enemyStonesPercentage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
+        System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys Ø: " +  enemyMovesPercentage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
     }
 
     /**
