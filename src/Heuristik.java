@@ -38,9 +38,10 @@ public class Heuristik {
         this.myColorC = Integer.toString(myColor).charAt(0);
         matrix = new double[map.getHeight()][map.getWidth()];
         setStaticRelevantInfos();
-        printMatrix();
+        if (printOn) printMatrix();
         addWaveMatrix();
-        printMatrix();
+        if (printOn) System.out.println("Added Waves");
+        if (printOn) printMatrix();
     }
 
     /**

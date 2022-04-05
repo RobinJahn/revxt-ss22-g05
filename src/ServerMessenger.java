@@ -28,23 +28,47 @@ public class ServerMessenger {
         int readByte;
         DataInputStream dis = new DataInputStream(in);
         try {
-            //check if it's the right type of message
             readByte = in.read();
-            if (readByte != 3) return -1;
+            return readByte;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
 
+    public void readRestOfMoveRequest(){
+        DataInputStream dis = new DataInputStream(in);
+        try {
             in.readNBytes(4); //reads size and ignores it
 
             time = dis.readInt(); //TODO: unsigned?
             dephth = dis.readUnsignedByte();
 
             //TODO: if time is set ignore depth
-
-            return 3;
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return -1;
         }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int[] readRestOfMove(){
+
+        DataInputStream dis = new DataInputStream(in);
+        int[] result = new int[4];
+
+        try {
+            in.readNBytes(4); //reads size and ignores it
+
+            result[0] = dis.readShort(); // x
+            result[1] = dis.readShort(); // y
+            result[2] = dis.readUnsignedByte(); //extra info
+            result[3] = dis.readUnsignedByte(); //player
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return result;
     }
 
     public Map getMap(){
@@ -104,7 +128,7 @@ public class ServerMessenger {
 
     public void sendMove(int x, int y, char zusatzinfo, int myPlayerNr){
         int[] arguments = new int[4];
-        arguments[0] = x-1;
+        arguments[0] = x-1; //index shift
         arguments[1] = y-1;
         if (Character.isDigit(zusatzinfo)) arguments[2] = Integer.parseInt("" + zusatzinfo);
         else {
@@ -139,7 +163,7 @@ public class ServerMessenger {
                 message = new byte[10];
                 messageBuffer = ByteBuffer.allocate(11);
                 messageBuffer.put((byte)5); //nachrichtentyp
-                messageBuffer.putInt(5); //länge der nachricht
+                messageBuffer.putInt(5); //länge der nachricht //TODO: IN HEX
                 messageBuffer.putShort(Short.parseShort(Integer.toString(arguments[0]))); //x
                 messageBuffer.putShort(Short.parseShort(Integer.toString(arguments[1]))); //y
                 messageBuffer.put(Byte.parseByte(Integer.toString(arguments[2]))); //extra info
@@ -150,7 +174,5 @@ public class ServerMessenger {
 
         return message;
     }
-
-
 
 }
