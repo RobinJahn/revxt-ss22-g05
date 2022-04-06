@@ -7,7 +7,7 @@ public class Heuristik {
 
     private Map map; //is automaticly updated because of the reference here
     //the color of the player for wich the map is rated
-    private int myColorI;
+    private final int myColorI;
     private final char myColorC;
     //the matrix that rates the different fields
     private double[][] matrix;
@@ -16,7 +16,6 @@ public class Heuristik {
     private ArrayList<Position> bonusFields = new ArrayList<>();
     private ArrayList<Position> inversionFields = new ArrayList<>();
     private ArrayList<Position> coiseFields = new ArrayList<>();
-    private int validFields = 0;
     //relevant information
     private double stonePercentage = 0;
     private double movesPercentage = 0;
@@ -46,7 +45,7 @@ public class Heuristik {
 
     /**
      * Function to evaluate the map that was given the constructor (call by reference)
-     * @return
+     * @return returns the value of the map
      */
     public double evaluate(){
         double result = 0;
@@ -63,6 +62,9 @@ public class Heuristik {
         return result;
     }
 
+    /**
+     * prints out the evaluation matrix
+     */
     public void printMatrix(){
         System.out.println("Matrix of map:");
         for (int y = 0; y < matrix.length; y++){
@@ -80,8 +82,7 @@ public class Heuristik {
      * initializes the matrix of values for the map
      *
      * Current heuristik implimentations:
-     *      check for capturability
-     *      check for outgoings
+     *      ceck for backed up outgoings
      *
      * Information that are currently saved:
      *      bonus
@@ -91,7 +92,7 @@ public class Heuristik {
     private void setStaticInfos(){
         char currChar;
         Position currPos = new Position(0,0); //position that goes throu whole map
-        validFields = 0; //make shure it resets if that might be called more often
+        int validFields = 0; //make shure it resets if that might be called more often
 
         for (int y = 0; y < map.getHeight(); y++){
             for (int x = 0; x < map.getWidth(); x++) {
@@ -138,7 +139,7 @@ public class Heuristik {
     }
 
     /**
-     * updates the values that are relevant for the heuristical evaluation
+     * updates the values that are relevant for the heuristical evaluation for the current state the map is in
      */
     private void setDynamicInfos(){
         sumOfMyFields = 0;
@@ -211,7 +212,7 @@ public class Heuristik {
      * checks if the current position is an edge position and wich kind
      * for the different kinds it returns a different value
      * @param pos position to check
-     * @return
+     * @return returns value of the field
      */
     private double checkForEdges(Position pos){
         int backedUpOutgoings = 0; //count's the axes across wich the stone could be captured
@@ -261,7 +262,9 @@ public class Heuristik {
         return Math.pow(base,backedUpOutgoings); //backed up outgoings can have values from 0 to 4
     }
 
-    //create waves
+    /**
+     * takes the greater values of the matrix and creates waves/ rings of alternading negative and positive decreasing values around it
+     */
     private void addWaveMatrix(){
         int[][] waveMatrix = new int[matrix.length][matrix[0].length];
         ArrayList<Position> heighValues = new ArrayList<>();
@@ -301,6 +304,11 @@ public class Heuristik {
         }
     }
 
+    /**
+     * creates the waves around one position
+     * @param waveMatrix the matrix to create the waves in
+     * @param pos the position around wich the waves are created
+     */
     private void createWave(int[][] waveMatrix, Position pos){
         int x1, x2, y1, y2;
         x1 = pos.x;
@@ -308,10 +316,9 @@ public class Heuristik {
         y1 = pos.y;
         y2 = pos.y;
         int loopSign = -1;
-        int threshhold = base;
         double value = matrix[pos.y][pos.x]/base; //sets value to value of field/2
 
-        while(value >= threshhold) {
+        while(value >= base) {
             x1-=1;
             x2+=1;
             y1-=1;

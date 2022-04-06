@@ -29,12 +29,9 @@ public class Client {
 	//global variables
 	Map map;
 	ServerMessenger serverM;
-
-	int myPlayerNr;
-	int AnzahlPlayers;
 	Heuristik heuristik;
-	boolean gameOngoing = true;
 	Random randomIndex = new Random(1);
+	int myPlayerNr;
 
 
 	public static void main(String[] args) {
@@ -60,7 +57,14 @@ public class Client {
 
 	}
 
+	//functions that let the client play
 
+	/**
+	 * Constructor of the Client.
+	 * Connects to Server and starts playing
+	 * @param ip ip of the server
+	 * @param port port of the server
+	 */
 	public Client(String ip, int port){
 		//try to connect with server
 		try {
@@ -88,7 +92,6 @@ public class Client {
 		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
 
 		//set variables after map was imported
-		AnzahlPlayers = map.getAnzPlayers();
 		heuristik = new Heuristik(map, myPlayerNr,true);
 
 		//start playing
@@ -96,8 +99,12 @@ public class Client {
 		play();
 	}
 
+	/**
+	 * Plays the Game. Gets Messages from server and calls methods to handle the different kinds
+	 */
 	private void play(){
 		int messageType;
+		boolean gameOngoing = true;
 
 		System.out.println(map.toString(null,false,true));
 
@@ -130,10 +137,13 @@ public class Client {
 		}
 	}
 
+	/**
+	 * Method to make a move after a move request was sent to the Client
+	 */
 	private void makeAMove(){
 		boolean moveIsPossible = false;
 		double valueOfMap;
-		Position posToSetKeystone = new Position(0, 0);;
+		Position posToSetKeystone = new Position(0, 0);
 		Scanner sc = new Scanner(System.in);
 
 		//read resto of move request
@@ -176,7 +186,6 @@ public class Client {
 			boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
 			if (!movePossible) {
 				System.err.println("Move isn't possible");
-				moveIsPossible = false;
 			}
 			else {
 				moveIsPossible = true;
@@ -211,6 +220,9 @@ public class Client {
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, addidionalInfo, myPlayerNr);
 	}
 
+	/**
+	 * Method to update the Map according to the move that was sent to the client
+	 */
 	private void updateMapWithMove() {
 		int[] moveInfos = serverM.readRestOfMove();
 		Position posToSetKeystone = new Position(0,0);
@@ -218,13 +230,19 @@ public class Client {
 		posToSetKeystone.y = moveInfos[1] + 1;
 		int addditionalInfo = moveInfos[2];
 		int moveOfPlayer = moveInfos[3];
+		char fieldvalue;
 
-		map.setPlayer(moveOfPlayer);
+		map.setPlayer(moveOfPlayer); //set playing player because server could have skipped some
+
+		//get value of field where next keystone is set
+		fieldvalue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
+
+		//color the map
 		colorMap(posToSetKeystone, map);
 
+		//handle special moves
 		switch (addditionalInfo){
 			case 0: //could be normal move, overwrite move, or inversion move
-				char fieldvalue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
 				//for a normal move there are no futher actions neccessary
 				//overwrite move
 				if (Character.isDigit(fieldvalue) && fieldvalue != '0') {
@@ -324,9 +342,9 @@ public class Client {
 	}
 
 	/**
-	 * Used for getCandidatesByNeighboure. Does the checking around a enemy keystone
-	 * @param map
-	 * @param moves
+	 * Used for getCandidatesByNeighboure. Does the checking around an enemy keystone
+	 * @param map map the check takes place on
+	 * @param moves Data structure where all the moves to check are stored
 	 * @param x x position of enemy keystone to check
 	 * @param y y position of enemy keystone to check
 	 */
@@ -377,13 +395,12 @@ public class Client {
 	}
 
 	/**
-	 * Goes over every move to check in the moves data stucture and calls checkIfMovePossible for it to test if it's a valid move
-	 * @param map
-	 * @param moves
+	 * Goes over every move to check in the Moves data stucture and calls checkIfMovePossible for it to test if it's a valid move
+	 * @param map the map the check takes place
+	 * @param moves the moves to check
 	 */
 	private static void deleteNotPossibleMoves(Map map, Moves moves){
 		boolean connectionFound;
-		char myColor = map.getCurrentlyPlayingC();
 
 		//check every move if it's possible
 		for (Position pos : moves.movesToCheck.keySet()){
@@ -403,7 +420,7 @@ public class Client {
 	 * goes in every specified direction to check if it's possible to set a keystone at the specified position
 	 * @param pos pos the keystone would be placed
 	 * @param directions directions it needs to check
-	 * @param map
+	 * @param map the map the check takes place on
 	 * @return returns true if the move is possible and false otherwise
 	 */
 	private static boolean checkIfMoveIsPossible(Position pos, ArrayList<Integer> directions, Map map){
@@ -532,7 +549,7 @@ public class Client {
 	private static Integer doAStep(Position pos, int r, Map map){
 		char transitionLookup;
 		Character transitionEnd;
-		Integer newR = r;
+		int newR = r;
 		Position newPos;
 
 		//check if step is valid in x direction

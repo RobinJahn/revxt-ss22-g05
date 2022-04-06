@@ -1,17 +1,15 @@
 package src;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Set;
 
 public class Map {
     private char[][] map; //main data structure to store the Map Infos
 
     //Data Structure and needed Variables to store Transitions
-    public HashMap<Character,Character> transitionen = new HashMap<Character,Character>();
+    public HashMap<Character,Character> transitionen = new HashMap<>();
     int[] transitionsBuffer = new int[9];
     int posInTransitionBuffer=0;
     
@@ -63,8 +61,6 @@ public class Map {
         FileReader fr;
         BufferedReader br;
         StreamTokenizer st;
-        int tokenCounter;
-        boolean noErrorsInMethod;
 
         //Set up File reader
         try {
@@ -101,7 +97,7 @@ public class Map {
 
     /**
      * imports Map after a stream tokenizer was created - wich changes if you have a file or a strem
-     * @param st
+     * @param st Stream Tokenizer that is set to read the map
      * @return Returns true if map was imported correctly and false otherwise.
      */
     private boolean importMapWithStreamTokenizer(StreamTokenizer st){
@@ -158,7 +154,7 @@ public class Map {
             }
             //and then read transitions
             else {
-                noErrorsInMethod = handleTransitions(st, tokenCounter);
+                noErrorsInMethod = handleTransitions(st);
                 if (!noErrorsInMethod) {
                     System.err.println("Method handleTransitions() failed");
                     return false;
@@ -222,11 +218,11 @@ public class Map {
         mapString += "Player count: " + anzPlayers + "\n";
         mapString += "currently playing: " + currentlyPlaying + "\n";
         mapString += "Overwrite Stones per Player:\n";
-        for (int i = 0; i < anzPlayers; i++) {
+        for (int i = 1; i <= anzPlayers; i++) {
             mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i] + "\n";
         }
         mapString += "Bombs per Player:\n";
-        for (int i = 0; i < anzPlayers; i++) {
+        for (int i = 1; i <= anzPlayers; i++) {
             mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i] + "\n";
         }
         mapString += "Explosion radius: " + explosionRadius + "\n";
@@ -261,11 +257,11 @@ public class Map {
         mapString += "Player count: " + anzPlayers + "\n";
         mapString += "currently playing: " + currentlyPlaying + "\n";
         mapString += "Overwrite Stones per Player:\n";
-        for (int i = 0; i < anzPlayers; i++) {
+        for (int i = 1; i <= anzPlayers; i++) {
             mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i] + "\n";
         }
         mapString += "Bombs per Player:\n";
-        for (int i = 0; i < anzPlayers; i++) {
+        for (int i = 1; i <= anzPlayers; i++) {
             mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i] + "\n";
         }
         mapString += "Explosion radius: " + explosionRadius + "\n";
@@ -561,7 +557,7 @@ public class Map {
         return true;
     }
 
-    private boolean handleTransitions(StreamTokenizer st, int tokenCounter) {
+    private boolean handleTransitions(StreamTokenizer st) {
         if (st.ttype != StreamTokenizer.TT_NUMBER) {
             char greater = '>';
             char less = '<';
