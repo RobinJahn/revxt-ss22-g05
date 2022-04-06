@@ -23,7 +23,7 @@ class Moves {
 
 public class Client {
 	//final variables
-	final boolean moveRandom = false;
+	final boolean moveRandom = true;
 	final boolean printOn = true;
 
 	//global variables
@@ -131,9 +131,13 @@ public class Client {
 	}
 
 	private void makeAMove(){
+		boolean moveIsPossible = false;
 		double valueOfMap;
-		Position posToSetKeystone;
+		Position posToSetKeystone = new Position(0, 0);;
 		Scanner sc = new Scanner(System.in);
+
+		//read resto of move request
+		serverM.readRestOfMoveRequest();
 
 		//calculate possible moves and print map with these
 		ArrayList<Position> validMoves = getValidMoves(map);
@@ -150,27 +154,33 @@ public class Client {
 			System.out.println(Arrays.toString(validMoves.toArray()));
 		}
 
-		//enter the move
-		if (!moveRandom && printOn) System.out.print("Geben Sie den naechsten zug ein (x,y): ");
+   		while (!moveIsPossible) {
+			//enter the move
+			if (!moveRandom && printOn) System.out.print("Geben Sie den naechsten zug ein (x,y): ");
 
-		posToSetKeystone = new Position(0, 0);
-		if (moveRandom) {
-			int index = randomIndex.nextInt(validMoves.size());
-			posToSetKeystone = validMoves.get(index);
-		}
-		if (!moveRandom) {
-			posToSetKeystone.x = sc.nextInt();
-			posToSetKeystone.y = sc.nextInt();
-		}
-		if (printOn) System.out.println();
+			//make a random move
+			if (moveRandom) {
+				int index = randomIndex.nextInt(validMoves.size());
+				posToSetKeystone = validMoves.get(index);
+			}
+			//let player enter a move
+			if (!moveRandom) {
+				posToSetKeystone.x = sc.nextInt();
+				posToSetKeystone.y = sc.nextInt();
+			}
+			if (printOn) System.out.println();
 
-		//check if the move is valid
-		ArrayList<Integer> directions = new ArrayList<>();
-		for (int i = 0; i <= 7; i++) directions.add(i);
-		boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
-		if (!movePossible) {
-			System.err.println("Move isn't possible");
-			makeAMove(); //recursive call untill it's a valid move
+			//check if the move is valid
+			ArrayList<Integer> directions = new ArrayList<>();
+			for (int i = 0; i <= 7; i++) directions.add(i);
+			boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
+			if (!movePossible) {
+				System.err.println("Move isn't possible");
+				moveIsPossible = false;
+			}
+			else {
+				moveIsPossible = true;
+			}
 		}
 
 
@@ -249,6 +259,7 @@ public class Client {
 		map.nextPlayer();
 	}
 
+	//functions to calculate possible moves
 
 	/**
 	 * returns the possible moves on the current map
@@ -360,12 +371,10 @@ public class Client {
 		}
 	}
 
-
 	private static ArrayList<int[]> getFieldsByOwnColor(Map map){
 		//TODO: complete
 		return null;
 	}
-
 
 	/**
 	 * Goes over every move to check in the moves data stucture and calls checkIfMovePossible for it to test if it's a valid move
@@ -442,6 +451,9 @@ public class Client {
 		}
 		return false;
 	}
+
+	//coloring of map
+
 	/**
 	 * colores the map when the keystone is placed in the specified position
 	 * @param pos position where the keystone is placed

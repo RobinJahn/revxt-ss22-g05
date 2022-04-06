@@ -37,7 +37,7 @@ public class Heuristik {
         this.myColorI = myColor;
         this.myColorC = Integer.toString(myColor).charAt(0);
         matrix = new double[map.getHeight()][map.getWidth()];
-        setStaticRelevantInfos();
+        setStaticInfos();
         if (printOn) printMatrix();
         addWaveMatrix();
         if (printOn) System.out.println("Added Waves");
@@ -52,7 +52,7 @@ public class Heuristik {
         double result = 0;
 
         //update relevant infos
-        setDynamicRelevantInfos();
+        setDynamicInfos();
 
         result += sumOfMyFields/myFileds.size(); //durchschnittswert meiner felder
         if (printOn) System.out.println("Sum of my field Ø: " + result);
@@ -88,7 +88,7 @@ public class Heuristik {
      *      inversion
      *      choise
      */
-    private void setStaticRelevantInfos(){
+    private void setStaticInfos(){
         char currChar;
         Position currPos = new Position(0,0); //position that goes throu whole map
         validFields = 0; //make shure it resets if that might be called more often
@@ -140,7 +140,7 @@ public class Heuristik {
     /**
      * updates the values that are relevant for the heuristical evaluation
      */
-    private void setDynamicRelevantInfos(){
+    private void setDynamicInfos(){
         sumOfMyFields = 0;
         myFileds.clear();
         //get my stone positions in %

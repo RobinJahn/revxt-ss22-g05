@@ -161,13 +161,12 @@ public class ServerMessenger {
                 break;
             case 5:
                 message = new byte[10];
-                messageBuffer = ByteBuffer.allocate(11);
+                messageBuffer = ByteBuffer.allocate(10);
                 messageBuffer.put((byte)5); //nachrichtentyp
                 messageBuffer.putInt(5); //länge der nachricht //TODO: IN HEX
                 messageBuffer.putShort(Short.parseShort(Integer.toString(arguments[0]))); //x
                 messageBuffer.putShort(Short.parseShort(Integer.toString(arguments[1]))); //y
                 messageBuffer.put(Byte.parseByte(Integer.toString(arguments[2]))); //extra info
-                messageBuffer.put(Byte.parseByte(Integer.toString(arguments[3]))); //player number
                 message = messageBuffer.array();
                 break;
         }
