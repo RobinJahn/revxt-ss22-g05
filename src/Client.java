@@ -24,7 +24,7 @@ class Moves {
 public class Client {
 	//final variables
 	final boolean moveRandom = true;
-	final boolean printOn = true;
+	final boolean printOn;
 
 	//global variables
 	Map map;
@@ -53,8 +53,7 @@ public class Client {
 			}
 		}
 
-		c1 = new Client(ip,port);
-
+		c1 = new Client(ip,port,true);
 	}
 
 	//functions that let the client play
@@ -65,7 +64,8 @@ public class Client {
 	 * @param ip ip of the server
 	 * @param port port of the server
 	 */
-	public Client(String ip, int port){
+	public Client(String ip, int port, boolean printOn){
+		this.printOn = printOn;
 		//try to connect with server
 		try {
 			serverM = new ServerMessenger(ip,port);
@@ -105,6 +105,7 @@ public class Client {
 	private void play(){
 		int messageType;
 		boolean gameOngoing = true;
+		boolean firstPhase = true;
 
 		System.out.println(map.toString(null,false,true));
 
@@ -114,25 +115,34 @@ public class Client {
 			switch (messageType) {
 				case 4: //Zugaufforderung
 					if (printOn) System.out.println("recieved Zugaufforderung");
-					makeAMove();
+					if (firstPhase) makeAMove();
+					else setABomb();
 					break;
 				case 6: //Spielzug
 					if (printOn) System.out.println("recieved Spielzug");
-					updateMapWithMove();
+					if (firstPhase) updateMapWithMove();
+					else updateMapAfterBombing();
 					System.out.println(map.toString(null,false,true));
 					break;
-				case 7: //Disqualifiing
-					if (printOn) System.out.println("recieved Disqualifying");
-					gameOngoing = false;
+				case 7: //Disqualification
+					if (printOn) System.out.println("recieved Disqualification");
+					int player = serverM.readRestOfDisqualification();
+					if (printOn) System.out.println("Player " + player + " was disqualified"); //TODO: handle inversion and choise
+					if (player == myPlayerNr) gameOngoing = false;
 					break;
 				case 8: //End of Phase 1
 					if (printOn) System.out.println("recieved end of phase 1");
+					serverM.readRestOfNextPhase();
+					firstPhase = false;
+					break;
+				case 9: //End of Phase 2
+					if (printOn) System.out.println("recieved end of phase 2 - game ended");
+					serverM.readRestOfNextPhase();
 					gameOngoing = false;
 					break;
 				case -1:
 					gameOngoing = false;
 					break;
-
 			}
 		}
 	}
@@ -171,7 +181,9 @@ public class Client {
 			//make a random move
 			if (moveRandom) {
 				int index = randomIndex.nextInt(validMoves.size());
+				index = getNextMove(validMoves);
 				posToSetKeystone = validMoves.get(index);
+				if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
 			}
 			//let player enter a move
 			if (!moveRandom) {
@@ -245,7 +257,7 @@ public class Client {
 			case 0: //could be normal move, overwrite move, or inversion move
 				//for a normal move there are no futher actions neccessary
 				//overwrite move
-				if (Character.isDigit(fieldvalue) && fieldvalue != '0') {
+				if ((Character.isDigit(fieldvalue) && fieldvalue != '0') || fieldvalue == 'x') {
 					map.DecreaseOverrideStonesofPlayer();
 				}
 				//inversion move
@@ -275,6 +287,103 @@ public class Client {
 		}
 
 		map.nextPlayer();
+	}
+
+	//bomb phase
+
+	private void setABomb(){
+		char fieldvalue;
+		ArrayList<Position> validMoves = new ArrayList<>();
+		boolean moveIsPossible = false;
+		Position posToSetKeystone = new Position(0, 0);
+		Scanner sc = new Scanner(System.in);
+
+		//read resto of move request
+		serverM.readRestOfMoveRequest();
+
+		//gets the possible positions to set a bomb at
+		for (int y = 0; y < map.getHeight(); y++){
+			for (int x = 0; x < map.getWidth(); x++){
+				fieldvalue = map.getCharAt(x, y);
+				if (fieldvalue != '-' && fieldvalue != 't'){
+					validMoves.add(new Position(x,y));
+				}
+			}
+		}
+
+		//print possible moves
+		if (printOn) {
+			System.out.println("Possible Moves:");
+			System.out.println(Arrays.toString(validMoves.toArray()));
+		}
+
+		//get a valid move
+		while (!moveIsPossible) {
+			//enter the move
+			if (!moveRandom && printOn) System.out.print("Geben Sie den naechsten zug ein (x,y): ");
+
+			//make a random move
+			if (moveRandom) {
+				int index = randomIndex.nextInt(validMoves.size());
+				posToSetKeystone = validMoves.get(index);
+			}
+			//let player enter a move
+			if (!moveRandom) {
+				posToSetKeystone.x = sc.nextInt();
+				posToSetKeystone.y = sc.nextInt();
+			}
+			if (printOn) System.out.println();
+
+			//check if the move is valid
+			moveIsPossible = validMoves.contains(posToSetKeystone);
+		}
+
+		//send the move
+		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, '0', myPlayerNr);
+	}
+
+	private void updateMapAfterBombing(){
+		int[] moveInfos = serverM.readRestOfMove();
+		int x = moveInfos[0] + 1; //index shift
+		int y = moveInfos[1] + 1;
+		int moveOfPlayer = moveInfos[3];
+
+		int explosionRadius = map.getExplosionRadius();
+		int x1 = x - explosionRadius;
+		int y1 = y - explosionRadius;
+		int x2 = x + explosionRadius;
+		int y2 = y + explosionRadius;
+
+		map.setPlayer(moveOfPlayer); //set playing player because server could have skipped some
+
+		for(int yi = y1; yi <= y2; yi++) {
+			for (int xi = x1; xi <= x2; xi++) {
+				if(yi >= 0 && yi < map.getHeight() && xi >= 0 && xi < map.getWidth()) map.setCharAt(xi,yi,'-');
+			}
+		}
+
+	}
+
+	//caculate next move
+	private int getNextMove(ArrayList<Position> validMoves){
+		ArrayList<Double> valueOfMap = new ArrayList<>();
+		Map nextMap;
+		Heuristik nextHeuristik;
+
+		for (Position pos : validMoves){
+			nextMap = map.clone();
+			nextMap.setPlayer(myPlayerNr);
+			colorMap(pos, nextMap); //TODO: doesn't respect special moves
+			nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
+			valueOfMap.add(nextHeuristik.evaluate());
+		}
+
+		Double heighest = Collections.max(valueOfMap);
+		int indexOfHeighest = 0;
+		for (Double d : valueOfMap){
+			if (d == heighest) indexOfHeighest = valueOfMap.indexOf(d);
+		}
+		return indexOfHeighest;
 	}
 
 	//functions to calculate possible moves
@@ -472,11 +581,11 @@ public class Client {
 	//coloring of map
 
 	/**
-	 * colores the map when the keystone is placed in the specified position
+	 * colores the mapToColor when the keystone is placed in the specified position
 	 * @param pos position where the keystone is placed
-	 * @param map the map on wich it is placed
+	 * @param mapToColor the mapToColor on wich it is placed
 	 */
-	private static void colorMap(Position pos, Map map){
+	private static void colorMap(Position pos, Map mapToColor){
 		Position StartingPos;
 		Position currPos;
 		Integer newR;
@@ -487,7 +596,7 @@ public class Client {
 		ArrayList<Position> positionsAlongOneDirection;
 
 		//TODO: handle overwirtte stones right
-		if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) map.setCharAt(pos.x, pos.y, map.getCurrentlyPlayingC());
+		if (mapToColor.getCharAt(pos) == 'x' && mapToColor.getOverwriteStonesForPlayer(mapToColor.getCurrentlyPlayingI()) > 0) mapToColor.setCharAt(pos.x, pos.y, mapToColor.getCurrentlyPlayingC());
 
 		//checks every direction for a connection and adds the positions in between to color them later
 		for (int r = 0; r <= 7; r++){
@@ -503,24 +612,24 @@ public class Client {
 			//go in one direction until there is something relevant //TODO: check if it can go forver
 			while (true) {
 				//does one step
-				newR = doAStep(currPos, newR, map); //currPos is changed here
+				newR = doAStep(currPos, newR, mapToColor); //currPos is changed here
 				if (newR == null) break; //if the step wasn't possible
 				if(currPos.equals(StartingPos)) break;
 				//check what's there
-				currChar = map.getCharAt(currPos);
+				currChar = mapToColor.getCharAt(currPos);
 				//check for blank or not in field
 				if (currChar == '-' || currChar == '0') break;
 				//check for players
 				//if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
 				if (wasFirstStep) {
 					//if there is a keystone of your own, and it's the first step
-					if (currChar == map.getCurrentlyPlayingC()) break;
+					if (currChar == mapToColor.getCurrentlyPlayingC()) break;
 					wasFirstStep = false;
 				}
 				//if it's not the first move - finding an own keystone is a connection
 				else {
 					//if there is a keystone of your own, and it's not the first step
-					if (currChar == map.getCurrentlyPlayingC()) {
+					if (currChar == mapToColor.getCurrentlyPlayingC()) {
 						foundEnd = true;
 						break;
 					}
@@ -534,7 +643,7 @@ public class Client {
 
 		//colors the positions
 		for (Position posToColor : positionsToColor) {
-			map.setCharAt(posToColor.x, posToColor.y, map.getCurrentlyPlayingC());
+			mapToColor.setCharAt(posToColor.x, posToColor.y, mapToColor.getCurrentlyPlayingC());
 		}
 	}
 
@@ -543,10 +652,10 @@ public class Client {
 	 * goes one step in the specified direction. Considers transitions
 	 * @param pos strat position
 	 * @param r direction to do the step in
-	 * @param map map where you are
+	 * @param mapToDoTheStepOn mapToDoTheStepOn where you are
 	 * @return returns null if move isn't possible and the direction after the move if it is possible. If a transition changes the direction this is where to get the new one
 	 */
-	private static Integer doAStep(Position pos, int r, Map map){
+	private static Integer doAStep(Position pos, int r, Map mapToDoTheStepOn){
 		char transitionLookup;
 		Character transitionEnd;
 		int newR = r;
@@ -556,14 +665,14 @@ public class Client {
 		if (pos.x == 0){
 			if (r == 7 || r == 6 || r == 5) return null;
 		}
-		if (pos.x == map.getWidth()-1){
+		if (pos.x == mapToDoTheStepOn.getWidth()-1){
 			if (r == 1 || r == 2 || r == 3) return null;
 		}
 		//check if step is valid in y direction
 		if (pos.y == 0) {
 			if (r == 7 || r == 0 || r == 1) return null;
 		}
-		if (pos.y == map.getHeight()-1){
+		if (pos.y == mapToDoTheStepOn.getHeight()-1){
 			if (r == 3 || r == 4 || r == 5) return null;
 		}
 
@@ -571,10 +680,10 @@ public class Client {
 		newPos = Position.goInR(pos, r);
 
 		//check if there is a transition
-		if (map.getCharAt(newPos) == 't') {
+		if (mapToDoTheStepOn.getCharAt(newPos) == 't') {
 			//check if the direction matches the current one
 			transitionLookup = Transitions.saveInChar(pos.x,pos.y,r); //pos is the old position
-			transitionEnd = map.transitionen.get(transitionLookup);
+			transitionEnd = mapToDoTheStepOn.transitionen.get(transitionLookup);
 			if (transitionEnd == null) return null; //if there isn't an entry
 
 			//go through the transition

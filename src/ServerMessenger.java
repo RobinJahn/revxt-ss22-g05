@@ -71,6 +71,28 @@ public class ServerMessenger {
         return result;
     }
 
+    public int readRestOfDisqualification(){
+        int player = -1;
+        DataInputStream dis = new DataInputStream(in);
+        try {
+            in.readNBytes(4); //reads size and ignores it
+            player = dis.readUnsignedByte();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            return -1;
+        }
+        return player;
+    }
+
+    public void readRestOfNextPhase(){
+        try {
+            in.readNBytes(4); //reads size and ignores it
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public Map getMap(){
         int readByte;
         byte[] readByteArray;

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public class Map {
+public class Map{
     private char[][] map; //main data structure to store the Map Infos
 
     //Data Structure and needed Variables to store Transitions
@@ -44,6 +44,13 @@ public class Map {
 
     public Map(byte[] mapByteArray){
         importedCorrectly = importMap(mapByteArray);
+        if (!importedCorrectly) {
+            System.err.println("Map didn't import correctly.");
+        }
+    }
+
+    public Map(String fileName){
+        importedCorrectly = importMap(fileName);
         if (!importedCorrectly) {
             System.err.println("Map didn't import correctly.");
         }
@@ -176,7 +183,7 @@ public class Map {
     public boolean exportMap(String fileName) {
         File newFile;
         FileWriter fw;
-
+        char currChar;
         //setup File and File Writer
         newFile = new File(fileName);
 
@@ -188,18 +195,20 @@ public class Map {
             fw.write("" + anzPlayers + '\n');
             fw.write( "" + overwriteStonesPerPlayer[0] + '\n');
             fw.write("" + bombsPerPlayer[0]  + ' ' + explosionRadius + '\n');
-            fw.write( "" + height + ' ' + width + '\n');
+            fw.write( "" + (height-2) + ' ' + (width-2) + '\n');
 
             //write map
-            for (int y = 0; y < height; y++){
-                for (int x = 0; x < width; x++){
-                    fw.write(((Character)getCharAt(x,y)).toString() + ' ');
+            for (int y = 1; y < height-1; y++){
+                for (int x = 1; x < width-1; x++){
+                    currChar = getCharAt(x,y);
+                    if (currChar == 't') currChar = '-';
+                    fw.write(Character.toString(currChar) + ' ');
                 }
                 fw.write('\n');
             }
 
             //write transitions
-            fw.write(Transitions.AllToString(transitionen));
+            fw.write(Transitions.AllToStringWithIndexShift(transitionen));
             
             fw.close();
         } catch (IOException e) {
@@ -219,11 +228,11 @@ public class Map {
         mapString += "currently playing: " + currentlyPlaying + "\n";
         mapString += "Overwrite Stones per Player:\n";
         for (int i = 1; i <= anzPlayers; i++) {
-            mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i] + "\n";
+            mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i-1] + "\n";
         }
         mapString += "Bombs per Player:\n";
         for (int i = 1; i <= anzPlayers; i++) {
-            mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i] + "\n";
+            mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i-1] + "\n";
         }
         mapString += "Explosion radius: " + explosionRadius + "\n";
         mapString += "Height: " + height + ", Width: " + width + "\n\n";
@@ -258,11 +267,11 @@ public class Map {
         mapString += "currently playing: " + currentlyPlaying + "\n";
         mapString += "Overwrite Stones per Player:\n";
         for (int i = 1; i <= anzPlayers; i++) {
-            mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i] + "\n";
+            mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i-1] + "\n";
         }
         mapString += "Bombs per Player:\n";
         for (int i = 1; i <= anzPlayers; i++) {
-            mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i] + "\n";
+            mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i-1] + "\n";
         }
         mapString += "Explosion radius: " + explosionRadius + "\n";
         mapString += "Height: " + height + ", Width: " + width + "\n\n";
@@ -373,6 +382,13 @@ public class Map {
                 }
             }
         }
+    }
+
+    public Map clone(){
+        String filename = "exportedmap.map";
+        exportMap(filename);
+        Map newMap = new Map(filename);
+        return newMap;
     }
 
     //GETTER
