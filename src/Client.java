@@ -156,7 +156,8 @@ public class Client {
 		Position posToSetKeystone = new Position(0, 0);
 		Scanner sc = new Scanner(System.in);
 
-		//read resto of move request
+		map.setPlayer(myPlayerNr);
+		//read rest of move request
 		serverM.readRestOfMoveRequest();
 
 		//calculate possible moves and print map with these
@@ -180,7 +181,7 @@ public class Client {
 
 			//make a random move
 			if (moveRandom) {
-				int index = randomIndex.nextInt(validMoves.size());
+				int index;
 				index = getNextMove(validMoves);
 				posToSetKeystone = validMoves.get(index);
 				if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
@@ -244,6 +245,8 @@ public class Client {
 		int moveOfPlayer = moveInfos[3];
 		char fieldvalue;
 
+		if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + addditionalInfo);
+
 		map.setPlayer(moveOfPlayer); //set playing player because server could have skipped some
 
 		//get value of field where next keystone is set
@@ -298,7 +301,7 @@ public class Client {
 		Position posToSetKeystone = new Position(0, 0);
 		Scanner sc = new Scanner(System.in);
 
-		//read resto of move request
+		//read rest of move request
 		serverM.readRestOfMoveRequest();
 
 		//gets the possible positions to set a bomb at
@@ -348,6 +351,9 @@ public class Client {
 		int y = moveInfos[1] + 1;
 		int moveOfPlayer = moveInfos[3];
 
+		if (printOn) System.out.println("Player " + moveOfPlayer + " set Bomb to (" + x + "," + y + ")");
+
+
 		int explosionRadius = map.getExplosionRadius();
 		int x1 = x - explosionRadius;
 		int y1 = y - explosionRadius;
@@ -371,7 +377,7 @@ public class Client {
 		Heuristik nextHeuristik;
 
 		for (Position pos : validMoves){
-			nextMap = map.clone();
+			nextMap = new Map(map);
 			nextMap.setPlayer(myPlayerNr);
 			colorMap(pos, nextMap); //TODO: doesn't respect special moves
 			nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
