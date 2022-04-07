@@ -1,5 +1,6 @@
 package src;
 
+import java.io.IOException;
 import java.util.*;
 
 class Moves {
@@ -21,151 +22,377 @@ class Moves {
 }
 
 public class Client {
-	
-	public static void main(String[] args) {
-		boolean moveRandom = false;
+	//final variables
+	final boolean moveRandom = true;
+	final boolean printOn;
 
-		Map map = new Map();
-		if(!map.importedCorrectly)
-		{
+	//global variables
+	Map map;
+	ServerMessenger serverM;
+	Heuristik heuristik;
+	Random randomIndex = new Random(1);
+	int myPlayerNr;
+
+
+	public static void main(String[] args) {
+		Client c1;
+
+		//variables for the server
+		String ip = "127.0.0.1";
+		int port = 7777;
+
+		//get call argumets
+		for (int i = 0; i < args.length-1; i++){
+			if (Objects.equals(args[i], "-i")){
+				i++;
+				ip = args[i];
+			}
+			if (Objects.equals(args[i], "-p")){
+				i++;
+				port = Integer.parseInt(args[i]);
+			}
+		}
+
+		c1 = new Client(ip,port,true);
+	}
+
+	//functions that let the client play
+
+	/**
+	 * Constructor of the Client.
+	 * Connects to Server and starts playing
+	 * @param ip ip of the server
+	 * @param port port of the server
+	 */
+	public Client(String ip, int port, boolean printOn){
+		this.printOn = printOn;
+		//try to connect with server
+		try {
+			serverM = new ServerMessenger(ip,port);
+			if (printOn) System.out.println("Client Successfully connected to server");
+		} catch (IOException e) {
+			System.err.println("Couln't connect to server");
 			return;
 		}
-		Position posToSetKeystone;
-		Scanner sc = new Scanner(System.in);
-		int AnzahlPlayers = map.getAnzPlayers();
-		int SkippedTurns = 0;
-		boolean GameOngoing = true;
-		Random randomIndex = new Random(1);
-		Heuristik heuristik = new Heuristik(map, 1);
-		double valueOfMap;
 
-		heuristik.printMatrix();
+		//get map from server
+		map = serverM.getMap();
 
-		while (GameOngoing){
-			//calculate possible moves and print map with these
-			ArrayList<Position> validMoves = getValidMoves(map);
-			System.out.println(map.toString(validMoves, false, true));
+		//check if it imported correctly
+		if(map == null || !map.importedCorrectly) {
+			System.err.println("Map coun't be loaded correctly");
+			return;
+		}
+		else {
+			if (printOn) System.out.println("Map was loaded correctly");
+		}
 
-			valueOfMap = (double)Math.round(heuristik.evaluate()*100)/100;
-			System.out.println("Value of Map is " + valueOfMap);
-			if(!validMoves.isEmpty()) {
-				SkippedTurns = 0;
-				//print possible moves
-				System.out.println("Possible Moves:");
-				System.out.println(Arrays.toString(validMoves.toArray()));
+		//get own player number
+		myPlayerNr = serverM.getPlayerNumber();
+		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
 
-				//enter the move
-				System.out.print("Geben Sie den naechsten zug ein (x,y): ");
+		//set variables after map was imported
+		heuristik = new Heuristik(map, myPlayerNr,true);
 
-				posToSetKeystone = new Position(0, 0);
-				if (moveRandom) {
-					int index = randomIndex.nextInt(validMoves.size());
-					posToSetKeystone = validMoves.get(index);
-				}
-				if (!moveRandom) {
-					posToSetKeystone.x = sc.nextInt();
-					posToSetKeystone.y = sc.nextInt();
-				}
-				System.out.println();
+		//start playing
+		System.out.println();
+		play();
+	}
 
-				//check the move
-				ArrayList<Integer> directions = new ArrayList<>();
-				for (int i = 0; i <= 7; i++) directions.add(i);
-				boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
-				if (!movePossible) {
-					System.err.println("Move isn't possible");
-					continue;
-				}
+	/**
+	 * Plays the Game. Gets Messages from server and calls methods to handle the different kinds
+	 */
+	private void play(){
+		int messageType;
+		boolean gameOngoing = true;
+		boolean firstPhase = true;
 
-				char fieldvalue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
-				switch (fieldvalue) {
-					case 'b': {
-						colorMap(posToSetKeystone, map);
-						System.out.println("Wollen sie eine Bombe (b) oder einen Überschreibstein (u)?");
-						char choice = sc.next().charAt(0);
-						if (choice == 'b') {
-							map.IncreaseBombsofPlayer();
-						} else if (choice == 'u') {
-							map.IncreaseOverrideStonesofPlayer();
-						} else {
-							System.err.println("Kein gültige Eingabe bei Wahl des Bonus");
-						}
-						break;
+		System.out.println(map.toString(null,false,true));
 
-					}
-					case 'c': {
-						colorMap(posToSetKeystone, map);
-						System.out.println("Mit wem wollen sie die Farbe tauschen ?");
-						int choice = sc.nextInt();
-						map.swapStonesWithOnePlayer(choice);
-						break;
-					}
-
-					case 'i': {
-						colorMap(posToSetKeystone, map);
-						map.Inversion();
-						break;
-					}
-
-					case '0': {
-						colorMap(posToSetKeystone, map);
-						break;
-					}
-
-					case 'x':
-					case '1':
-					case '2':
-					case '3':
-					case '4':
-					case '5':
-					case '6':
-					case '7':
-					case '8': {
-						colorMap(posToSetKeystone, map);
-						map.DecreaseOverrideStonesofPlayer();
-						break;
-					}
-					default: {
-						System.err.println("Fieldvalue ist ungültig");
-					}
-				}
+		while (gameOngoing) {
+			if (printOn) System.out.print("Waiting for Message - ");
+			messageType = serverM.waitForMessage();
+			switch (messageType) {
+				case 4: //Zugaufforderung
+					if (printOn) System.out.println("recieved Zugaufforderung");
+					if (firstPhase) makeAMove();
+					else setABomb();
+					break;
+				case 6: //Spielzug
+					if (printOn) System.out.println("recieved Spielzug");
+					if (firstPhase) updateMapWithMove();
+					else updateMapAfterBombing();
+					System.out.println(map.toString(null,false,true));
+					break;
+				case 7: //Disqualification
+					if (printOn) System.out.println("recieved Disqualification");
+					int player = serverM.readRestOfDisqualification();
+					if (printOn) System.out.println("Player " + player + " was disqualified"); //TODO: handle inversion and choise
+					if (player == myPlayerNr) gameOngoing = false;
+					break;
+				case 8: //End of Phase 1
+					if (printOn) System.out.println("recieved end of phase 1");
+					serverM.readRestOfNextPhase();
+					firstPhase = false;
+					break;
+				case 9: //End of Phase 2
+					if (printOn) System.out.println("recieved end of phase 2 - game ended");
+					serverM.readRestOfNextPhase();
+					gameOngoing = false;
+					break;
+				case -1:
+					gameOngoing = false;
+					break;
 			}
-			else
-			{
-				SkippedTurns++;
-				if(SkippedTurns == AnzahlPlayers)
-				{
-					System.out.println("Kein Spielzug mehr moeglich");
-					System.out.println("Lade neue Karte? (Y/N)");
-					char answer = sc.next().charAt(0);
-					System.out.println(answer);
-					if(answer == 'Y')
-					{
-						map = new Map();
-						if(!map.importedCorrectly)
-						{
-							return;
-						}
-						AnzahlPlayers = map.getAnzPlayers();
-						SkippedTurns = 0;
-						map.setPlayer(1);
-						continue;
-					}
-					else if (answer == 'N')
-					{
-						GameOngoing = false;
-					}
-					else
-					{
-						System.err.println("Ungueltige Eingabe bei Spielende.\nSpiel wird abgebrochen");
-						break;
-					}
-
-				}
-			}
-			map.nextPlayer();
 		}
 	}
+
+	/**
+	 * Method to make a move after a move request was sent to the Client
+	 */
+	private void makeAMove(){
+		boolean moveIsPossible = false;
+		double valueOfMap;
+		Position posToSetKeystone = new Position(0, 0);
+		Scanner sc = new Scanner(System.in);
+
+		map.setPlayer(myPlayerNr);
+		//read rest of move request
+		serverM.readRestOfMoveRequest();
+
+		//calculate possible moves and print map with these
+		ArrayList<Position> validMoves = getValidMoves(map);
+		if (printOn) System.out.println(map.toString(validMoves, false, true));
+
+		//calculate value of map and print it
+		valueOfMap = (double)Math.round(heuristik.evaluate()*100)/100;
+		if (printOn) System.out.println("Value of Map is " + valueOfMap);
+
+		//no check neccessaray if valid moves are empty because server says there not
+
+		if (printOn) {
+			System.out.println("Possible Moves:");
+			System.out.println(Arrays.toString(validMoves.toArray()));
+		}
+
+   		while (!moveIsPossible) {
+			//enter the move
+			if (!moveRandom && printOn) System.out.print("Geben Sie den naechsten zug ein (x,y): ");
+
+			//make a random move
+			if (moveRandom) {
+				int index;
+				index = getNextMove(validMoves);
+				posToSetKeystone = validMoves.get(index);
+				if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
+			}
+			//let player enter a move
+			if (!moveRandom) {
+				posToSetKeystone.x = sc.nextInt();
+				posToSetKeystone.y = sc.nextInt();
+			}
+			if (printOn) System.out.println();
+
+			//check if the move is valid
+			ArrayList<Integer> directions = new ArrayList<>();
+			for (int i = 0; i <= 7; i++) directions.add(i);
+			boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
+			if (!movePossible) {
+				System.err.println("Move isn't possible");
+			}
+			else {
+				moveIsPossible = true;
+			}
+		}
+
+
+		//check where we would set oure keystone on and act accordingly
+		char fieldvalue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
+
+		Character choiceChar = null;
+		Integer choiceInt = null;
+		switch (fieldvalue) {
+			case 'b': {
+				if (printOn) System.out.println("Wollen sie eine Bombe (b) oder einen Überschreibstein (u)?");
+				choiceChar = sc.next().charAt(0);
+				break;
+
+			}
+			case 'c': {
+				if (printOn) System.out.println("Mit wem wollen sie die Farbe tauschen ?");
+				choiceInt = sc.nextInt();
+
+				break;
+			}
+		}
+
+		//send message where to move
+		char addidionalInfo = '0';
+		if (choiceChar != null) addidionalInfo = choiceChar;
+		if (choiceInt != null) addidionalInfo = choiceInt.toString().charAt(0);
+		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, addidionalInfo, myPlayerNr);
+	}
+
+	/**
+	 * Method to update the Map according to the move that was sent to the client
+	 */
+	private void updateMapWithMove() {
+		int[] moveInfos = serverM.readRestOfMove();
+		Position posToSetKeystone = new Position(0,0);
+		posToSetKeystone.x = moveInfos[0] + 1; //index shift
+		posToSetKeystone.y = moveInfos[1] + 1;
+		int addditionalInfo = moveInfos[2];
+		int moveOfPlayer = moveInfos[3];
+		char fieldvalue;
+
+		if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + addditionalInfo);
+
+		map.setPlayer(moveOfPlayer); //set playing player because server could have skipped some
+
+		//get value of field where next keystone is set
+		fieldvalue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
+
+		//color the map
+		colorMap(posToSetKeystone, map);
+
+		//handle special moves
+		switch (addditionalInfo){
+			case 0: //could be normal move, overwrite move, or inversion move
+				//for a normal move there are no futher actions neccessary
+				//overwrite move
+				if ((Character.isDigit(fieldvalue) && fieldvalue != '0') || fieldvalue == 'x') {
+					map.DecreaseOverrideStonesofPlayer();
+				}
+				//inversion move
+				else if (fieldvalue == 'i') {
+					map.Inversion();
+				}
+				break;
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			case 8: //choise
+				map.swapStonesWithOnePlayer(addditionalInfo);
+				break;
+			case 20: //bonus and want a bomb
+				map.IncreaseBombsofPlayer();
+				break;
+			case 21: //bonus and want an overwrite stone
+				map.IncreaseOverrideStonesofPlayer();
+				break;
+			default:
+				System.err.println("Fieldvalue ist ungültig");
+				break;
+		}
+
+		map.nextPlayer();
+	}
+
+	//bomb phase
+
+	private void setABomb(){
+		char fieldvalue;
+		ArrayList<Position> validMoves = new ArrayList<>();
+		boolean moveIsPossible = false;
+		Position posToSetKeystone = new Position(0, 0);
+		Scanner sc = new Scanner(System.in);
+
+		//read rest of move request
+		serverM.readRestOfMoveRequest();
+
+		//gets the possible positions to set a bomb at
+		for (int y = 0; y < map.getHeight(); y++){
+			for (int x = 0; x < map.getWidth(); x++){
+				fieldvalue = map.getCharAt(x, y);
+				if (fieldvalue != '-' && fieldvalue != 't'){
+					validMoves.add(new Position(x,y));
+				}
+			}
+		}
+
+		//print possible moves
+		if (printOn) {
+			System.out.println("Possible Moves:");
+			System.out.println(Arrays.toString(validMoves.toArray()));
+		}
+
+		//get a valid move
+		while (!moveIsPossible) {
+			//enter the move
+			if (!moveRandom && printOn) System.out.print("Geben Sie den naechsten zug ein (x,y): ");
+
+			//make a random move
+			if (moveRandom) {
+				int index = randomIndex.nextInt(validMoves.size());
+				posToSetKeystone = validMoves.get(index);
+			}
+			//let player enter a move
+			if (!moveRandom) {
+				posToSetKeystone.x = sc.nextInt();
+				posToSetKeystone.y = sc.nextInt();
+			}
+			if (printOn) System.out.println();
+
+			//check if the move is valid
+			moveIsPossible = validMoves.contains(posToSetKeystone);
+		}
+
+		//send the move
+		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, '0', myPlayerNr);
+	}
+
+	private void updateMapAfterBombing(){
+		int[] moveInfos = serverM.readRestOfMove();
+		int x = moveInfos[0] + 1; //index shift
+		int y = moveInfos[1] + 1;
+		int moveOfPlayer = moveInfos[3];
+
+		if (printOn) System.out.println("Player " + moveOfPlayer + " set Bomb to (" + x + "," + y + ")");
+
+
+		int explosionRadius = map.getExplosionRadius();
+		int x1 = x - explosionRadius;
+		int y1 = y - explosionRadius;
+		int x2 = x + explosionRadius;
+		int y2 = y + explosionRadius;
+
+		map.setPlayer(moveOfPlayer); //set playing player because server could have skipped some
+
+		for(int yi = y1; yi <= y2; yi++) {
+			for (int xi = x1; xi <= x2; xi++) {
+				if(yi >= 0 && yi < map.getHeight() && xi >= 0 && xi < map.getWidth()) map.setCharAt(xi,yi,'-');
+			}
+		}
+
+	}
+
+	//caculate next move
+	private int getNextMove(ArrayList<Position> validMoves){
+		ArrayList<Double> valueOfMap = new ArrayList<>();
+		Map nextMap;
+		Heuristik nextHeuristik;
+
+		for (Position pos : validMoves){
+			nextMap = new Map(map);
+			nextMap.setPlayer(myPlayerNr);
+			colorMap(pos, nextMap); //TODO: doesn't respect special moves
+			nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
+			valueOfMap.add(nextHeuristik.evaluate());
+		}
+
+		Double heighest = Collections.max(valueOfMap);
+		int indexOfHeighest = 0;
+		for (Double d : valueOfMap){
+			if (d == heighest) indexOfHeighest = valueOfMap.indexOf(d);
+		}
+		return indexOfHeighest;
+	}
+
+	//functions to calculate possible moves
 
 	/**
 	 * returns the possible moves on the current map
@@ -230,9 +457,9 @@ public class Client {
 	}
 
 	/**
-	 * Used for getCandidatesByNeighboure. Does the checking around a enemy keystone
-	 * @param map
-	 * @param moves
+	 * Used for getCandidatesByNeighboure. Does the checking around an enemy keystone
+	 * @param map map the check takes place on
+	 * @param moves Data structure where all the moves to check are stored
 	 * @param x x position of enemy keystone to check
 	 * @param y y position of enemy keystone to check
 	 */
@@ -277,21 +504,18 @@ public class Client {
 		}
 	}
 
-
 	private static ArrayList<int[]> getFieldsByOwnColor(Map map){
 		//TODO: complete
 		return null;
 	}
 
-
 	/**
-	 * Goes over every move to check in the moves data stucture and calls checkIfMovePossible for it to test if it's a valid move
-	 * @param map
-	 * @param moves
+	 * Goes over every move to check in the Moves data stucture and calls checkIfMovePossible for it to test if it's a valid move
+	 * @param map the map the check takes place
+	 * @param moves the moves to check
 	 */
 	private static void deleteNotPossibleMoves(Map map, Moves moves){
 		boolean connectionFound;
-		char myColor = map.getCurrentlyPlayingC();
 
 		//check every move if it's possible
 		for (Position pos : moves.movesToCheck.keySet()){
@@ -311,7 +535,7 @@ public class Client {
 	 * goes in every specified direction to check if it's possible to set a keystone at the specified position
 	 * @param pos pos the keystone would be placed
 	 * @param directions directions it needs to check
-	 * @param map
+	 * @param map the map the check takes place on
 	 * @return returns true if the move is possible and false otherwise
 	 */
 	private static boolean checkIfMoveIsPossible(Position pos, ArrayList<Integer> directions, Map map){
@@ -359,12 +583,15 @@ public class Client {
 		}
 		return false;
 	}
+
+	//coloring of map
+
 	/**
-	 * colores the map when the keystone is placed in the specified position
+	 * colores the mapToColor when the keystone is placed in the specified position
 	 * @param pos position where the keystone is placed
-	 * @param map the map on wich it is placed
+	 * @param mapToColor the mapToColor on wich it is placed
 	 */
-	private static void colorMap(Position pos, Map map){
+	private static void colorMap(Position pos, Map mapToColor){
 		Position StartingPos;
 		Position currPos;
 		Integer newR;
@@ -375,7 +602,7 @@ public class Client {
 		ArrayList<Position> positionsAlongOneDirection;
 
 		//TODO: handle overwirtte stones right
-		if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) map.setCharAt(pos.x, pos.y, map.getCurrentlyPlayingC());
+		if (mapToColor.getCharAt(pos) == 'x' && mapToColor.getOverwriteStonesForPlayer(mapToColor.getCurrentlyPlayingI()) > 0) mapToColor.setCharAt(pos.x, pos.y, mapToColor.getCurrentlyPlayingC());
 
 		//checks every direction for a connection and adds the positions in between to color them later
 		for (int r = 0; r <= 7; r++){
@@ -391,24 +618,24 @@ public class Client {
 			//go in one direction until there is something relevant //TODO: check if it can go forver
 			while (true) {
 				//does one step
-				newR = doAStep(currPos, newR, map); //currPos is changed here
+				newR = doAStep(currPos, newR, mapToColor); //currPos is changed here
 				if (newR == null) break; //if the step wasn't possible
 				if(currPos.equals(StartingPos)) break;
 				//check what's there
-				currChar = map.getCharAt(currPos);
+				currChar = mapToColor.getCharAt(currPos);
 				//check for blank or not in field
 				if (currChar == '-' || currChar == '0') break;
 				//check for players
 				//if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
 				if (wasFirstStep) {
 					//if there is a keystone of your own, and it's the first step
-					if (currChar == map.getCurrentlyPlayingC()) break;
+					if (currChar == mapToColor.getCurrentlyPlayingC()) break;
 					wasFirstStep = false;
 				}
 				//if it's not the first move - finding an own keystone is a connection
 				else {
 					//if there is a keystone of your own, and it's not the first step
-					if (currChar == map.getCurrentlyPlayingC()) {
+					if (currChar == mapToColor.getCurrentlyPlayingC()) {
 						foundEnd = true;
 						break;
 					}
@@ -422,7 +649,7 @@ public class Client {
 
 		//colors the positions
 		for (Position posToColor : positionsToColor) {
-			map.setCharAt(posToColor.x, posToColor.y, map.getCurrentlyPlayingC());
+			mapToColor.setCharAt(posToColor.x, posToColor.y, mapToColor.getCurrentlyPlayingC());
 		}
 	}
 
@@ -431,27 +658,27 @@ public class Client {
 	 * goes one step in the specified direction. Considers transitions
 	 * @param pos strat position
 	 * @param r direction to do the step in
-	 * @param map map where you are
+	 * @param mapToDoTheStepOn mapToDoTheStepOn where you are
 	 * @return returns null if move isn't possible and the direction after the move if it is possible. If a transition changes the direction this is where to get the new one
 	 */
-	private static Integer doAStep(Position pos, int r, Map map){
+	private static Integer doAStep(Position pos, int r, Map mapToDoTheStepOn){
 		char transitionLookup;
 		Character transitionEnd;
-		Integer newR = r;
+		int newR = r;
 		Position newPos;
 
 		//check if step is valid in x direction
 		if (pos.x == 0){
 			if (r == 7 || r == 6 || r == 5) return null;
 		}
-		if (pos.x == map.getWidth()-1){
+		if (pos.x == mapToDoTheStepOn.getWidth()-1){
 			if (r == 1 || r == 2 || r == 3) return null;
 		}
 		//check if step is valid in y direction
 		if (pos.y == 0) {
 			if (r == 7 || r == 0 || r == 1) return null;
 		}
-		if (pos.y == map.getHeight()-1){
+		if (pos.y == mapToDoTheStepOn.getHeight()-1){
 			if (r == 3 || r == 4 || r == 5) return null;
 		}
 
@@ -459,10 +686,10 @@ public class Client {
 		newPos = Position.goInR(pos, r);
 
 		//check if there is a transition
-		if (map.getCharAt(newPos) == 't') {
+		if (mapToDoTheStepOn.getCharAt(newPos) == 't') {
 			//check if the direction matches the current one
 			transitionLookup = Transitions.saveInChar(pos.x,pos.y,r); //pos is the old position
-			transitionEnd = map.transitionen.get(transitionLookup);
+			transitionEnd = mapToDoTheStepOn.transitionen.get(transitionLookup);
 			if (transitionEnd == null) return null; //if there isn't an entry
 
 			//go through the transition

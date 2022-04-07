@@ -4,13 +4,13 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Set;
 
-public class Map {
-    private char[][] map; //main data structure to store the Map Infos
+public class Map{
+    //main data structure to store the Map Infos
+    private char[][] map;
 
     //Data Structure and needed Variables to store Transitions
-    public HashMap<Character,Character> transitionen = new HashMap<Character,Character>();
+    public HashMap<Character,Character> transitionen = new HashMap<>();
     int[] transitionsBuffer = new int[9];
     int posInTransitionBuffer=0;
     
@@ -42,10 +42,40 @@ public class Map {
             }
         }
     }
+
+    public Map(byte[] mapByteArray){
+        importedCorrectly = importMap(mapByteArray);
+        if (!importedCorrectly) {
+            System.err.println("Map didn't import correctly.");
+        }
+    }
+
+    public Map(String fileName){
+        importedCorrectly = importMap(fileName);
+        if (!importedCorrectly) {
+            System.err.println("Map didn't import correctly.");
+        }
+    }
+
+    public Map(Map mapToCopy){
+        map = new char[mapToCopy.map.length][mapToCopy.map[0].length];
+        for (int y = 0; y < mapToCopy.map.length; y++){
+            for (int x = 0; x < mapToCopy.map[0].length; x++){
+                map[y][x] = mapToCopy.map[y][x];
+            }
+        }
+        transitionen = (HashMap<Character, Character>) mapToCopy.transitionen.clone();
+        anzPlayers = mapToCopy.anzPlayers;
+        overwriteStonesPerPlayer = mapToCopy.overwriteStonesPerPlayer; //see if that creats a new object
+        bombsPerPlayer = mapToCopy.bombsPerPlayer;
+        explosionRadius = mapToCopy.explosionRadius;
+        height = mapToCopy.height;
+        width = mapToCopy.width;
+        importedCorrectly = true;
+        currentlyPlaying = mapToCopy.currentlyPlaying;
+    }
     
     //PUBLIC METHODS
-
-
 
     /**
      * Method Imports a Map from the given File Path.
@@ -57,8 +87,6 @@ public class Map {
         FileReader fr;
         BufferedReader br;
         StreamTokenizer st;
-        int tokenCounter;
-        boolean noErrorsInMethod;
 
         //Set up File reader
         try {
@@ -69,6 +97,40 @@ public class Map {
         }
         br = new BufferedReader(fr);
         st = new StreamTokenizer(br);
+
+        return importMapWithStreamTokenizer(st);
+    }
+
+    /**
+     * Method Imports a Map from the given input Stream.
+     * @param mapByteArray byte array to import from
+     * @return Returns true if map was imported correctly and false otherwise.
+     */
+    public boolean importMap(byte[] mapByteArray) {
+        //Variables
+        BufferedReader br;
+        StreamTokenizer st;
+
+        String mapString = new String(mapByteArray);
+        char[] mapCharArray = mapString.toCharArray();
+
+        CharArrayReader car = new CharArrayReader(mapCharArray);
+        br = new BufferedReader(car);
+        st = new StreamTokenizer(br);
+
+        return importMapWithStreamTokenizer(st);
+    }
+
+    /**
+     * imports Map after a stream tokenizer was created - wich changes if you have a file or a strem
+     * @param st Stream Tokenizer that is set to read the map
+     * @return Returns true if map was imported correctly and false otherwise.
+     */
+    private boolean importMapWithStreamTokenizer(StreamTokenizer st){
+        //Variables
+        int tokenCounter;
+        boolean noErrorsInMethod;
+
         st.whitespaceChars(' ', ' ');
         st.wordChars('-','-');
 
@@ -118,7 +180,7 @@ public class Map {
             }
             //and then read transitions
             else {
-                noErrorsInMethod = handleTransitions(st, tokenCounter);
+                noErrorsInMethod = handleTransitions(st);
                 if (!noErrorsInMethod) {
                     System.err.println("Method handleTransitions() failed");
                     return false;
@@ -131,6 +193,7 @@ public class Map {
         return true;
     }
 
+
     /**
      * For Testing Purposes. Exports Map to given FileName in the directory of the Project
      * @param fileName Name of the File
@@ -139,7 +202,7 @@ public class Map {
     public boolean exportMap(String fileName) {
         File newFile;
         FileWriter fw;
-
+        char currChar;
         //setup File and File Writer
         newFile = new File(fileName);
 
@@ -151,18 +214,20 @@ public class Map {
             fw.write("" + anzPlayers + '\n');
             fw.write( "" + overwriteStonesPerPlayer[0] + '\n');
             fw.write("" + bombsPerPlayer[0]  + ' ' + explosionRadius + '\n');
-            fw.write( "" + height + ' ' + width + '\n');
+            fw.write( "" + (height-2) + ' ' + (width-2) + '\n');
 
             //write map
-            for (int y = 0; y < height; y++){
-                for (int x = 0; x < width; x++){
-                    fw.write(((Character)getCharAt(x,y)).toString() + ' ');
+            for (int y = 1; y < height-1; y++){
+                for (int x = 1; x < width-1; x++){
+                    currChar = getCharAt(x,y);
+                    if (currChar == 't') currChar = '-';
+                    fw.write(Character.toString(currChar) + ' ');
                 }
                 fw.write('\n');
             }
 
             //write transitions
-            fw.write(Transitions.AllToString(transitionen));
+            fw.write(Transitions.AllToStringWithIndexShift(transitionen));
             
             fw.close();
         } catch (IOException e) {
@@ -181,12 +246,12 @@ public class Map {
         mapString += "Player count: " + anzPlayers + "\n";
         mapString += "currently playing: " + currentlyPlaying + "\n";
         mapString += "Overwrite Stones per Player:\n";
-        for (int i = 0; i < anzPlayers; i++) {
-            mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i] + "\n";
+        for (int i = 1; i <= anzPlayers; i++) {
+            mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i-1] + "\n";
         }
         mapString += "Bombs per Player:\n";
-        for (int i = 0; i < anzPlayers; i++) {
-            mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i] + "\n";
+        for (int i = 1; i <= anzPlayers; i++) {
+            mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i-1] + "\n";
         }
         mapString += "Explosion radius: " + explosionRadius + "\n";
         mapString += "Height: " + height + ", Width: " + width + "\n\n";
@@ -220,12 +285,12 @@ public class Map {
         mapString += "Player count: " + anzPlayers + "\n";
         mapString += "currently playing: " + currentlyPlaying + "\n";
         mapString += "Overwrite Stones per Player:\n";
-        for (int i = 0; i < anzPlayers; i++) {
-            mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i] + "\n";
+        for (int i = 1; i <= anzPlayers; i++) {
+            mapString += "\tPlayer " + i + ": " + overwriteStonesPerPlayer[i-1] + "\n";
         }
         mapString += "Bombs per Player:\n";
-        for (int i = 0; i < anzPlayers; i++) {
-            mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i] + "\n";
+        for (int i = 1; i <= anzPlayers; i++) {
+            mapString += "\tPlayer " + i + ": " + bombsPerPlayer[i-1] + "\n";
         }
         mapString += "Explosion radius: " + explosionRadius + "\n";
         mapString += "Height: " + height + ", Width: " + width + "\n\n";
@@ -246,10 +311,10 @@ public class Map {
                             bufferString += ANSI_BLUE;
                             break;
                         case '3':
-                            bufferString += ANSI_YELLOW;
+                            bufferString += ANSI_GREEN;
                             break;
                         case '4':
-                            bufferString += ANSI_GREEN;
+                            bufferString += ANSI_YELLOW;
                             break;
                         case '5':
                             bufferString += ANSI_BRIGHT_CYAN;
@@ -325,13 +390,13 @@ public class Map {
         {
             for(int x = 0;x < width;x++)
             {
-                if(map[y][x] != '0' && map[y][x]!='t' && map[y][x] !='-'){
+                if(Character.isDigit(map[y][x]) && map[y][x] != '0'){
                     map[y][x] = (char)((int)map[y][x]+1);
-                    if(map[y][x] > anzPlayers+48)
-                    {
-                    	System.out.println((int)map[y][x]);
-                    	System.out.println(anzPlayers);
+                    if(map[y][x] > anzPlayers+48) { //if it's player 8 make it to player 1
                         map[y][x] = '1';
+                    }
+                    if (map[y][x] > anzPlayers+49){
+                        System.err.println("Found stone that had value over 8 - set it to 1");
                     }
                 }
             }
@@ -520,7 +585,7 @@ public class Map {
         return true;
     }
 
-    private boolean handleTransitions(StreamTokenizer st, int tokenCounter) {
+    private boolean handleTransitions(StreamTokenizer st) {
         if (st.ttype != StreamTokenizer.TT_NUMBER) {
             char greater = '>';
             char less = '<';
