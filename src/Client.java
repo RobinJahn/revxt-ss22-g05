@@ -121,7 +121,7 @@ public class Client {
 				case 6: //Spielzug
 					if (printOn) System.out.println("recieved Spielzug");
 					if (firstPhase) updateMapWithMove();
-					else updateMapAfterBombing();
+					else updateMapAfterBombingIterativ();
 					System.out.println(map.toString(null,false,true));
 					break;
 				case 7: //Disqualification
@@ -345,14 +345,13 @@ public class Client {
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, '0', myPlayerNr);
 	}
 
-	private void updateMapAfterBombing(){
+
+	private void updateMapAfterBombingRecursiv(){
 		int[] moveInfos = serverM.readRestOfMove();
 		int x = moveInfos[0] + 1; //index shift
 		int y = moveInfos[1] + 1;
 		int moveOfPlayer = moveInfos[3];
-
-		if (printOn) System.out.println("Player " + moveOfPlayer + " set Bomb to (" + x + "," + y + ")");
-
+		char charAtPos;
 
 		int explosionRadius = map.getExplosionRadius();
 		int x1 = x - explosionRadius;
@@ -360,14 +359,101 @@ public class Client {
 		int x2 = x + explosionRadius;
 		int y2 = y + explosionRadius;
 
+		if (printOn) System.out.println("Player " + moveOfPlayer + " set Bomb to (" + x + "," + y + ")");
+
 		map.setPlayer(moveOfPlayer); //set playing player because server could have skipped some
 
-		for(int yi = y1; yi <= y2; yi++) {
-			for (int xi = x1; xi <= x2; xi++) {
-				if(yi >= 0 && yi < map.getHeight() && xi >= 0 && xi < map.getWidth()) map.setCharAt(xi,yi,'-');
-			}
+		map.setCharAt(x,y,'-'); //mittlerer stein
+		for (int r = 0; r <= 7; r++){
+			explodeFurther(x,y,r,explosionRadius);
+		}
+	}
+
+	private void explodeFurther(int x, int y, int r, int howMuchFurther){
+		//recursion end
+		if (howMuchFurther == 0) return;
+
+		//recursion call ...
+		Position currPos = new Position(x,y);
+		char charAtPos;
+		Integer newR;
+
+		currPos = Position.goInR(currPos,r);
+		charAtPos = map.getCharAt(currPos); //gets the char at the position it is going to go
+
+		//if there's a transition
+		if (charAtPos == 't'){
+			//tries to go through transition
+			newR = doAStep(new Position(x,y), r, map); //takes Position it came from. Because from there it needs to go through
+			if (newR != null) map.transitionen.remove( Transitions.saveInChar(x,y,r) ); //removes the transition but not the char on the map
+		}
+		else {
+			map.setCharAt(currPos.x, currPos.y, '-');
 		}
 
+		for (int rForNextCall = 0; rForNextCall <= 7; rForNextCall++){
+			explodeFurther(currPos.x, currPos.y, rForNextCall,howMuchFurther-1);
+		}
+	}
+
+
+	private void updateMapAfterBombingIterativ(){
+		int[] moveInfos = serverM.readRestOfMove();
+		int x = moveInfos[0] + 1; //index shift
+		int y = moveInfos[1] + 1;
+		int moveOfPlayer = moveInfos[3];
+		int explosionRadius = map.getExplosionRadius();
+
+		destroyField(x,y,explosionRadius);
+	}
+
+	private void destroyField(int x, int y, int explosionRadius){
+		char charAtPos;
+		Position pos;
+		int distance;
+		Integer newR;
+		char transitionEnd1;
+		Character transitionEnd2;
+
+
+		int x1 = x - explosionRadius;
+		int y1 = y - explosionRadius;
+		int x2 = x + explosionRadius;
+		int y2 = y + explosionRadius;
+
+		for (int yi = y1; yi <= y2; yi++) {
+			for (int xi = x1; xi <= x2; xi++) {
+				charAtPos = map.getCharAt(xi,yi);
+				//if there is no transition
+				if (charAtPos != 't'){
+					if(xi >= 0 && xi < map.getWidth() && yi >= 0 && yi < map.getHeight()) map.setCharAt(xi,yi,'-');
+				}
+				//if there is a transition
+				else {
+					//go to every field around the transition
+					for (int r = 0; r <= 7; r++){
+						//go to field
+						pos = Position.goInR( new Position(xi,yi), r);
+						//calculate distance
+						distance = Math.max( Math.abs(pos.x - x), Math.abs(pos.y - y) ); //distance = max(|x1-x2|, |y2-y2|) euklidische distanz
+						//check if it needs to go through the transition
+						if (distance + 1 <= explosionRadius) {
+							//check if the transition is in the opposite direction we went
+							newR = doAStep(pos, (r+4)%8, map);
+							if (newR != null) {
+								//removes transition pair from the hash List
+								transitionEnd1 = Transitions.saveInChar(pos.x,pos.y,(newR+4)%8);
+								transitionEnd2 = map.transitionen.get( transitionEnd1 );
+								map.transitionen.remove(transitionEnd1);
+								map.transitionen.remove(transitionEnd2);
+
+								destroyField(pos.x, pos.y, explosionRadius-distance-1); //explode Fields after transition
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	//caculate next move
@@ -564,8 +650,8 @@ public class Client {
 
 				//check what's there
 				currChar = map.getCharAt(currPos);
-				//check for blank or not in field
-				if (currChar == '-' || currChar == '0') break;
+				//check for blank
+				if (currChar == '0') break;
 				if(currPos.equals(StartingPos)) break;
 				//check for players
 				//if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
@@ -623,8 +709,8 @@ public class Client {
 				if(currPos.equals(StartingPos)) break;
 				//check what's there
 				currChar = mapToColor.getCharAt(currPos);
-				//check for blank or not in field
-				if (currChar == '-' || currChar == '0') break;
+				//check for blank
+				if (currChar == '0') break;
 				//check for players
 				//if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
 				if (wasFirstStep) {
@@ -655,7 +741,7 @@ public class Client {
 
 
 	/**
-	 * goes one step in the specified direction. Considers transitions
+	 * goes one step in the specified direction. If there's a wall or the end of the map it returns null if there's a transition it goes throug it
 	 * @param pos strat position
 	 * @param r direction to do the step in
 	 * @param mapToDoTheStepOn mapToDoTheStepOn where you are
@@ -663,6 +749,7 @@ public class Client {
 	 */
 	private static Integer doAStep(Position pos, int r, Map mapToDoTheStepOn){
 		char transitionLookup;
+		char charAtPos;
 		Character transitionEnd;
 		int newR = r;
 		Position newPos;
@@ -685,8 +772,13 @@ public class Client {
 		//do the step
 		newPos = Position.goInR(pos, r);
 
+		charAtPos = mapToDoTheStepOn.getCharAt(newPos);
+
+		//check if there's a wall
+		if (charAtPos == '-') return null;
+
 		//check if there is a transition
-		if (mapToDoTheStepOn.getCharAt(newPos) == 't') {
+		if (charAtPos == 't') {
 			//check if the direction matches the current one
 			transitionLookup = Transitions.saveInChar(pos.x,pos.y,r); //pos is the old position
 			transitionEnd = mapToDoTheStepOn.transitionen.get(transitionLookup);

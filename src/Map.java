@@ -411,7 +411,7 @@ public class Map{
      */
     public char getCharAt(int x, int y){
         //check boundaries
-        if (x > width || y > height || x < 0 || y < 0) return '-';
+        if (x >= width || y >= height || x < 0 || y < 0) return '-';
         //return value
         return map[y][x];
     }
