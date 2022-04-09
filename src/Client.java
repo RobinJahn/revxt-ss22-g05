@@ -734,7 +734,7 @@ public class Client {
 				//check what's there
 				currChar = mapToColor.getCharAt(currPos);
 				//check for blank
-				if (currChar == '0') break;
+				if (currChar == '0' || currChar == 'i' || currChar == 'c' ||currChar == 'b') break;
 				//check for players
 				//if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
 				if (wasFirstStep) {
