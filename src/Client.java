@@ -127,6 +127,7 @@ public class Client {
 				case 7: //Disqualification
 					if (printOn) System.out.println("recieved Disqualification");
 					int player = serverM.readRestOfDisqualification();
+					map.disqualifyPlayer(player);
 					if (printOn) System.out.println("Player " + player + " was disqualified"); //TODO: handle inversion and choise
 					if (player == myPlayerNr) gameOngoing = false;
 					break;
@@ -213,15 +214,29 @@ public class Client {
 		Integer choiceInt = null;
 		switch (fieldvalue) {
 			case 'b': {
-				if (printOn) System.out.println("Wollen sie eine Bombe (b) oder einen Überschreibstein (u)?");
-				choiceChar = sc.next().charAt(0);
+				if (!moveRandom) {
+					if (printOn) System.out.println("Wollen sie eine Bombe (b) oder einen Ueberschreibstein (u)?");
+					choiceChar = sc.next().charAt(0);
+				}
+				else {
+					if (randomIndex.nextInt(2) == 1){ //2 is excluded
+						choiceChar = 'b';
+					}
+					else {
+						choiceChar = 'u';
+					}
+				}
 				break;
 
 			}
 			case 'c': {
-				if (printOn) System.out.println("Mit wem wollen sie die Farbe tauschen ?");
-				choiceInt = sc.nextInt();
-
+				if (!moveRandom) {
+					if (printOn) System.out.println("Mit wem wollen sie die Farbe tauschen ?");
+					choiceInt = sc.nextInt();
+				}
+				else {
+					choiceInt = randomIndex.nextInt(8) + 1;
+				}
 				break;
 			}
 		}
@@ -345,7 +360,7 @@ public class Client {
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, '0', myPlayerNr);
 	}
 
-
+	// Updates Map by recusivly going in every direction - not complete
 	private void updateMapAfterBombingRecursiv(){
 		int[] moveInfos = serverM.readRestOfMove();
 		int x = moveInfos[0] + 1; //index shift
@@ -370,33 +385,42 @@ public class Client {
 	}
 
 	private void explodeFurther(int x, int y, int r, int howMuchFurther){
-		//recursion end
-		if (howMuchFurther == 0) return;
-
-		//recursion call ...
 		Position currPos = new Position(x,y);
 		char charAtPos;
 		Integer newR;
+		char transitionEnd1;
+		Character transitionEnd2;
 
 		currPos = Position.goInR(currPos,r);
 		charAtPos = map.getCharAt(currPos); //gets the char at the position it is going to go
+
+		//if there is a wall
+		if(charAtPos == '-') return;
 
 		//if there's a transition
 		if (charAtPos == 't'){
 			//tries to go through transition
 			newR = doAStep(new Position(x,y), r, map); //takes Position it came from. Because from there it needs to go through
-			if (newR != null) map.transitionen.remove( Transitions.saveInChar(x,y,r) ); //removes the transition but not the char on the map
+			if (newR != null) {
+				//removes transtion pair from the hash List - if it's here it wen through the transition
+				transitionEnd1 = Transitions.saveInChar(x, y,(newR+4)%8);
+				transitionEnd2 = map.transitionen.get( transitionEnd1 );
+				map.transitionen.remove(transitionEnd1);
+				map.transitionen.remove(transitionEnd2);
+			}
 		}
 		else {
 			map.setCharAt(currPos.x, currPos.y, '-');
 		}
 
-		for (int rForNextCall = 0; rForNextCall <= 7; rForNextCall++){
-			explodeFurther(currPos.x, currPos.y, rForNextCall,howMuchFurther-1);
+		if (howMuchFurther > 1) { //recursion end
+			for (int rForNextCall = 0; rForNextCall <= 7; rForNextCall++) {
+				explodeFurther(currPos.x, currPos.y, rForNextCall, howMuchFurther - 1);
+			}
 		}
 	}
 
-
+	// Updates Map by going through the field the Bomb destroys - wrong
 	private void updateMapAfterBombingIterativ(){
 		int[] moveInfos = serverM.readRestOfMove();
 		int x = moveInfos[0] + 1; //index shift
@@ -438,7 +462,7 @@ public class Client {
 						distance = Math.max( Math.abs(pos.x - x), Math.abs(pos.y - y) ); //distance = max(|x1-x2|, |y2-y2|) euklidische distanz
 						//check if it needs to go through the transition
 						if (distance + 1 <= explosionRadius) {
-							//check if the transition is in the opposite direction we went
+							//check if the transition is in the opposite direction we went - if it's here it wen through the transition
 							newR = doAStep(pos, (r+4)%8, map);
 							if (newR != null) {
 								//removes transition pair from the hash List

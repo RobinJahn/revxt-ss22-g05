@@ -26,6 +26,7 @@ public class Map{
 
     //Extended Map Info
     private int currentlyPlaying = 1;
+    private boolean[] disqualifiedPlayers = new boolean[]{false, false, false, false, false, false, false, false}; //maybe it's not needed
 
     /**
      * Constructor.
@@ -392,7 +393,7 @@ public class Map{
             {
                 if(Character.isDigit(map[y][x]) && map[y][x] != '0'){
                     map[y][x] = (char)((int)map[y][x]+1);
-                    if(map[y][x] > anzPlayers+48) { //if it's player 8 make it to player 1
+                    if(map[y][x] == '9') { //if it was player 8 make it to player 1
                         map[y][x] = '1';
                     }
                     if (map[y][x] > anzPlayers+49){
@@ -505,6 +506,10 @@ public class Map{
     public void setPlayer(int PlayerID)
     {
         currentlyPlaying = PlayerID;
+    }
+
+    public void disqualifyPlayer(int playerNr){
+        disqualifiedPlayers[playerNr-1] = false;
     }
 
     //PRIVATE METHODS
