@@ -121,7 +121,7 @@ public class Client {
 				case 6: //Spielzug
 					if (printOn) System.out.println("recieved Spielzug");
 					if (firstPhase) updateMapWithMove();
-					else updateMapAfterBombingIterativ();
+					else updateMapAfterBombingBFS();
 					System.out.println(map.toString(null,false,true));
 					break;
 				case 7: //Disqualification
@@ -329,6 +329,8 @@ public class Client {
 			}
 		}
 
+		if (printOn) System.out.println(map.toString(validMoves, false, true));
+
 		//print possible moves
 		if (printOn) {
 			System.out.println("Possible Moves:");
@@ -344,6 +346,7 @@ public class Client {
 			if (moveRandom) {
 				int index = randomIndex.nextInt(validMoves.size());
 				posToSetKeystone = validMoves.get(index);
+				System.out.println("Set Keystone at: " + posToSetKeystone);
 			}
 			//let player enter a move
 			if (!moveRandom) {
@@ -360,123 +363,68 @@ public class Client {
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, '0', myPlayerNr);
 	}
 
-	// Updates Map by recusivly going in every direction - not complete
-	private void updateMapAfterBombingRecursiv(){
+	//Updates Map by breadth-first search
+	private void updateMapAfterBombingBFS(){
 		int[] moveInfos = serverM.readRestOfMove();
 		int x = moveInfos[0] + 1; //index shift
 		int y = moveInfos[1] + 1;
 		int moveOfPlayer = moveInfos[3];
 		char charAtPos;
-
 		int explosionRadius = map.getExplosionRadius();
-		int x1 = x - explosionRadius;
-		int y1 = y - explosionRadius;
-		int x2 = x + explosionRadius;
-		int y2 = y + explosionRadius;
 
-		if (printOn) System.out.println("Player " + moveOfPlayer + " set Bomb to (" + x + "," + y + ")");
+		//for breadth-first search
+		Queue<int[]> posQ = new LinkedList<>(); //int array: [0] == x, [1] == y, [2] == distance from explostion
+		int[] currPosAndDist;
+		Position nextPos;
+		Position posAfterStep;
+		int counterForExpRad = 0;
 
-		map.setPlayer(moveOfPlayer); //set playing player because server could have skipped some
-
-		map.setCharAt(x,y,'-'); //mittlerer stein
-		for (int r = 0; r <= 7; r++){
-			explodeFurther(x,y,r,explosionRadius);
-		}
-	}
-
-	private void explodeFurther(int x, int y, int r, int howMuchFurther){
-		Position currPos = new Position(x,y);
-		char charAtPos;
+		//for transitions
 		Integer newR;
 		char transitionEnd1;
 		Character transitionEnd2;
 
-		currPos = Position.goInR(currPos,r);
-		charAtPos = map.getCharAt(currPos); //gets the char at the position it is going to go
+		//first element
+		map.setCharAt(x, y, '+');
+		posQ.add(new int[]{x,y, counterForExpRad});
 
-		//if there is a wall
-		if(charAtPos == '-') return;
+		while (!posQ.isEmpty()){
+			currPosAndDist = posQ.poll();
+			nextPos = new Position(currPosAndDist[0], currPosAndDist[1]);
+			counterForExpRad = currPosAndDist[2];
 
-		//if there's a transition
-		if (charAtPos == 't'){
-			//tries to go through transition
-			newR = doAStep(new Position(x,y), r, map); //takes Position it came from. Because from there it needs to go through
-			if (newR != null) {
-				//removes transtion pair from the hash List - if it's here it wen through the transition
-				transitionEnd1 = Transitions.saveInChar(x, y,(newR+4)%8);
-				transitionEnd2 = map.transitionen.get( transitionEnd1 );
-				map.transitionen.remove(transitionEnd1);
-				map.transitionen.remove(transitionEnd2);
-			}
-		}
-		else {
-			map.setCharAt(currPos.x, currPos.y, '-');
-		}
+			//if explosion radius allows it
+			if (counterForExpRad < explosionRadius) {
 
-		if (howMuchFurther > 1) { //recursion end
-			for (int rForNextCall = 0; rForNextCall <= 7; rForNextCall++) {
-				explodeFurther(currPos.x, currPos.y, rForNextCall, howMuchFurther - 1);
-			}
-		}
-	}
+				//go in every possible direction
+				for (int r = 0; r <= 7; r++) {
+					//get position it will move to
+					posAfterStep = Position.goInR(nextPos, r);
+					//check what's there
+					charAtPos = map.getCharAt(posAfterStep);
 
-	// Updates Map by going through the field the Bomb destroys - wrong
-	private void updateMapAfterBombingIterativ(){
-		int[] moveInfos = serverM.readRestOfMove();
-		int x = moveInfos[0] + 1; //index shift
-		int y = moveInfos[1] + 1;
-		int moveOfPlayer = moveInfos[3];
-		int explosionRadius = map.getExplosionRadius();
-
-		destroyField(x,y,explosionRadius);
-	}
-
-	private void destroyField(int x, int y, int explosionRadius){
-		char charAtPos;
-		Position pos;
-		int distance;
-		Integer newR;
-		char transitionEnd1;
-		Character transitionEnd2;
-
-
-		int x1 = x - explosionRadius;
-		int y1 = y - explosionRadius;
-		int x2 = x + explosionRadius;
-		int y2 = y + explosionRadius;
-
-		for (int yi = y1; yi <= y2; yi++) {
-			for (int xi = x1; xi <= x2; xi++) {
-				charAtPos = map.getCharAt(xi,yi);
-				//if there is no transition
-				if (charAtPos != 't'){
-					if(xi >= 0 && xi < map.getWidth() && yi >= 0 && yi < map.getHeight()) map.setCharAt(xi,yi,'-');
-				}
-				//if there is a transition
-				else {
-					//go to every field around the transition
-					for (int r = 0; r <= 7; r++){
-						//go to field
-						pos = Position.goInR( new Position(xi,yi), r);
-						//calculate distance
-						distance = Math.max( Math.abs(pos.x - x), Math.abs(pos.y - y) ); //distance = max(|x1-x2|, |y2-y2|) euklidische distanz
-						//check if it needs to go through the transition
-						if (distance + 1 <= explosionRadius) {
-							//check if the transition is in the opposite direction we went - if it's here it wen through the transition
-							newR = doAStep(pos, (r+4)%8, map);
-							if (newR != null) {
-								//removes transition pair from the hash List
-								transitionEnd1 = Transitions.saveInChar(pos.x,pos.y,(newR+4)%8);
-								transitionEnd2 = map.transitionen.get( transitionEnd1 );
-								map.transitionen.remove(transitionEnd1);
-								map.transitionen.remove(transitionEnd2);
-
-								destroyField(pos.x, pos.y, explosionRadius-distance-1); //explode Fields after transition
-							}
+					//if there's a transition go throu and delete it (not the char though)
+					if (charAtPos == 't') {
+						//go one step back because we need to come from where the transition points
+						posAfterStep = Position.goInR(posAfterStep, (r + 4) % 8);
+						//tries to go through transition
+						newR = doAStep(posAfterStep, r, map); //takes Position it came from. Because from there it needs to go through
+						if (newR != null) {
+							//removes transtion pair from the hash List - if it's here it wen through the transition
+							transitionEnd1 = Transitions.saveInChar(posAfterStep.x, posAfterStep.y, (newR + 4) % 8);
+							transitionEnd2 = map.transitionen.get(transitionEnd1);
+							map.transitionen.remove(transitionEnd1);
+							map.transitionen.remove(transitionEnd2);
 						}
+					}
+
+					if (charAtPos != '+' && charAtPos != '-') { // + is grey, - is black
+						map.setCharAt(posAfterStep.x, posAfterStep.y, '+');
+						posQ.add(new int[]{posAfterStep.x, posAfterStep.y, counterForExpRad + 1});
 					}
 				}
 			}
+			map.setCharAt(nextPos.x, nextPos.y, '-'); //next position is still the position it came from
 		}
 	}
 
