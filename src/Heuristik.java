@@ -57,7 +57,7 @@ public class Heuristik {
         if (printOn) System.out.println("Sum of my field Ø: " + result);
         //result += get%myKeystones(result)*ModifierKeytones(Gamelength,TurnNumber,Playercount,Tiefe)
         result += movesPercentage - 1;
-        result += stonePercentage - 1;
+        result += stonePercentage*100 - 1;
         //value
         return result;
     }

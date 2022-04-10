@@ -110,43 +110,70 @@ public class Client {
 		System.out.println(map.toString(null,false,true));
 
 		while (gameOngoing) {
+
 			if (printOn) System.out.print("Waiting for Message - ");
 			messageType = serverM.waitForMessage();
+
 			switch (messageType) {
-				case 4: //Zugaufforderung
-					if (printOn) System.out.println("recieved Zugaufforderung");
+
+				case 4: //Move Request
+					if (printOn) System.out.println("recieved Move Request");
+
+					//read rest of move request
+					serverM.readRestOfMoveRequest(); //ignore at the moment
+
+					//Hanlde Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) makeAMove();
 					else setABomb();
 					break;
-				case 6: //Spielzug
-					if (printOn) System.out.println("recieved Spielzug");
-					if (firstPhase) updateMapWithMove();
-					else updateMapAfterBombingBFS();
+
+				case 6: //Move
+					if (printOn) System.out.println("recieved Move");
+
+					//read rest of Message
+					int[] moveInfos = serverM.readRestOfMove();
+					Position posToSetKeystone = new Position(0,0);
+					posToSetKeystone.x = moveInfos[0] + 1; //index shift
+					posToSetKeystone.y = moveInfos[1] + 1; //index shift
+					int addditionalInfo = moveInfos[2];
+					int moveOfPlayer = moveInfos[3];
+
+					//Handle Move
+					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + addditionalInfo);
+					if (firstPhase) updateMapWithMove(posToSetKeystone, addditionalInfo, moveOfPlayer, map);
+					else updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, map);
 					System.out.println(map.toString(null,false,true));
 					break;
+
 				case 7: //Disqualification
 					if (printOn) System.out.println("recieved Disqualification");
 					int player = serverM.readRestOfDisqualification();
 					map.disqualifyPlayer(player);
-					if (printOn) System.out.println("Player " + player + " was disqualified"); //TODO: handle inversion and choise
+					if (printOn) System.out.println("Player " + player + " was disqualified");
 					if (player == myPlayerNr) gameOngoing = false;
 					break;
+
 				case 8: //End of Phase 1
 					if (printOn) System.out.println("recieved end of phase 1");
 					serverM.readRestOfNextPhase();
 					firstPhase = false;
 					break;
+
 				case 9: //End of Phase 2
 					if (printOn) System.out.println("recieved end of phase 2 - game ended");
 					serverM.readRestOfNextPhase();
 					gameOngoing = false;
 					break;
+
 				case -1:
 					gameOngoing = false;
+					System.err.println("Recieved some Message that couln't be handled");
 					break;
 			}
 		}
 	}
+
+	//phase 1
 
 	/**
 	 * Method to make a move after a move request was sent to the Client
@@ -158,8 +185,6 @@ public class Client {
 		Scanner sc = new Scanner(System.in);
 
 		map.setPlayer(myPlayerNr);
-		//read rest of move request
-		serverM.readRestOfMoveRequest();
 
 		//calculate possible moves and print map with these
 		ArrayList<Position> validMoves = getValidMoves(map);
@@ -183,7 +208,7 @@ public class Client {
 			//make a random move
 			if (moveRandom) {
 				int index;
-				index = getNextMove(validMoves);
+				index = getNextMoveWithHeuristik(validMoves, true);
 				posToSetKeystone = validMoves.get(index);
 				if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
 			}
@@ -251,16 +276,8 @@ public class Client {
 	/**
 	 * Method to update the Map according to the move that was sent to the client
 	 */
-	private void updateMapWithMove() {
-		int[] moveInfos = serverM.readRestOfMove();
-		Position posToSetKeystone = new Position(0,0);
-		posToSetKeystone.x = moveInfos[0] + 1; //index shift
-		posToSetKeystone.y = moveInfos[1] + 1;
-		int addditionalInfo = moveInfos[2];
-		int moveOfPlayer = moveInfos[3];
+	private static void updateMapWithMove(Position posToSetKeystone, int addditionalInfo, int moveOfPlayer, Map map) {
 		char fieldvalue;
-
-		if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + addditionalInfo);
 
 		map.setPlayer(moveOfPlayer); //set playing player because server could have skipped some
 
@@ -307,7 +324,7 @@ public class Client {
 		map.nextPlayer();
 	}
 
-	//bomb phase
+	//phase 2 - bomb phase
 
 	private void setABomb(){
 		char fieldvalue;
@@ -315,9 +332,6 @@ public class Client {
 		boolean moveIsPossible = false;
 		Position posToSetKeystone = new Position(0, 0);
 		Scanner sc = new Scanner(System.in);
-
-		//read rest of move request
-		serverM.readRestOfMoveRequest();
 
 		//gets the possible positions to set a bomb at
 		for (int y = 0; y < map.getHeight(); y++){
@@ -344,7 +358,8 @@ public class Client {
 
 			//make a random move
 			if (moveRandom) {
-				int index = randomIndex.nextInt(validMoves.size());
+				int index;
+				index = getNextMoveWithHeuristik(validMoves, false);
 				posToSetKeystone = validMoves.get(index);
 				System.out.println("Set Keystone at: " + posToSetKeystone);
 			}
@@ -363,12 +378,12 @@ public class Client {
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, '0', myPlayerNr);
 	}
 
-	//Updates Map by breadth-first search
-	private void updateMapAfterBombingBFS(){
-		int[] moveInfos = serverM.readRestOfMove();
-		int x = moveInfos[0] + 1; //index shift
-		int y = moveInfos[1] + 1;
-		int moveOfPlayer = moveInfos[3];
+	/**
+	 * Updates Map by breadth-first search
+	 * @param x x coordinate where the bomb was set
+	 * @param y y coordinate where the bomb was set
+	 */
+	private static void updateMapAfterBombingBFS(int x, int y, Map map){
 		char charAtPos;
 		int explosionRadius = map.getExplosionRadius();
 
@@ -429,23 +444,64 @@ public class Client {
 	}
 
 	//caculate next move
-	private int getNextMove(ArrayList<Position> validMoves){
+	private int getNextMoveWithHeuristik(ArrayList<Position> validMoves, boolean phaseOne){
 		ArrayList<Double> valueOfMap = new ArrayList<>();
+		ArrayList<Position> validMovesCoise = new ArrayList<>();
 		Map nextMap;
 		Heuristik nextHeuristik;
+		char charAtNextPos;
+		int additionalInfo = 0;
+
 
 		for (Position pos : validMoves){
 			nextMap = new Map(map);
 			nextMap.setPlayer(myPlayerNr);
-			colorMap(pos, nextMap); //TODO: doesn't respect special moves
+			charAtNextPos = nextMap.getCharAt(pos);
+			if (phaseOne) {
+				if (charAtNextPos == 'c') {
+					validMovesCoise.add(pos);
+					continue;
+				}
+				if (charAtNextPos == 'b') {
+					//split in two
+					additionalInfo = 20;
+
+					//first branche
+					updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
+					nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
+					valueOfMap.add(nextHeuristik.evaluate());
+
+					//second branche
+					additionalInfo = 21;
+				}
+				updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
+			}
+			else {
+				updateMapAfterBombingBFS(pos.x, pos.y, nextMap);
+			}
+
 			nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
 			valueOfMap.add(nextHeuristik.evaluate());
+		}
+
+		for (Position pos : validMovesCoise){
+			for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
+				if (playerNr == myPlayerNr) continue;
+
+				nextMap = new Map(map);
+				nextMap.setPlayer(myPlayerNr);
+
+				updateMapWithMove(pos, playerNr, myPlayerNr, nextMap);
+
+				nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
+				valueOfMap.add(nextHeuristik.evaluate());
+			}
 		}
 
 		Double heighest = Collections.max(valueOfMap);
 		int indexOfHeighest = 0;
 		for (Double d : valueOfMap){
-			if (d == heighest) indexOfHeighest = valueOfMap.indexOf(d);
+			if (d == heighest) indexOfHeighest = valueOfMap.indexOf(d); //Objects.equals(d, heighest)
 		}
 		return indexOfHeighest;
 	}

@@ -393,7 +393,7 @@ public class Map{
             {
                 if(Character.isDigit(map[y][x]) && map[y][x] != '0'){
                     map[y][x] = (char)((int)map[y][x]+1);
-                    if(map[y][x] == '9') { //if it was player 8 make it to player 1
+                    if(map[y][x] == anzPlayers+49) { //for example: if the map has 8 players and if it was player 8 make it to player 1
                         map[y][x] = '1';
                     }
                     if (map[y][x] > anzPlayers+49){
