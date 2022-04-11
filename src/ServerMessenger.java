@@ -155,7 +155,7 @@ public class ServerMessenger {
         if (Character.isDigit(zusatzinfo)) arguments[2] = Integer.parseInt("" + zusatzinfo);
         else {
             if (zusatzinfo == 'b') arguments[2] = 20;
-            if (zusatzinfo == 'c') arguments[2] = 21;
+            if (zusatzinfo == 'o') arguments[2] = 21;
         }
         arguments[3] = myPlayerNr;
         byte[] message = assembleMassage(5,arguments);

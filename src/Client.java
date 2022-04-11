@@ -179,6 +179,7 @@ public class Client {
 	 * Method to make a move after a move request was sent to the Client
 	 */
 	private void makeAMove(){
+		int[] positionAndInfo = new int[3];
 		boolean moveIsPossible = false;
 		double valueOfMap;
 		Position posToSetKeystone = new Position(0, 0);
@@ -208,31 +209,32 @@ public class Client {
 			//make a random move
 			if (moveRandom) {
 				int index;
-				index = getNextMoveWithHeuristik(validMoves, true);
-				posToSetKeystone = validMoves.get(index);
+				positionAndInfo = getNextMoveWithHeuristik(validMoves, true);
+				posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
+				moveIsPossible = true; //no need to check th move again
 				if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
 			}
 			//let player enter a move
 			if (!moveRandom) {
 				posToSetKeystone.x = sc.nextInt();
 				posToSetKeystone.y = sc.nextInt();
-			}
-			if (printOn) System.out.println();
 
-			//check if the move is valid
-			ArrayList<Integer> directions = new ArrayList<>();
-			for (int i = 0; i <= 7; i++) directions.add(i);
-			boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
-			if (!movePossible) {
-				System.err.println("Move isn't possible");
-				if (moveRandom) return;
-			}
-			else {
-				moveIsPossible = true;
+				if (printOn) System.out.println();
+
+				//check if the move is valid
+				ArrayList<Integer> directions = new ArrayList<>();
+				for (int i = 0; i <= 7; i++) directions.add(i);
+				boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
+				if (!movePossible) {
+					System.err.println("Move isn't possible");
+				}
+				else {
+					moveIsPossible = true;
+				}
 			}
 		}
 
-
+	   	//TODO: Do the following better - random player doesn't need all that
 		//check where we would set our keystone on and act accordingly
 		char fieldValue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
 
@@ -241,15 +243,15 @@ public class Client {
 		switch (fieldValue) {
 			case 'b': {
 				if (!moveRandom) {
-					if (printOn) System.out.println("Do you want a bomb (b) or an overwrite-stone (u)?");
+					if (printOn) System.out.println("Do you want a bomb (b) or an overwrite-stone (o)?");
 					choiceChar = sc.next().charAt(0);
 				}
 				else {
-					if (randomIndex.nextInt(2) == 1){ //2 is excluded
+					if (positionAndInfo[2] == 20){
 						choiceChar = 'b';
 					}
-					else {
-						choiceChar = 'u';
+					else if (positionAndInfo[2] == 21){
+						choiceChar = 'o';
 					}
 				}
 				break;
@@ -261,7 +263,7 @@ public class Client {
 					choiceInt = sc.nextInt();
 				}
 				else {
-					choiceInt = randomIndex.nextInt(8) + 1;
+					choiceInt = positionAndInfo[2];
 				}
 				break;
 			}
@@ -328,6 +330,7 @@ public class Client {
 	//phase 2 - bomb phase
 
 	private void setABomb(){
+		int[] positionAndInfo = new int[3];
 		char fieldValue;
 		ArrayList<Position> validMoves = new ArrayList<>();
 		boolean moveIsPossible = false;
@@ -360,8 +363,8 @@ public class Client {
 			//make a random move
 			if (moveRandom) {
 				int index;
-				index = getNextMoveWithHeuristik(validMoves, false);
-				posToSetKeystone = validMoves.get(index);
+				positionAndInfo = getNextMoveWithHeuristik(validMoves, false);
+				posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
 				System.out.println("Set Keystone at: " + posToSetKeystone);
 			}
 			//let player enter a move
@@ -445,14 +448,15 @@ public class Client {
 	}
 
 	//calculate next move
-	private int getNextMoveWithHeuristik(ArrayList<Position> validMoves, boolean phaseOne){
+	private int[] getNextMoveWithHeuristik(ArrayList<Position> validMoves, boolean phaseOne){
 		ArrayList<Double> valueOfMap = new ArrayList<>();
+		ArrayList<int[]> valueOfMapPosAndInfo = new ArrayList<>();
 		ArrayList<Position> validMovesChoice = new ArrayList<>();
 		Map nextMap;
 		Heuristik nextHeuristik;
 		char charAtNextPos;
 		int additionalInfo = 0;
-
+		int indexOfHighest;
 
 		for (Position pos : validMoves){
 			nextMap = new Map(map);
@@ -465,16 +469,26 @@ public class Client {
 				}
 				if (charAtNextPos == 'b') {
 					//split in two
-					additionalInfo = 20;
 
 					//first branche
+					additionalInfo = 20;
+
 					updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
 					nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
 					valueOfMap.add(nextHeuristik.evaluate());
+					valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, 20});
 
 					//second branche
 					additionalInfo = 21;
+
+					updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
+					nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
+					valueOfMap.add(nextHeuristik.evaluate());
+					valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, 21});
+					continue;
 				}
+
+				//is also executed for normal moves
 				updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
 			}
 			else {
@@ -483,6 +497,7 @@ public class Client {
 
 			nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
 			valueOfMap.add(nextHeuristik.evaluate());
+			valueOfMapPosAndInfo.add(new int[]{pos.x,pos.y,0});
 		}
 
 		for (Position pos : validMovesChoice){
@@ -496,15 +511,14 @@ public class Client {
 
 				nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
 				valueOfMap.add(nextHeuristik.evaluate());
+				valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, playerNr});
 			}
 		}
 
 		Double highest = Collections.max(valueOfMap);
-		int indexOfHighest = 0;
-		for (Double d : valueOfMap){
-			if (Objects.equals(d, highest)) indexOfHighest = valueOfMap.indexOf(d);
-		}
-		return indexOfHighest;
+		indexOfHighest = valueOfMap.indexOf(highest);
+
+		return valueOfMapPosAndInfo.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
 	}
 
 	//functions to calculate possible moves
