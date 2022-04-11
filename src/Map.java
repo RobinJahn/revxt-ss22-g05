@@ -60,20 +60,22 @@ public class Map{
 
     public Map(Map mapToCopy){
         map = new char[mapToCopy.map.length][mapToCopy.map[0].length];
-        for (int y = 0; y < mapToCopy.map.length; y++){
-            for (int x = 0; x < mapToCopy.map[0].length; x++){
-                map[y][x] = mapToCopy.map[y][x];
-            }
+        for (int y = 0; y < mapToCopy.map.length; y++){ //inner array can be copied this way
+            System.arraycopy(mapToCopy.map[y], 0, map[y], 0, mapToCopy.map[0].length);
         }
         transitionen = (HashMap<Character, Character>) mapToCopy.transitionen.clone();
         anzPlayers = mapToCopy.anzPlayers;
-        overwriteStonesPerPlayer = mapToCopy.overwriteStonesPerPlayer; //see if that creats a new object
-        bombsPerPlayer = mapToCopy.bombsPerPlayer;
+        overwriteStonesPerPlayer = mapToCopy.overwriteStonesPerPlayer.clone(); //see if that creates a new object
+        bombsPerPlayer = mapToCopy.bombsPerPlayer.clone();
         explosionRadius = mapToCopy.explosionRadius;
         height = mapToCopy.height;
         width = mapToCopy.width;
         importedCorrectly = true;
         currentlyPlaying = mapToCopy.currentlyPlaying;
+        disqualifiedPlayers = mapToCopy.disqualifiedPlayers;
+
+        transitionsBuffer = new int[9];
+        posInTransitionBuffer = 0;
     }
     
     //PUBLIC METHODS
@@ -123,7 +125,7 @@ public class Map{
     }
 
     /**
-     * imports Map after a stream tokenizer was created - wich changes if you have a file or a strem
+     * imports Map after a stream tokenizer was created - wich changes if you have a file or a stream
      * @param st Stream Tokenizer that is set to read the map
      * @return Returns true if map was imported correctly and false otherwise.
      */
@@ -190,7 +192,7 @@ public class Map{
 
             tokenCounter++;
         }
-        //TODO: check wether map was imported correctly
+        //TODO: check weather map was imported correctly
         return true;
     }
 
@@ -352,7 +354,7 @@ public class Map{
 
     /**
      * Swaps Stones with another player
-     * @param playerId Id of the player with whom to swap stones
+     * @param playerId ID of the player with whom to swap stones
      */
     public void swapStonesWithOnePlayer(int playerId)
     {
@@ -406,7 +408,7 @@ public class Map{
 
     //GETTER
     /**
-     * @param x x corrdinate
+     * @param x x coordinate
      * @param y y coordinate
      * @return Returns the Character at the given x and y position in the Map. If it is out of boundaries it returns '-'
      */
@@ -462,7 +464,7 @@ public class Map{
      * Sets given Char at the given x and y position in the Map.
      * Handles if Map wasn't initialized.
      * @param y y coordinate
-     * @param x x corrdinate
+     * @param x x coordinate
      * @param charToChangeTo character to set at the given position
      * @return returns true if char was set correctly
      */
@@ -482,19 +484,19 @@ public class Map{
         return true;
     }
 
-    public void IncreaseBombsofPlayer(){
+    public void increaseBombsOfPlayer(){
         bombsPerPlayer[currentlyPlaying-1]++;
     }
 
-    public void DecreaseBombsofPlayer(){
+    public void decreaseBombsOfPlayer(){
         bombsPerPlayer[currentlyPlaying-1]--;
     }
 
-    public void IncreaseOverrideStonesofPlayer(){
+    public void increaseOverrideStonesOfPlayer(){
         overwriteStonesPerPlayer[currentlyPlaying-1]++;
     }
 
-    public void DecreaseOverrideStonesofPlayer(){
+    public void decreaseOverrideStonesOfPlayer(){
         overwriteStonesPerPlayer[currentlyPlaying-1]--;
     }
 
@@ -595,7 +597,7 @@ public class Map{
             char greater = '>';
             char less = '<';
             char minus = '-';
-            if (st.ttype != greater && st.ttype != less && st.ttype != minus) { //TODO: check if thats ok
+            if (st.ttype != greater && st.ttype != less && st.ttype != minus) { //TODO: check if that's ok
                 System.err.println("No characters allowed in the transition section except <, - ,>");
                 return false;
             }

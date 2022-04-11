@@ -10,7 +10,7 @@ public class ServerMessenger {
     InputStream in;
 
     int time;
-    int dephth;
+    int depth;
 
 
     public ServerMessenger(String ip, int port) throws IOException {
@@ -22,7 +22,7 @@ public class ServerMessenger {
         out.write(assembleMassage(1,null));
     }
 
-    //reciever
+    //receiver
 
     public int waitForMessage(){
         int readByte;
@@ -42,7 +42,7 @@ public class ServerMessenger {
             in.readNBytes(4); //reads size and ignores it
 
             time = dis.readInt(); //TODO: unsigned?
-            dephth = dis.readUnsignedByte();
+            depth = dis.readUnsignedByte();
 
             //TODO: if time is set ignore depth
         }

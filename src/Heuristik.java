@@ -5,17 +5,17 @@ import java.util.ArrayList;
 public class Heuristik {
     final boolean printOn;
 
-    private Map map; //is automaticly updated because of the reference here
+    private Map map; //is automatically updated because of the reference here
     //the color of the player for wich the map is rated
     private final int myColorI;
     private final char myColorC;
     //the matrix that rates the different fields
     private double[][] matrix;
     //information that may be worth saving
-    private ArrayList<Position> myFileds = new ArrayList<>();
+    private ArrayList<Position> myFields = new ArrayList<>();
     private ArrayList<Position> bonusFields = new ArrayList<>();
     private ArrayList<Position> inversionFields = new ArrayList<>();
-    private ArrayList<Position> coiseFields = new ArrayList<>();
+    private ArrayList<Position> choiceFields = new ArrayList<>();
     //relevant information
     private double stonePercentage = 0;
     private double movesPercentage = 0;
@@ -27,7 +27,7 @@ public class Heuristik {
     /**
      * Constructor - initializes map and my color.
      * Calculates static infos about the map
-     * @param map the map in any state. Only the ststic information are relevant
+     * @param map the map in any state. Only the static information are relevant
      * @param myColor the number(color) of the player for wich the map is rated - doesn't change for the client
      */
     public Heuristik(Map map, int myColor, boolean printOn){
@@ -53,9 +53,9 @@ public class Heuristik {
         //update relevant infos
         setDynamicInfos();
 
-        result += sumOfMyFields/myFileds.size(); //durchschnittswert meiner felder
+        result += sumOfMyFields/ myFields.size(); //durchschnittswert meiner felder
         if (printOn) System.out.println("Sum of my field Ø: " + result);
-        //result += get%myKeystones(result)*ModifierKeytones(Gamelength,TurnNumber,Playercount,Tiefe)
+
         result += movesPercentage - 1;
         result += stonePercentage*100 - 1;
         //value
@@ -81,18 +81,18 @@ public class Heuristik {
      * calculates and sets static information about the map.
      * initializes the matrix of values for the map
      *
-     * Current heuristik implimentations:
-     *      ceck for backed up outgoings
+     * Current heuristik implementations:
+     *      check for backed up outgoings
      *
      * Information that are currently saved:
      *      bonus
      *      inversion
-     *      choise
+     *      choice
      */
     private void setStaticInfos(){
         char currChar;
-        Position currPos = new Position(0,0); //position that goes throu whole map
-        int validFields = 0; //make shure it resets if that might be called more often
+        Position currPos = new Position(0,0); //position that goes through whole map
+        int validFields = 0; //make sure it resets if that might be called more often
 
         for (int y = 0; y < map.getHeight(); y++){
             for (int x = 0; x < map.getWidth(); x++) {
@@ -128,9 +128,9 @@ public class Heuristik {
                         matrix[y][x] += 5;
                         break;
 
-                    //list coise fields
+                    //list choice fields
                     case 'c':
-                        coiseFields.add(new Position(x,y));
+                        choiceFields.add(new Position(x,y));
                         matrix[y][x] += 5;
                         break;
                 }
@@ -139,11 +139,11 @@ public class Heuristik {
     }
 
     /**
-     * updates the values that are relevant for the heuristical evaluation for the current state the map is in
+     * updates the values that are relevant for the heuristic evaluation for the current state the map is in
      */
     private void setDynamicInfos(){
         sumOfMyFields = 0;
-        myFileds.clear();
+        myFields.clear();
         //get my stone positions in %
         int countOfOwnStones = 0;
         int countOfEnemyStones = 0;
@@ -156,7 +156,7 @@ public class Heuristik {
 
 
         char currChar;
-        Position currPos = new Position(0,0); //position that goes throu whole map
+        Position currPos = new Position(0,0); //position that goes through whole map
 
         //goes through every position of the map
         for (int y = 0; y < map.getHeight(); y++) {
@@ -169,7 +169,7 @@ public class Heuristik {
 
                 //saves field and counts stones that are of own color
                 if (currChar == myColorC) {
-                    myFileds.add(new Position(x, y));
+                    myFields.add(new Position(x, y));
                     countOfOwnStones++;
                     sumOfMyFields += matrix[y][x];
                 }
@@ -200,7 +200,7 @@ public class Heuristik {
         //set stone percentage
         if (enemyStonesPercentage != 0) stonePercentage = (double)countOfOwnStones/ enemyStonesPercentage; //  myStones/ average stones of enemy
         else stonePercentage = 10; //if enemy has no stones you have 10.000 % of his stones
-        //set posible moves percentage
+        //set possible moves percentage
         if (enemyMovesPercentage != 0) movesPercentage = (double)myPossibleMoves/ enemyMovesPercentage;
         else movesPercentage = 10;
 
@@ -263,11 +263,11 @@ public class Heuristik {
     }
 
     /**
-     * takes the greater values of the matrix and creates waves/ rings of alternading negative and positive decreasing values around it
+     * takes the greater values of the matrix and creates waves/ rings of alternating negative and positive decreasing values around it
      */
     private void addWaveMatrix(){
         int[][] waveMatrix = new int[matrix.length][matrix[0].length];
-        ArrayList<Position> heighValues = new ArrayList<>();
+        ArrayList<Position> highValues = new ArrayList<>();
         int lowerLimit = 4;
         Position currPos = new Position(0,0);
         double currValue;
@@ -283,12 +283,12 @@ public class Heuristik {
                 currValue = matrix[y][x];
 
                 if(currValue >= lowerLimit){
-                    heighValues.add(currPos.clone());
+                    highValues.add(currPos.clone());
                 }
             }
         }
 
-        for (Position pos : heighValues){
+        for (Position pos : highValues){
             createWave(waveMatrix, pos);
         }
 
