@@ -177,7 +177,7 @@ public class ServerMessenger {
                 message = new byte[6];
                 messageBuffer = ByteBuffer.allocate(6);
                 messageBuffer.put((byte)1); //nachrichtentyp
-                messageBuffer.putInt(1); //länge der nachricht
+                messageBuffer.putInt(1); //length of message
                 messageBuffer.put((byte)5); //gruppennummer
                 message = messageBuffer.array();
                 break;
@@ -185,7 +185,7 @@ public class ServerMessenger {
                 message = new byte[10];
                 messageBuffer = ByteBuffer.allocate(10);
                 messageBuffer.put((byte)5); //nachrichtentyp
-                messageBuffer.putInt(5); //länge der nachricht //TODO: IN HEX
+                messageBuffer.putInt(5); //length of message //TODO: IN HEX
                 messageBuffer.putShort(Short.parseShort(Integer.toString(arguments[0]))); //x
                 messageBuffer.putShort(Short.parseShort(Integer.toString(arguments[1]))); //y
                 messageBuffer.put(Byte.parseByte(Integer.toString(arguments[2]))); //extra info

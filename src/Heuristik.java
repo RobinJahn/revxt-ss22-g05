@@ -54,7 +54,7 @@ public class Heuristik {
         setDynamicInfos();
 
         result += sumOfMyFields/ myFields.size(); //durchschnittswert meiner felder
-        if (printOn) System.out.println("Sum of my field Ø: " + result);
+        if (printOn) System.out.println("Sum of my field average: " + result);
 
         result += movesPercentage - 1;
         result += stonePercentage*100 - 1;
@@ -204,8 +204,8 @@ public class Heuristik {
         if (enemyMovesPercentage != 0) movesPercentage = (double)myPossibleMoves/ enemyMovesPercentage;
         else movesPercentage = 10;
 
-        if (printOn) System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones Ø: " + enemyStonesPercentage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
-        if (printOn) System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys Ø: " +  enemyMovesPercentage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
+        if (printOn) System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones average: " + enemyStonesPercentage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
+        if (printOn) System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys average: " +  enemyMovesPercentage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
     }
 
     /**

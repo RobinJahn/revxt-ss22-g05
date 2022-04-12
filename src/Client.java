@@ -208,7 +208,6 @@ public class Client {
 
 			//make a random move
 			if (moveRandom) {
-				int index;
 				positionAndInfo = getNextMoveWithHeuristik(validMoves, true);
 				posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
 				moveIsPossible = true; //no need to check th move again
@@ -841,6 +840,4 @@ public class Client {
 		pos.y = newPos.y;
 		return newR;
 	}
-
-
 }
