@@ -343,9 +343,8 @@ public class Map{
             mapString += "\n";
         }
 
-        mapString += '\n';
-
         if (showTransitions) {
+            mapString += '\n';
             mapString += Transitions.AllToString(transitionen);
         }
 
