@@ -369,7 +369,7 @@ public class Client {
 				int index;
 				positionAndInfo = getNextMoveWithHeuristik(validMoves, false);
 				posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
-				System.out.println("Set Keystone at: " + posToSetKeystone);
+				if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
 			}
 			//let player enter a move
 			if (!moveRandom) {
