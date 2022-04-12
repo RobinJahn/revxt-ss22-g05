@@ -35,25 +35,30 @@ public class Client {
 
 
 	public static void main(String[] args) {
-		Client c1;
-
+		boolean printOn = false;
+		boolean intellijPrint = false;
 		//variables for the server
 		String ip = "127.0.0.1";
 		int port = 7777;
 
 		//get call arguments
-		for (int i = 0; i < args.length-1; i++){
-			if (Objects.equals(args[i], "-i")){
-				i++;
-				ip = args[i];
+		for (int i = 0; i < args.length; i++){
+			if (i < args.length-1) {
+				if (Objects.equals(args[i], "-i")) {
+					i++;
+					ip = args[i];
+				}
+				if (Objects.equals(args[i], "-p")) {
+					i++;
+					port = Integer.parseInt(args[i]);
+				}
 			}
-			if (Objects.equals(args[i], "-p")){
-				i++;
-				port = Integer.parseInt(args[i]);
-			}
+			if (Objects.equals(args[i], "-h")) printOn = true;
+			if (Objects.equals(args[i], "-c")) intellijPrint = true;
 		}
 
-		c1 = new Client(ip,port,true);
+		//runn client
+		new Client(ip,port,printOn);
 	}
 
 	//functions that let the client play
@@ -92,7 +97,7 @@ public class Client {
 		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
 
 		//set variables after map was imported
-		heuristik = new Heuristik(map, myPlayerNr,true);
+		heuristik = new Heuristik(map, myPlayerNr,printOn);
 
 		//start playing
 		System.out.println();
@@ -107,11 +112,11 @@ public class Client {
 		boolean gameOngoing = true;
 		boolean firstPhase = true;
 
-		System.out.println(map.toString(null,false,true));
+		if (printOn) System.out.println(map.toString(null,false,true));
 
 		while (gameOngoing) {
 
-			if (printOn) System.out.print("Waiting for Message - ");
+			if (printOn) System.out.print("\nWaiting for Message - ");
 			messageType = serverM.waitForMessage();
 
 			switch (messageType) {
@@ -142,7 +147,7 @@ public class Client {
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
 					if (firstPhase) updateMapWithMove(posToSetKeystone, additionalInfo, moveOfPlayer, map);
 					else updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, map);
-					System.out.println(map.toString(null,false,true));
+					if (printOn) System.out.println(map.toString(null,false,true));
 					break;
 
 				case 7: //Disqualification
