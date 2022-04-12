@@ -525,6 +525,85 @@ public class Client {
 		return valueOfMapPosAndInfo.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
 	}
 
+	private int[] getNextMoveDFS(ArrayList<Position> validMoves, boolean phaseOne, int depth){
+		ArrayList<Double> valueOfMap = new ArrayList<>();
+		ArrayList<int[]> valueOfMapPosAndInfo = new ArrayList<>();
+		ArrayList<Position> validMovesChoice = new ArrayList<>();
+		Map nextMap;
+		char charAtNextPos;
+		int additionalInfo = 0;
+		int indexOfHighest;
+
+		for (Position pos : validMoves){
+			nextMap = new Map(map);
+			nextMap.setPlayer(myPlayerNr);
+			charAtNextPos = nextMap.getCharAt(pos);
+			if (phaseOne) {
+				if (charAtNextPos == 'c') {
+					validMovesChoice.add(pos);
+					continue;
+				}
+				if (charAtNextPos == 'b') {
+					//split in two
+
+					//first branche
+					additionalInfo = 20;
+
+					updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
+					//recursive call
+					if (depth > 1) valueOfMap.add(DFSVisit(nextMap,depth-1));
+					valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, 20});
+
+					//second branche
+					additionalInfo = 21;
+
+					updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
+					//recursive call
+					if (depth > 1) valueOfMap.add(DFSVisit(nextMap,depth-1));
+					valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, 21});
+					continue;
+				}
+
+				//is also executed for normal moves
+				updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
+			}
+			else {
+				updateMapAfterBombingBFS(pos.x, pos.y, nextMap);
+			}
+
+			//recursive call
+			if (depth > 1) valueOfMap.add(DFSVisit(nextMap,depth-1));
+
+			valueOfMapPosAndInfo.add(new int[]{pos.x,pos.y,0});
+		}
+
+		for (Position pos : validMovesChoice){
+			for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
+				if (playerNr == myPlayerNr) continue;
+
+				nextMap = new Map(map);
+				nextMap.setPlayer(myPlayerNr);
+
+				updateMapWithMove(pos, playerNr, myPlayerNr, nextMap);
+
+				//recursive call
+				if (depth > 1) valueOfMap.add(DFSVisit(nextMap,depth-1));
+
+				valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, playerNr});
+			}
+		}
+
+		Double highest = Collections.max(valueOfMap);
+		indexOfHighest = valueOfMap.indexOf(highest);
+
+		return valueOfMapPosAndInfo.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
+
+	}
+
+	private double DFSVisit(Map map, int depth){
+		return 0.0;
+	}
+
 	//functions to calculate possible moves
 
 	/**
