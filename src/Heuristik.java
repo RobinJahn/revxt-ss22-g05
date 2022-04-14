@@ -1,6 +1,7 @@
 package src;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class Heuristik {
     final boolean printOn;
@@ -17,8 +18,8 @@ public class Heuristik {
     private ArrayList<Position> inversionFields = new ArrayList<>();
     private ArrayList<Position> choiceFields = new ArrayList<>();
     //relevant information
-    private double stonePercentage = 0;
-    private double movesPercentage = 0;
+    private double countOfStonesEvaluation = 0;
+    private double countOfMovesEvaluation = 0;
     private double sumOfMyFields = 0;
     //heuristic values
     private final int base = 3;
@@ -53,11 +54,11 @@ public class Heuristik {
         //update relevant infos
         setDynamicInfos();
 
-        result += sumOfMyFields/ myFields.size(); //durchschnittswert meiner felder
+        if (sumOfMyFields != 0 && myFields.size() != 0) result += 0*(sumOfMyFields/ myFields.size()); //durchschnittswert meiner felder
         if (printOn) System.out.println("Sum of my field average: " + result);
 
-        result += movesPercentage - 1;
-        result += stonePercentage*100 - 1;
+        result += 0*(countOfMovesEvaluation);
+        result += (countOfStonesEvaluation);
         //value
         return result;
     }
@@ -75,6 +76,74 @@ public class Heuristik {
             System.out.println();
         }
         System.out.println();
+    }
+
+    /**
+     * Updates the Map object (if it was cloned for example).
+     * Also updates th dynamic infos.
+     * The general Map needs to be the same as the one the heuristic got initialized with
+     * @param mapToUpdateWith The new Map object to update the infos with
+     */
+    public void updateMap(Map mapToUpdateWith){
+        this.map = mapToUpdateWith;
+        setDynamicInfos();
+    }
+
+    /**
+     * Calculates placement of all players
+     * @return returns a value according to the placement of the player
+     */
+    public double placePlayers(){
+        ArrayList<int[]> countOfStonesPerPlayer = new ArrayList<>(8);
+        char charAtPos;
+        int myPlacement = 8;
+
+        for (int playerNr = 1; playerNr <= 8; playerNr++){
+            countOfStonesPerPlayer.add(new int[]{playerNr, 0});
+        }
+
+        //goes through every position of the map
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+                charAtPos = map.getCharAt(x,y);
+                if (Character.isDigit(charAtPos) && charAtPos != '0') countOfStonesPerPlayer.get(Integer.parseInt("" + charAtPos)-1)[1]++; //-1 because of index shift of array
+            }
+        }
+
+        countOfStonesPerPlayer.sort(new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return Integer.compare(o1[1], o2[1]);
+            }
+        });
+
+
+        for (int i = 1; i <= 8; i++){
+            if (countOfStonesPerPlayer.get(i-1)[0] == myColorI){
+                myPlacement = i;
+            }
+        }
+
+        switch (myPlacement){
+            case 1:
+                return 1000;
+            case 2:
+                return 700;
+            case 3:
+                return 400;
+            case 4:
+                return 100;
+            case 5:
+                return -100;
+            case 6:
+                return -400;
+            case 7:
+                return -700;
+            case 8:
+                return -1000;
+        }
+
+        return 0;
     }
 
     /**
@@ -148,8 +217,8 @@ public class Heuristik {
         int countOfOwnStones = 0;
         int countOfEnemyStones = 0;
         //get enemy stone percentage
-        double enemyStonesPercentage;
-        double enemyMovesPercentage;
+        double enemyStonesAverage;
+        double enemyMovesAverage;
         //get possible moves in %
         int myPossibleMoves = 0;
         int possibleMovesOfEnemys = 0;
@@ -192,20 +261,20 @@ public class Heuristik {
         } //reset to currently playing
 
         //get percentages out of the values
-        enemyStonesPercentage = (double)countOfEnemyStones/((double)map.getAnzPlayers()-1);
-        enemyMovesPercentage = (double)possibleMovesOfEnemys/((double)map.getAnzPlayers()-1);
+        enemyStonesAverage = (double)countOfEnemyStones/((double)map.getAnzPlayers()-1);
+        enemyMovesAverage = (double)possibleMovesOfEnemys/((double)map.getAnzPlayers()-1);
 
         //set relevant infos
 
         //set stone percentage
-        if (enemyStonesPercentage != 0) stonePercentage = (double)countOfOwnStones/ enemyStonesPercentage; //  myStones/ average stones of enemy
-        else stonePercentage = 10; //if enemy has no stones you have 10.000 % of his stones
+        countOfStonesEvaluation = (countOfOwnStones - enemyStonesAverage);
+        //else countOfStonesEvaluation = 500; //if enemy has no stones you have 100% stones
         //set possible moves percentage
-        if (enemyMovesPercentage != 0) movesPercentage = (double)myPossibleMoves/ enemyMovesPercentage;
-        else movesPercentage = 10;
+        countOfMovesEvaluation = (myPossibleMoves - enemyMovesAverage);
+        //else countOfMovesEvaluation = 500;
 
-        if (printOn) System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones average: " + enemyStonesPercentage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
-        if (printOn) System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys average: " +  enemyMovesPercentage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
+        if (printOn) System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones average: " + enemyStonesAverage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
+        if (printOn) System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys average: " +  enemyMovesAverage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
     }
 
     /**

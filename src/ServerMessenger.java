@@ -9,10 +9,6 @@ public class ServerMessenger {
     OutputStream out;
     InputStream in;
 
-    int time;
-    int depth;
-
-
     public ServerMessenger(String ip, int port) throws IOException {
         server = new Socket( ip, port ); //builds up a connection to the server socket
         // Get input and output stream:
@@ -36,7 +32,9 @@ public class ServerMessenger {
         }
     }
 
-    public void readRestOfMoveRequest(){
+    public int[] readRestOfMoveRequest(){
+        int time;
+        int depth;
         DataInputStream dis = new DataInputStream(in);
         try {
             in.readNBytes(4); //reads size and ignores it
@@ -45,9 +43,11 @@ public class ServerMessenger {
             depth = dis.readUnsignedByte();
 
             //TODO: if time is set ignore depth
+            return new int[]{time, depth};
         }
         catch (IOException e) {
             e.printStackTrace();
+            return new int[]{-1, -1};
         }
     }
 

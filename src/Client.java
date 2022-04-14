@@ -30,9 +30,10 @@ public class Client {
 	Map map;
 	ServerMessenger serverM;
 	Heuristik heuristik;
-	Random randomIndex = new Random(1);
+	Heuristik heuristikForSimulation;
 	int myPlayerNr;
-
+	int depth;
+	int time;
 
 	public static void main(String[] args) {
 		boolean printOn = false;
@@ -98,6 +99,7 @@ public class Client {
 
 		//set variables after map was imported
 		heuristik = new Heuristik(map, myPlayerNr,printOn);
+		heuristikForSimulation = new Heuristik(map, myPlayerNr,false);
 
 		//start playing
 		System.out.println();
@@ -111,6 +113,7 @@ public class Client {
 		int messageType;
 		boolean gameOngoing = true;
 		boolean firstPhase = true;
+		int[] timeAndDepth = new int[2];
 
 		if (printOn) System.out.println(map.toString(null,false,true));
 
@@ -125,7 +128,16 @@ public class Client {
 					if (printOn) System.out.println("received Move Request");
 
 					//read rest of move request
-					serverM.readRestOfMoveRequest(); //ignore at the moment
+					timeAndDepth = serverM.readRestOfMoveRequest(); //ignore at the moment
+					if (time == -1 || depth == -1) {
+						System.err.println("Time and Depth couldn't be read");
+						gameOngoing = false;
+						break;
+					}
+					else {
+						time = timeAndDepth[0];
+						depth = timeAndDepth[1];
+					}
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) makeAMove();
@@ -147,7 +159,12 @@ public class Client {
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
 					if (firstPhase) updateMapWithMove(posToSetKeystone, additionalInfo, moveOfPlayer, map);
 					else updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, map);
-					if (printOn) System.out.println(map.toString(null,false,true));
+					if (printOn) {
+						System.out.println(map.toString(null,false,true));
+						//calculate value of map and print it
+						double valueOfMap = (double)Math.round(heuristik.evaluate()*100)/100;
+						System.out.println("Value of Map is " + valueOfMap);
+					}
 					break;
 
 				case 7: //Disqualification
@@ -189,11 +206,12 @@ public class Client {
 		double valueOfMap;
 		Position posToSetKeystone = new Position(0, 0);
 		Scanner sc = new Scanner(System.in);
+		ArrayList<Position> validMoves;
 
 		map.setPlayer(myPlayerNr);
 
 		//calculate possible moves and print map with these
-		ArrayList<Position> validMoves = getValidMoves(map);
+		validMoves = getValidMoves(map);
 		if (printOn) System.out.println(map.toString(validMoves, false, true));
 
 		//calculate value of map and print it
@@ -202,18 +220,13 @@ public class Client {
 
 		//no check necessary if valid moves are empty because server says there not
 
-		if (printOn) {
-			System.out.println("Possible Moves:");
-			System.out.println(Arrays.toString(validMoves.toArray()));
-		}
-
    		while (!moveIsPossible) {
 			//enter the move
 			if (!moveRandom && printOn) System.out.print("Enter the next Move (x,y): ");
 
 			//make a random move
 			if (moveRandom) {
-				positionAndInfo = getNextMoveWithHeuristik(validMoves, true);
+				positionAndInfo = getNextMoveDFS(validMoves, true, depth);
 				posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
 				moveIsPossible = true; //no need to check th move again
 				if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
@@ -238,7 +251,6 @@ public class Client {
 			}
 		}
 
-	   	//TODO: Do the following better - random player doesn't need all that
 		//check where we would set our keystone on and act accordingly
 		char fieldValue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
 
@@ -334,30 +346,21 @@ public class Client {
 	//phase 2 - bomb phase
 
 	private void setABomb(){
-		int[] positionAndInfo = new int[3];
-		char fieldValue;
-		ArrayList<Position> validMoves = new ArrayList<>();
+		int[] positionAndInfo;
+		ArrayList<Position> validMoves;
 		boolean moveIsPossible = false;
 		Position posToSetKeystone = new Position(0, 0);
 		Scanner sc = new Scanner(System.in);
 
-		//gets the possible positions to set a bomb at
-		for (int y = 0; y < map.getHeight(); y++){
-			for (int x = 0; x < map.getWidth(); x++){
-				fieldValue = map.getCharAt(x, y);
-				if (fieldValue != '-' && fieldValue != 't'){
-					validMoves.add(new Position(x,y));
-				}
-			}
-		}
+		boolean pickARandom = false;
 
+		validMoves = getPositionsToSetABomb(map);
+
+		//print valid moves
 		if (printOn) System.out.println(map.toString(validMoves, false, true));
-
-		//print possible moves
-		if (printOn) {
-			System.out.println("Possible Moves:");
-			System.out.println(Arrays.toString(validMoves.toArray()));
-		}
+		//calculate value of map and print it
+		double valueOfMap = (double)Math.round(heuristik.evaluate()*100)/100;
+		if (printOn) System.out.println("Value of Map is " + valueOfMap);
 
 		//get a valid move
 		while (!moveIsPossible) {
@@ -366,10 +369,12 @@ public class Client {
 
 			//make a random move
 			if (moveRandom) {
-				int index;
-				positionAndInfo = getNextMoveWithHeuristik(validMoves, false);
-				posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
-				if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
+				if (!pickARandom) {
+					positionAndInfo = getNextMoveDFS(validMoves, false, depth);
+					posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
+					if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
+				}
+				else posToSetKeystone = validMoves.get((int)Math.round(Math.random()*validMoves.size()));
 			}
 			//let player enter a move
 			if (!moveRandom) {
@@ -384,6 +389,36 @@ public class Client {
 
 		//send the move
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, '0', myPlayerNr);
+	}
+
+	private static ArrayList<Position> getPositionsToSetABomb(Map map) {
+		ArrayList<Position> validMoves = new ArrayList<>();
+		char fieldValue;
+		//gets the possible positions to set a bomb at
+		for (int y = 0; y < map.getHeight(); y++){
+			for (int x = 0; x < map.getWidth(); x++){
+				fieldValue = map.getCharAt(x, y);
+				if (fieldValue != '-' && fieldValue != 't'){
+					validMoves.add(new Position(x,y));
+				}
+			}
+		}
+		return validMoves;
+	}
+
+	private static ArrayList<int[]> getPositionsToSetABombInXY(Map map) {
+		ArrayList<int[]> validMoves = new ArrayList<>();
+		char fieldValue;
+		//gets the possible positions to set a bomb at
+		for (int y = 0; y < map.getHeight(); y++){
+			for (int x = 0; x < map.getWidth(); x++){
+				fieldValue = map.getCharAt(x, y);
+				if (fieldValue != '-' && fieldValue != 't'){
+					validMoves.add(new int[]{x,y});
+				}
+			}
+		}
+		return validMoves;
 	}
 
 	/**
@@ -452,156 +487,181 @@ public class Client {
 	}
 
 	//calculate next move
+	//depth 1
 	private int[] getNextMoveWithHeuristik(ArrayList<Position> validMoves, boolean phaseOne){
+		ArrayList<int[]> everyPossibleMove;
 		ArrayList<Double> valueOfMap = new ArrayList<>();
-		ArrayList<int[]> valueOfMapPosAndInfo = new ArrayList<>();
-		ArrayList<Position> validMovesChoice = new ArrayList<>();
 		Map nextMap;
-		Heuristik nextHeuristik;
-		char charAtNextPos;
-		int additionalInfo = 0;
 		int indexOfHighest;
+		double evaluation;
 
-		for (Position pos : validMoves){
+		everyPossibleMove = getEveryPossibleMove(map, validMoves);
+
+		for (int[] positionAndInfo : everyPossibleMove) {
+			//clones Map
 			nextMap = new Map(map);
 			nextMap.setPlayer(myPlayerNr);
-			charAtNextPos = nextMap.getCharAt(pos);
+
+			//if it's the first phase
 			if (phaseOne) {
-				if (charAtNextPos == 'c') {
-					validMovesChoice.add(pos);
-					continue;
-				}
-				if (charAtNextPos == 'b') {
-					//split in two
-
-					//first branche
-					additionalInfo = 20;
-
-					updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
-					nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
-					valueOfMap.add(nextHeuristik.evaluate());
-					valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, 20});
-
-					//second branche
-					additionalInfo = 21;
-
-					updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
-					nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
-					valueOfMap.add(nextHeuristik.evaluate());
-					valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, 21});
-					continue;
-				}
-
-				//is also executed for normal moves
-				updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
+				updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], myPlayerNr, nextMap);
 			}
+			//if it's the bomb phase
 			else {
-				updateMapAfterBombingBFS(pos.x, pos.y, nextMap);
+				updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap);
 			}
 
-			nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
-			valueOfMap.add(nextHeuristik.evaluate());
-			valueOfMapPosAndInfo.add(new int[]{pos.x,pos.y,0});
-		}
+			heuristikForSimulation.updateMap(nextMap);
+			evaluation = heuristikForSimulation.evaluate();
 
-		for (Position pos : validMovesChoice){
-			for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
-				if (playerNr == myPlayerNr) continue;
-
-				nextMap = new Map(map);
-				nextMap.setPlayer(myPlayerNr);
-
-				updateMapWithMove(pos, playerNr, myPlayerNr, nextMap);
-
-				nextHeuristik = new Heuristik(nextMap, myPlayerNr, false);
-				valueOfMap.add(nextHeuristik.evaluate());
-				valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, playerNr});
-			}
+			valueOfMap.add(evaluation);
 		}
 
 		Double highest = Collections.max(valueOfMap);
 		indexOfHighest = valueOfMap.indexOf(highest);
 
-		return valueOfMapPosAndInfo.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
+		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
 	}
 
+	//recursive DFS
 	private int[] getNextMoveDFS(ArrayList<Position> validMoves, boolean phaseOne, int depth){
+		ArrayList<int[]> everyPossibleMove;
 		ArrayList<Double> valueOfMap = new ArrayList<>();
-		ArrayList<int[]> valueOfMapPosAndInfo = new ArrayList<>();
-		ArrayList<Position> validMovesChoice = new ArrayList<>();
 		Map nextMap;
-		char charAtNextPos;
-		int additionalInfo = 0;
 		int indexOfHighest;
+		double evaluation;
 
-		for (Position pos : validMoves){
+		if (phaseOne) everyPossibleMove = getEveryPossibleMove(map, validMoves);
+		else everyPossibleMove = getPositionsToSetABombInXY(map);
+
+
+		for (int[] positionAndInfo : everyPossibleMove){
+			//clones Map
 			nextMap = new Map(map);
 			nextMap.setPlayer(myPlayerNr);
-			charAtNextPos = nextMap.getCharAt(pos);
+
+			//if it's the first phase
 			if (phaseOne) {
-				if (charAtNextPos == 'c') {
-					validMovesChoice.add(pos);
-					continue;
-				}
-				if (charAtNextPos == 'b') {
-					//split in two
+				updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], myPlayerNr, nextMap);
+			}
+			//if it's the bomb phase
+			else {
+				updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap); //also updates currently playing player
+			}
 
-					//first branche
-					additionalInfo = 20;
-
-					updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
-					//recursive call
-					if (depth > 1) valueOfMap.add(DFSVisit(nextMap,depth-1));
-					valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, 20});
-
-					//second branche
-					additionalInfo = 21;
-
-					updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
-					//recursive call
-					if (depth > 1) valueOfMap.add(DFSVisit(nextMap,depth-1));
-					valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, 21});
-					continue;
-				}
-
-				//is also executed for normal moves
-				updateMapWithMove(pos, additionalInfo, myPlayerNr, nextMap);
+			//Call DFS to start building part-tree of children
+			if (depth > 1) {
+				evaluation = DFSVisit(nextMap,depth-1, phaseOne, true);
 			}
 			else {
-				updateMapAfterBombingBFS(pos.x, pos.y, nextMap);
+				heuristikForSimulation.updateMap(nextMap);
+				evaluation = heuristikForSimulation.evaluate();
 			}
-
-			//recursive call
-			if (depth > 1) valueOfMap.add(DFSVisit(nextMap,depth-1));
-
-			valueOfMapPosAndInfo.add(new int[]{pos.x,pos.y,0});
+			valueOfMap.add(evaluation);
 		}
 
-		for (Position pos : validMovesChoice){
-			for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
-				if (playerNr == myPlayerNr) continue;
-
-				nextMap = new Map(map);
-				nextMap.setPlayer(myPlayerNr);
-
-				updateMapWithMove(pos, playerNr, myPlayerNr, nextMap);
-
-				//recursive call
-				if (depth > 1) valueOfMap.add(DFSVisit(nextMap,depth-1));
-
-				valueOfMapPosAndInfo.add(new int[]{pos.x, pos.y, playerNr});
-			}
-		}
-
+		//get the highest value for a Map evaluation and the index of it
 		Double highest = Collections.max(valueOfMap);
 		indexOfHighest = valueOfMap.indexOf(highest);
 
-		return valueOfMapPosAndInfo.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
+		if (printOn) {
+			int[] posAndInfo;
+			System.out.print("DFS-N("+depth+"): ");
+			for (int i = 0; i < valueOfMap.size(); i++){
+				posAndInfo = everyPossibleMove.get(i);
+				if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %3d], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],Math.round(valueOfMap.get(i)*100)/100);
+				else System.out.printf("[(%2d,%2d)= %3d], ",posAndInfo[0],posAndInfo[1],Math.round(valueOfMap.get(i)*100)/100);
+			}
+			System.out.println("returning: " + highest);
+		}
+
+		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
 
 	}
 
-	private double DFSVisit(Map map, int depth){
-		return 0.0;
+	private double DFSVisit(Map map, int depth, boolean phaseOne, boolean printOn){
+		ArrayList<Position> validMoves;
+		ArrayList<int[]> everyPossibleMove;
+		ArrayList<Double> valueOfMap = new ArrayList<>();
+		Map nextMap;
+		int skippedPlayers = 0;
+		double evaluation;
+		Double highestOrLowest;
+
+		//checks if players can make a move
+		while (true) {
+			//get valid moves depending on stage of game
+			if (phaseOne) {
+				validMoves = getValidMoves(map);
+				everyPossibleMove = getEveryPossibleMove(map, validMoves);
+			}
+			else {
+				everyPossibleMove = getPositionsToSetABombInXY(map);
+			}
+
+			if (!everyPossibleMove.isEmpty()) {
+				break;
+			}
+
+			map.nextPlayer();
+			skippedPlayers++;
+			if (skippedPlayers == map.getAnzPlayers()-1){
+				if (phaseOne) {
+					phaseOne = false; //end of phase 1
+					//continues while but in phase 2
+				}
+				else {
+					heuristikForSimulation.updateMap(map);
+					return heuristikForSimulation.placePlayers(); //end of game
+				}
+			}
+		}
+
+		for (int[] positionAndInfo : everyPossibleMove){
+			//clones Map
+			nextMap = new Map(map);
+
+			//if it's the first phase
+			if (phaseOne) {
+				updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap);
+			}
+			//if it's the bomb phase
+			else {
+				updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap);
+			}
+
+			//Call DFS to start building part-tree of children
+			if (depth > 1) {
+				evaluation = DFSVisit(nextMap,depth-1, phaseOne, printOn);
+			}
+			else {
+				heuristikForSimulation.updateMap(nextMap);
+				evaluation = heuristikForSimulation.evaluate();
+			}
+			valueOfMap.add(evaluation);
+		}
+
+		if (map.getCurrentlyPlayingI() == myPlayerNr) {
+			//get the highest value for a Map evaluation and the index of it
+			highestOrLowest = Collections.max(valueOfMap);
+		}
+		else {
+			highestOrLowest = Collections.min(valueOfMap);
+		}
+
+		if (printOn) {
+			int[] posAndInfo;
+			System.out.print("DFS-V("+depth+"): ");
+			for (int i = 0; i < valueOfMap.size(); i++){
+				posAndInfo = everyPossibleMove.get(i);
+				if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %3d], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],Math.round(valueOfMap.get(i)*100)/100);
+				else System.out.printf("[(%2d,%2d)= %3d], ",posAndInfo[0],posAndInfo[1],Math.round(valueOfMap.get(i)*100)/100);
+			}
+			System.out.println("returning: " + highestOrLowest);
+			if (depth > 1) System.out.println();
+		}
+
+		return highestOrLowest;
 	}
 
 	//functions to calculate possible moves
@@ -619,6 +679,34 @@ public class Client {
 		deleteNotPossibleMoves(map, moves);
 		
 		return moves.possibleMoves;
+	}
+
+	private static ArrayList<int[]> getEveryPossibleMove(Map map, ArrayList<Position> validMoves){
+		ArrayList<int[]> everyPossibleMove = new ArrayList<>(validMoves.size());
+		char charAtPos;
+
+		for (Position pos : validMoves) {
+			charAtPos = map.getCharAt(pos);
+
+			//choice
+			if (charAtPos == 'c') {
+				for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
+					everyPossibleMove.add(new int[]{pos.x, pos.y, playerNr});
+				}
+			}
+			else {
+				//bonus
+				if (charAtPos == 'b'){
+					everyPossibleMove.add(new int[]{pos.x, pos.y, 20});
+					everyPossibleMove.add(new int[]{pos.x, pos.y, 21});
+				}
+				//normal
+				else {
+					everyPossibleMove.add(new int[]{pos.x, pos.y, 0});
+				}
+			}
+		}
+		return everyPossibleMove;
 	}
 
 	/**
