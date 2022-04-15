@@ -22,7 +22,6 @@ public class ServerMessenger {
 
     public int waitForMessage(){
         int readByte;
-        DataInputStream dis = new DataInputStream(in);
         try {
             readByte = in.read();
             return readByte;
@@ -147,15 +146,17 @@ public class ServerMessenger {
 
     //sender
 
-    public void sendMove(int x, int y, char zusatzinfo, int myPlayerNr){
+    public void sendMove(int x, int y, int zusatzinfo, int myPlayerNr){
         int[] arguments = new int[4];
+
+        if (zusatzinfo < 0 || zusatzinfo > 21 || (zusatzinfo > 8 && zusatzinfo < 20)) {
+            System.err.println("Move couldn't be sent because additional Info wasn't between 0-8 or 20 or 21. It was " + zusatzinfo);
+            return;
+        }
+
         arguments[0] = x-1; //index shift
         arguments[1] = y-1;
-        if (Character.isDigit(zusatzinfo)) arguments[2] = zusatzinfo-'0';
-        else {
-            if (zusatzinfo == 'b') arguments[2] = 20;
-            if (zusatzinfo == 'o') arguments[2] = 21;
-        }
+        arguments[2] = zusatzinfo;
         arguments[3] = myPlayerNr;
         byte[] message = assembleMassage(5,arguments);
         try {

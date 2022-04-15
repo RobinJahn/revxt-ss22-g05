@@ -23,7 +23,7 @@ class Moves {
 
 public class Client {
 	//final variables
-	final boolean moveRandom = true;
+	final boolean calculateMove = false;
 	final boolean printOn;
 
 	//global variables
@@ -189,7 +189,7 @@ public class Client {
 
 				case -1:
 					gameOngoing = false;
-					System.err.println("Received some Message that couldn't be handled");
+					System.err.println("Server closed connection or a message was received that couldn't be handled");
 					break;
 			}
 		}
@@ -201,12 +201,13 @@ public class Client {
 	 * Method to make a move after a move request was sent to the Client
 	 */
 	private void makeAMove(){
+		//calculated Move
 		int[] positionAndInfo = new int[3];
-		boolean moveIsPossible = false;
+
+		//general
 		double valueOfMap;
-		Position posToSetKeystone = new Position(0, 0);
-		Scanner sc = new Scanner(System.in);
 		ArrayList<Position> validMoves;
+
 
 		map.setPlayer(myPlayerNr);
 
@@ -220,26 +221,46 @@ public class Client {
 
 		//no check necessary if valid moves are empty because server says there not
 
-   		while (!moveIsPossible) {
-			//enter the move
-			if (!moveRandom && printOn) System.out.print("Enter the next Move (x,y): ");
+		//make a calculated move
+		if (calculateMove) {
+			positionAndInfo = getNextMoveDFS(validMoves, true, depth);
+			if (printOn) System.out.println("Set Keystone at: (" + positionAndInfo[0] + "," + positionAndInfo[1] + "," + positionAndInfo[2] + ")");
+		}
 
-			//make a random move
-			if (moveRandom) {
-				positionAndInfo = getNextMoveDFS(validMoves, true, depth);
-				posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
-				moveIsPossible = true; //no need to check th move again
-				if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
-			}
-			//let player enter a move
-			if (!moveRandom) {
-				posToSetKeystone.x = sc.nextInt();
-				posToSetKeystone.y = sc.nextInt();
+		//let player enter a move
+		if (!calculateMove) {
+			//Variables needed for human player
+			boolean moveIsPossible = false;
+			char fieldValue;
+			int additionalInfo = 0;
+			Position posToSetKeystone = new Position(0, 0);
+			Scanner sc = new Scanner(System.in);
+			ArrayList<Integer> directions;
+			char choiceChar;
+
+			//print moves and evaluation
+			positionAndInfo = getNextMoveDFS(validMoves, true, depth);
+			if (printOn) System.out.println("Recommended Move: (" + positionAndInfo[0] + "," + positionAndInfo[1] + "," + positionAndInfo[2] + ")");
+
+			//make a move
+			while (!moveIsPossible) {
+				if (printOn) System.out.print("Enter the next Move (x,y): ");
+
+				try {
+					//enter the move
+					posToSetKeystone.x = sc.nextInt();
+					posToSetKeystone.y = sc.nextInt();
+				}
+				catch (InputMismatchException e){
+					System.err.println("Move isn't possible");
+					sc = new Scanner(System.in);
+					continue;
+				}
 
 				if (printOn) System.out.println();
 
 				//check if the move is valid
-				ArrayList<Integer> directions = new ArrayList<>();
+				directions = new ArrayList<>();
 				for (int i = 0; i <= 7; i++) directions.add(i);
 				boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
 				if (!movePossible) {
@@ -249,47 +270,54 @@ public class Client {
 					moveIsPossible = true;
 				}
 			}
-		}
 
-		//check where we would set our keystone on and act accordingly
-		char fieldValue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
+			//check if player set on a bonus or choice field
+			moveIsPossible = false;
 
-		Character choiceChar = null;
-		Integer choiceInt = null;
-		switch (fieldValue) {
-			case 'b': {
-				if (!moveRandom) {
-					if (printOn) System.out.println("Do you want a bomb (b) or an overwrite-stone (o)?");
-					choiceChar = sc.next().charAt(0);
-				}
-				else {
-					if (positionAndInfo[2] == 20){
-						choiceChar = 'b';
+			//check where player would set their keystone on and act accordingly
+			fieldValue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
+
+			while (!moveIsPossible) {
+				switch (fieldValue) {
+					case 'b': {
+						if (printOn) System.out.println("Do you want a bomb (b) or an overwrite-stone (o)?");
+						choiceChar = sc.next().charAt(0);
+						//convert
+						if (choiceChar == 'b') {
+							additionalInfo = 20;
+							moveIsPossible = true;
+						}
+						else if (choiceChar == 'o') {
+							additionalInfo = 21;
+							moveIsPossible = true;
+						}
+
+						break;
 					}
-					else if (positionAndInfo[2] == 21){
-						choiceChar = 'o';
+					case 'c': {
+						if (printOn) System.out.println("Mit wem wollen sie die Farbe tauschen ?");
+						additionalInfo = sc.nextInt();
+						//check
+						if (additionalInfo >= 1 && additionalInfo <= map.getAnzPlayers()) moveIsPossible = true;
+						break;
 					}
+					default:
+						moveIsPossible = true;
 				}
-				break;
+				if (!moveIsPossible){
+					if (printOn) System.out.println("Invalid Input");
+				}
+			}
 
-			}
-			case 'c': {
-				if (!moveRandom) {
-					if (printOn) System.out.println("Mit wem wollen sie die Farbe tauschen ?");
-					choiceInt = sc.nextInt();
-				}
-				else {
-					choiceInt = positionAndInfo[2];
-				}
-				break;
-			}
+			positionAndInfo[0] = posToSetKeystone.x;
+			positionAndInfo[1] = posToSetKeystone.y;
+			positionAndInfo[2] = additionalInfo;
+
+			if (printOn) System.out.println("Set Keystone at: (" + positionAndInfo[0] + "," + positionAndInfo[1] + "," + positionAndInfo[2] + ")");
 		}
 
 		//send message where to move
-		char additionalInfo = '0';
-		if (choiceChar != null) additionalInfo = choiceChar;
-		if (choiceInt != null) additionalInfo = (char)('0' + choiceInt);
-		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, additionalInfo, myPlayerNr);
+		serverM.sendMove(positionAndInfo[0], positionAndInfo[1], positionAndInfo[2], myPlayerNr);
 	}
 
 	/**
@@ -365,10 +393,10 @@ public class Client {
 		//get a valid move
 		while (!moveIsPossible) {
 			//enter the move
-			if (!moveRandom && printOn) System.out.print("Enter the next move (x,y): ");
+			if (!calculateMove && printOn) System.out.print("Enter the next move (x,y): ");
 
 			//make a random move
-			if (moveRandom) {
+			if (calculateMove) {
 				if (!pickARandom) {
 					positionAndInfo = getNextMoveDFS(validMoves, false, depth);
 					posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
@@ -377,7 +405,7 @@ public class Client {
 				else posToSetKeystone = validMoves.get((int)Math.round(Math.random()*validMoves.size()));
 			}
 			//let player enter a move
-			if (!moveRandom) {
+			if (!calculateMove) {
 				posToSetKeystone.x = sc.nextInt();
 				posToSetKeystone.y = sc.nextInt();
 			}
