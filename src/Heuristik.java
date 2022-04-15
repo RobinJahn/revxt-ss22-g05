@@ -2,6 +2,7 @@ package src;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 
 public class Heuristik {
     final boolean printOn;
@@ -13,7 +14,6 @@ public class Heuristik {
     //the matrix that rates the different fields
     private double[][] matrix;
     //information that may be worth saving
-    private ArrayList<Position> myFields = new ArrayList<>();
     private ArrayList<Position> bonusFields = new ArrayList<>();
     private ArrayList<Position> inversionFields = new ArrayList<>();
     private ArrayList<Position> choiceFields = new ArrayList<>();
@@ -35,7 +35,7 @@ public class Heuristik {
         this.printOn = printOn;
         this.map = map;
         this.myColorI = myColor;
-        this.myColorC = Integer.toString(myColor).charAt(0);
+        this.myColorC = (char)('0'+myColor);
         matrix = new double[map.getHeight()][map.getWidth()];
         setStaticInfos();
         if (printOn) printMatrix();
@@ -54,7 +54,7 @@ public class Heuristik {
         //update relevant infos
         setDynamicInfos();
 
-        if (sumOfMyFields != 0 && myFields.size() != 0) result += 0*(sumOfMyFields/ myFields.size()); //durchschnittswert meiner felder
+        if (sumOfMyFields != 0 && map.getStonesOfPlayer(myColorI).size() != 0) result += 0*(sumOfMyFields/ map.getStonesOfPlayer(myColorI).size()); //durchschnittswert meiner felder
         if (printOn) System.out.println("Sum of my field average: " + result);
 
         result += 0*(countOfMovesEvaluation);
@@ -106,7 +106,7 @@ public class Heuristik {
         for (int y = 0; y < map.getHeight(); y++) {
             for (int x = 0; x < map.getWidth(); x++) {
                 charAtPos = map.getCharAt(x,y);
-                if (Character.isDigit(charAtPos) && charAtPos != '0') countOfStonesPerPlayer.get(Integer.parseInt("" + charAtPos)-1)[1]++; //-1 because of index shift of array
+                if (Character.isDigit(charAtPos) && charAtPos != '0') countOfStonesPerPlayer.get(charAtPos-'0' -1)[1]++; //-1 because of index shift of array
             }
         }
 
@@ -145,6 +145,7 @@ public class Heuristik {
 
         return 0;
     }
+
 
     /**
      * calculates and sets static information about the map.
@@ -212,9 +213,9 @@ public class Heuristik {
      */
     private void setDynamicInfos(){
         sumOfMyFields = 0;
-        myFields.clear();
+
         //get my stone positions in %
-        int countOfOwnStones = 0;
+        int countOfOwnStones;
         int countOfEnemyStones = 0;
         //get enemy stone percentage
         double enemyStonesAverage;
@@ -223,30 +224,12 @@ public class Heuristik {
         int myPossibleMoves = 0;
         int possibleMovesOfEnemys = 0;
 
-
-        char currChar;
-        Position currPos = new Position(0,0); //position that goes through whole map
-
-        //goes through every position of the map
-        for (int y = 0; y < map.getHeight(); y++) {
-            for (int x = 0; x < map.getWidth(); x++) {
-                //set new position
-                currPos.x = x;
-                currPos.y = y;
-                //get char at position
-                currChar = map.getCharAt(x,y);
-
-                //saves field and counts stones that are of own color
-                if (currChar == myColorC) {
-                    myFields.add(new Position(x, y));
-                    countOfOwnStones++;
-                    sumOfMyFields += matrix[y][x];
-                }
-                //if an enemy stone is there
-                else if (Character.isDigit(currChar) && currChar != '0'){
-                    countOfEnemyStones++;
-                }
-            }
+        //gets count of own stones
+        countOfOwnStones = map.getStonesOfPlayer(myColorI).size();
+        //gets count of enemy stones
+        for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
+            if (playerNr == myColorI) continue;
+            countOfEnemyStones += map.getStonesOfPlayer(playerNr).size();
         }
 
         //gets possible moves of all players and adds them to the corresponding move counter

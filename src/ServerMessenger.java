@@ -117,7 +117,6 @@ public class ServerMessenger {
             readByteArray = in.readNBytes(length);
             //create a map with it
             map = new Map(readByteArray);
-            
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -152,7 +151,7 @@ public class ServerMessenger {
         int[] arguments = new int[4];
         arguments[0] = x-1; //index shift
         arguments[1] = y-1;
-        if (Character.isDigit(zusatzinfo)) arguments[2] = Integer.parseInt("" + zusatzinfo);
+        if (Character.isDigit(zusatzinfo)) arguments[2] = zusatzinfo-'0';
         else {
             if (zusatzinfo == 'b') arguments[2] = 20;
             if (zusatzinfo == 'o') arguments[2] = 21;

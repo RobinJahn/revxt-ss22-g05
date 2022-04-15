@@ -288,7 +288,7 @@ public class Client {
 		//send message where to move
 		char additionalInfo = '0';
 		if (choiceChar != null) additionalInfo = choiceChar;
-		if (choiceInt != null) additionalInfo = choiceInt.toString().charAt(0);
+		if (choiceInt != null) additionalInfo = (char)('0' + choiceInt);
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, additionalInfo, myPlayerNr);
 	}
 
@@ -352,7 +352,7 @@ public class Client {
 		Position posToSetKeystone = new Position(0, 0);
 		Scanner sc = new Scanner(System.in);
 
-		boolean pickARandom = false;
+		boolean pickARandom = true;
 
 		validMoves = getPositionsToSetABomb(map);
 
@@ -551,7 +551,7 @@ public class Client {
 
 			//Call DFS to start building part-tree of children
 			if (depth > 1) {
-				evaluation = DFSVisit(nextMap,depth-1, phaseOne, true);
+				evaluation = DFSVisit(nextMap,depth-1, phaseOne, false);
 			}
 			else {
 				heuristikForSimulation.updateMap(nextMap);

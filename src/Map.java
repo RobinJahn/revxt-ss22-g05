@@ -1,9 +1,8 @@
 package src;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.lang.reflect.Array;
+import java.util.*;
 
 public class Map{
     //main data structure to store the Map Infos
@@ -28,6 +27,9 @@ public class Map{
     private int currentlyPlaying = 1;
     private boolean[] disqualifiedPlayers = new boolean[]{false, false, false, false, false, false, false, false}; //maybe it's not needed
 
+    private ArrayList<HashSet<Position>> stonesPerPlayer = new ArrayList<>(8);
+
+
     /**
      * Constructor.
      * Opens File Dialog to Import a Map
@@ -40,6 +42,7 @@ public class Map{
             importedCorrectly = importMap(Filepath);
             if (!importedCorrectly) {
                 System.err.println("Map didn't import correctly.");
+                return;
             }
         }
     }
@@ -48,6 +51,7 @@ public class Map{
         importedCorrectly = importMap(mapByteArray);
         if (!importedCorrectly) {
             System.err.println("Map didn't import correctly.");
+            return;
         }
     }
 
@@ -55,6 +59,7 @@ public class Map{
         importedCorrectly = importMap(fileName);
         if (!importedCorrectly) {
             System.err.println("Map didn't import correctly.");
+            return;
         }
     }
 
@@ -76,7 +81,14 @@ public class Map{
 
         transitionsBuffer = new int[9];
         posInTransitionBuffer = 0;
+
+        //TODO: check if you can clone this
+        initStonesPerPlayerSet();
+        for (int playerNr = 1; playerNr <= anzPlayers; playerNr++){
+            stonesPerPlayer.set(playerNr-1, (HashSet<Position>) mapToCopy.getStonesOfPlayer(playerNr).clone());
+        }
     }
+
     
     //PUBLIC METHODS
 
@@ -135,7 +147,7 @@ public class Map{
         boolean noErrorsInMethod;
 
         st.whitespaceChars(' ', ' ');
-        st.wordChars('-','-');
+        st.wordChars('-','-'); //TODO: doesn't really work
 
         //Read file
         tokenCounter = 0; //counts which token it is currently at
@@ -148,7 +160,7 @@ public class Map{
                 return false;
             }
             //Handle false Tokens - generally false
-            //Handle false chars
+            //  Handle false chars
             if (st.ttype == StreamTokenizer.TT_WORD){
                 char cur = st.sval.charAt(0);
                 if (cur != 'c' && cur != 'i' && cur != 'b' && cur != 'x'){ //an imported map can't have a t to mark transitions
@@ -156,7 +168,7 @@ public class Map{
                     return false;
                 }
             }
-            //Handle false Numbers
+            //  Handle false Numbers
             if (st.ttype == StreamTokenizer.TT_NUMBER){
                 int currentNumber = ((Double)st.nval).intValue();
                 if (currentNumber < 0){
@@ -352,55 +364,49 @@ public class Map{
     }
 
     /**
-     * Swaps Stones with another player
+     * Swaps Stones of the currently playing player with the specified player
      * @param playerId ID of the player with whom to swap stones
      */
-    public void swapStonesWithOnePlayer(int playerId)
-    {
-        if(playerId <= anzPlayers)
-        {
-        	if(playerId != currentlyPlaying)
-        	{
-        		for(int y = 0;y< height;y++)
-                {
-                    for(int x = 0;x< width;x++)
-                    {
-                        if(map[y][x] == playerId+48)
-                        {
-                            setCharAt(x,y,(char)(currentlyPlaying+48));
-                        }
-                        else if(map[y][x] == currentlyPlaying+48)
-                        {
-                            setCharAt(x,y,(char) (playerId+48));
-                        }
-                    }
-                }
-        	}
+    public void swapStonesWithOnePlayer(int playerId) {
+        //error handling
+        if (playerId <= anzPlayers) {
+            System.err.println("A Player with ID " + playerId + "doesn't exist");
+            return;
         }
-        else
-        {
-        	System.err.println("Der Spieler mit dieser ID spielt nicht mit");
+        if (playerId != currentlyPlaying) {
+            System.err.println("The player can't swap stones with himself");
+            return;
+        }
+
+        //swap stones with player
+        HashSet<Position> buffer;
+        buffer = stonesPerPlayer.get(currentlyPlaying);
+        stonesPerPlayer.set(currentlyPlaying, stonesPerPlayer.get(playerId));
+        stonesPerPlayer.set(playerId, buffer);
+
+        //color the new stones of the player in its color
+        for (int playerNr : new int[]{playerId, currentlyPlaying}){
+            for (Position pos : stonesPerPlayer.get(playerNr)) {
+                setCharAtWithoutSetUpdate(pos, (char)('0'+playerNr));
+            }
         }
     }
 
     /**
      * Die Farben aller Spieler werden um eins verschoben
      */
-    public void Inversion()
-    {
-        for(int y = 0;y < height;y++)
-        {
-            for(int x = 0;x < width;x++)
-            {
-                if(Character.isDigit(map[y][x]) && map[y][x] != '0'){
-                    map[y][x] = (char)((int)map[y][x]+1);
-                    if(map[y][x] == anzPlayers+49) { //for example: if the map has 8 players and if it was player 8 make it to player 1
-                        map[y][x] = '1';
-                    }
-                    if (map[y][x] > anzPlayers+49){
-                        System.err.println("Found stone that had value over 8 - set it to 1");
-                    }
-                }
+    public void Inversion() {
+        HashSet<Position> buffer;
+
+        //adds the last element at the front, so it shifts all the other elements one further and deletes the last element
+        buffer = stonesPerPlayer.remove(stonesPerPlayer.size()-1);
+        stonesPerPlayer.add(0,buffer);
+
+
+        //colors the new stones of the player in its color
+        for (int playerNr = 1; playerNr <= anzPlayers; playerNr++){
+            for (Position pos : stonesPerPlayer.get(playerNr-1)){
+                setCharAtWithoutSetUpdate(pos, (char)('0'+playerNr));
             }
         }
     }
@@ -429,7 +435,7 @@ public class Map{
         return currentlyPlaying;
     }
     public char getCurrentlyPlayingC() {
-        return Integer.toString(currentlyPlaying).charAt(0);
+        return (char) ('0'+currentlyPlaying);
     }
 
     public int getAnzPlayers() {
@@ -457,6 +463,15 @@ public class Map{
         return width;
     }
 
+    public HashSet<Position> getStonesOfPlayer(int playerNr){
+        if (playerNr < 0 || playerNr > anzPlayers) {
+            System.err.println("Player with that number isn't in the Game");
+            return null;
+        }
+
+        return stonesPerPlayer.get(playerNr-1);
+    }
+
     //SETTER
 
     /**
@@ -468,6 +483,7 @@ public class Map{
      * @return returns true if char was set correctly
      */
     public boolean setCharAt(int x, int y, char charToChangeTo){
+        char charAtPos;
         //check if map is initialized
         if (map == null) {
             System.err.println("The Map wasn't yet initialized");
@@ -478,9 +494,38 @@ public class Map{
             System.err.println("Position out of Map");
             return false;
         }
+        //get what is there
+        charAtPos = getCharAt(x,y);
+        //if there was a player remove stone from his stone set
+        if (charAtPos != '0' && Character.isDigit(charAtPos)) {
+            stonesPerPlayer.get(charAtPos-'0'-1).remove(new Position(x,y)); //-'0' to convert to int
+        }
+
         //set char
         map[y][x] = charToChangeTo;
+
+        //add char to set of player
+        if (charToChangeTo != '0' && Character.isDigit(charToChangeTo)) {
+            stonesPerPlayer.get(charToChangeTo-'0'-1).add(new Position(x,y)); //-'0' to convert to int
+        }
+
         return true;
+    }
+
+    private void setCharAtWithoutSetUpdate(Position posToSetKeystone, char charToChangeTo){
+        //check if map is initialized
+        if (map == null) {
+            System.err.println("The Map wasn't yet initialized");
+            return;
+        }
+        //check boundaries
+        if (posToSetKeystone.x >= width || posToSetKeystone.y >= height || posToSetKeystone.x < 0 || posToSetKeystone.y < 0) {
+            System.err.println("Position out of Map");
+            return;
+        }
+
+        //set char
+        map[posToSetKeystone.y][posToSetKeystone.x] = charToChangeTo;
     }
 
     public void increaseBombsOfPlayer(){
@@ -504,8 +549,7 @@ public class Map{
         if (currentlyPlaying == anzPlayers+1) currentlyPlaying = 1;
     }
 
-    public void setPlayer(int PlayerID)
-    {
+    public void setPlayer(int PlayerID) {
         currentlyPlaying = PlayerID;
     }
 
@@ -514,6 +558,12 @@ public class Map{
     }
 
     //PRIVATE METHODS
+
+    private void initStonesPerPlayerSet(){
+        for (int playerNr = 0; playerNr < anzPlayers; playerNr++) {
+            stonesPerPlayer.add(new HashSet<Position>());
+        }
+    }
 
     private boolean handleFirst5(StreamTokenizer st, int tokenCounter) {
         int currentNumber = ((Double)st.nval).intValue();
@@ -524,6 +574,7 @@ public class Map{
                     return false;
                 }
                 anzPlayers = currentNumber;
+                initStonesPerPlayerSet();
                 break;
             case 1:
                 for (int i = 0; i < anzPlayers; i++)
@@ -563,14 +614,16 @@ public class Map{
                 setCharAt(x,y,'-');
             }
         }
-
     }
 
     private boolean handleMap(StreamTokenizer st, int tokenCounter) {
         char minus = '-';
+        char charAtPos;
+
         //calculates x and y coordinates out of token counter, width and height
         int x = (tokenCounter-6)%(width-2) + 1; //-2 and +1 is index shift
         int y = (tokenCounter-6)/(width-2) + 1; //-2 and +1 is index shift
+
         //save char in map
         //if it's a char
         if (st.ttype == StreamTokenizer.TT_WORD) {
@@ -583,7 +636,11 @@ public class Map{
                 System.err.println("No values over " + anzPlayers + " allowed!");
                 return false;
             }
-            setCharAt(x, y, Integer.toString(currentNumber).charAt(0));
+            charAtPos = (char)('0'+currentNumber);
+            setCharAt(x, y, charAtPos);
+
+            //if it's a player add the position his stones
+            if (currentNumber != 0) stonesPerPlayer.get(currentNumber-1).add(new Position(x,y));
         }
         if (st.ttype == minus) {
             setCharAt(x, y, '-');
