@@ -397,7 +397,7 @@ public class Client {
 		Position posToSetKeystone = new Position(0, 0);
 		Scanner sc = new Scanner(System.in);
 
-		boolean pickARandom = true;
+		boolean pickARandom = false;
 
 		validMoves = getPositionsToSetABomb(map);
 
@@ -450,15 +450,20 @@ public class Client {
 	private static ArrayList<int[]> getPositionsToSetABomb(Map map) {
 		ArrayList<int[]> validMoves = new ArrayList<>();
 		char fieldValue;
+
+		//if player has no bomb's return empty array
+		if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) return validMoves;
+
 		//gets the possible positions to set a bomb at
-		for (int y = 0; y < map.getHeight(); y++){
-			for (int x = 0; x < map.getWidth(); x++){
+		for (int y = 0; y < map.getHeight(); y++) {
+			for (int x = 0; x < map.getWidth(); x++) {
 				fieldValue = map.getCharAt(x, y);
-				if (fieldValue != '-' && fieldValue != 't'){
-					validMoves.add(new int[]{x,y});
+				if (fieldValue != '-' && fieldValue != 't') {
+					validMoves.add(new int[]{x, y});
 				}
 			}
 		}
+
 		return validMoves;
 	}
 
