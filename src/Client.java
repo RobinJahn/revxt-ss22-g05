@@ -1,5 +1,7 @@
 package src;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.ServerError;
 import java.util.*;
@@ -26,6 +28,7 @@ public class Client {
 	//final variables
 	final boolean calculateMove = true;
 	final boolean printOn;
+	final boolean compare_to_Server;
 
 	//global variables
 	Map map;
@@ -40,6 +43,7 @@ public class Client {
 	public static void main(String[] args) {
 		boolean printOn = false;
 		boolean intellijPrint = false;
+		boolean compare_to_Server = false;
 		//variables for the server
 		String ip = "127.0.0.1";
 		int port = 7777;
@@ -58,10 +62,11 @@ public class Client {
 			}
 			if (Objects.equals(args[i], "-h")) printOn = true;
 			if (Objects.equals(args[i], "-c")) intellijPrint = true;
+			if (Objects.equals(args[i], "-s")) compare_to_Server = true;
 		}
 
 		//runn client
-		new Client(ip,port,printOn);
+		new Client(ip,port,printOn,compare_to_Server);
 	}
 
 	//functions that let the client play
@@ -72,8 +77,9 @@ public class Client {
 	 * @param ip ip of the server
 	 * @param port port of the server
 	 */
-	public Client(String ip, int port, boolean printOn){
+	public Client(String ip, int port, boolean printOn,boolean compare_to_Server){
 		this.printOn = printOn;
+		this.compare_to_Server = compare_to_Server;
 		//try to connect with server
 		try {
 			serverM = new ServerMessenger(ip,port);
@@ -116,6 +122,7 @@ public class Client {
 		boolean gameOngoing = true;
 		boolean firstPhase = true;
 		int[] timeAndDepth;
+		String map_For_Comparison = "";
 		moveCounter = 0;
 
 		if (printOn) System.out.println(map.toString(null,false,true));
@@ -154,6 +161,21 @@ public class Client {
 					if (printOn) {
 						System.out.println("received Move");
 						System.out.println("Move: " + moveCounter++);
+					}
+					if(compare_to_Server)
+					{
+						char currChar;
+						//write map
+						for (int y = 1; y < map.getHeight()-1; y++) {
+							for (int x = 1; x < map.getWidth() - 1; x++) {
+								currChar = map.getCharAt(x, y);
+								if (currChar == 't') currChar = '-';
+								map_For_Comparison += (Character.toString(currChar));
+							}
+
+							map_For_Comparison += "\n";
+						}
+						map_For_Comparison += "valid positions: " + getValidMoves(map).size() + "\n\n";
 					}
 
 					//read rest of Message
@@ -200,6 +222,25 @@ public class Client {
 					gameOngoing = false;
 					System.err.println("Server closed connection or a message was received that couldn't be handled");
 					break;
+			}
+		}
+
+		if(compare_to_Server)
+		{
+			File newFile;
+			FileWriter fw;
+			//setup File and File Writer
+			newFile = new File("Client_View.txt");
+
+			try {
+				newFile.createNewFile();
+				fw = new FileWriter("Client_View.txt", false);
+				fw.write(map_For_Comparison);
+				fw.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
 			}
 		}
 	}
