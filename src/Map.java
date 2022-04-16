@@ -28,6 +28,7 @@ public class Map{
     private boolean[] disqualifiedPlayers = new boolean[]{false, false, false, false, false, false, false, false}; //maybe it's not needed
 
     private ArrayList<HashSet<Position>> stonesPerPlayer = new ArrayList<>(8);
+    private HashSet<Position> expansionFields = new HashSet<>();
 
 
     /**
@@ -281,7 +282,7 @@ public class Map{
     }
 
     //not very clean code - just for testing purposes
-    public String toString(ArrayList<Position> possibleMoves, boolean showTransitions, boolean addColorsForIntelliJ){
+    public String toString(ArrayList<int[]> everyPossibleMove, boolean showTransitions, boolean addColorsForIntelliJ){
         final String ANSI_RESET = "\u001B[0m";
         final String ANSI_BLACK = "\u001B[30m";
         final String ANSI_RED = "\u001B[31m";
@@ -296,6 +297,14 @@ public class Map{
 
         String mapString = "";
         String bufferString;
+
+        ArrayList<Position> possibleMoves = null;
+        if (everyPossibleMove != null) {
+            possibleMoves = new ArrayList<>();
+            for (int[] posAndInfo : everyPossibleMove) {
+                possibleMoves.add(new Position(posAndInfo[0], posAndInfo[1]));
+            }
+        }
 
         mapString += "Player count: " + anzPlayers + "\n";
         mapString += "currently playing: " + currentlyPlaying + "\n";
@@ -368,29 +377,30 @@ public class Map{
      * @param playerId ID of the player with whom to swap stones
      */
     public void swapStonesWithOnePlayer(int playerId) {
-
         //error handling
-        if (playerId > anzPlayers) {
-            System.err.println("A Player with ID " + playerId + "doesn't exist");
+        if (playerId < 1 || playerId > anzPlayers) {
+            System.err.println("A Player with ID " + playerId + " doesn't exist");
+            return;
+        }
+        if (playerId == currentlyPlaying) {
+            // if the player chose himself do nothing
             return;
         }
 
-        //Mit sich selber Steine zu tauschen erfordert keinen Tausch
-        if (playerId == currentlyPlaying) {
-            return;
-        }
+        //index shift
+        playerId -= 1;
+        int currentlyPlaying = this.currentlyPlaying-1;
 
         //swap stones with player
-        //CurrentlyPlaying und PlayerId müssen hier um 1 reduziert werden, da das StonesPerPlayerSet bei 0 anfängt
         HashSet<Position> buffer;
-        buffer = stonesPerPlayer.get(currentlyPlaying-1);
-        stonesPerPlayer.set(currentlyPlaying-1, stonesPerPlayer.get(playerId-1));
-        stonesPerPlayer.set(playerId-1, buffer);
+        buffer = stonesPerPlayer.get(currentlyPlaying);
+        stonesPerPlayer.set(currentlyPlaying, stonesPerPlayer.get(playerId));
+        stonesPerPlayer.set(playerId, buffer);
 
         //color the new stones of the player in its color
         for (int playerNr : new int[]{playerId, currentlyPlaying}){
-            for (Position pos : stonesPerPlayer.get(playerNr-1)) {
-                setCharAtWithoutSetUpdate(pos, (char)('0'+playerNr));
+            for (Position pos : stonesPerPlayer.get(playerNr)) {
+                setCharAtWithoutSetUpdate(pos, (char)('0'+playerNr+1)); //reverse index shift
             }
         }
     }
@@ -475,6 +485,10 @@ public class Map{
         return stonesPerPlayer.get(playerNr-1);
     }
 
+    public HashSet<Position> getExpansionFields(){
+        return expansionFields;
+    }
+
     //SETTER
 
     /**
@@ -487,6 +501,8 @@ public class Map{
      */
     public boolean setCharAt(int x, int y, char charToChangeTo){
         char charAtPos;
+        Position posToSetChar = new Position(x,y);
+
         //check if map is initialized
         if (map == null) {
             System.err.println("The Map wasn't yet initialized");
@@ -501,15 +517,16 @@ public class Map{
         charAtPos = getCharAt(x,y);
         //if there was a player remove stone from his stone set
         if (charAtPos != '0' && Character.isDigit(charAtPos)) {
-            stonesPerPlayer.get(charAtPos-'0'-1).remove(new Position(x,y)); //-'0' to convert to int
+            stonesPerPlayer.get(charAtPos-'0'-1).remove(posToSetChar); //-'0' to convert to int
         }
+        if (charAtPos == 'x') expansionFields.remove(posToSetChar);
 
         //set char
         map[y][x] = charToChangeTo;
 
         //add char to set of player
         if (charToChangeTo != '0' && Character.isDigit(charToChangeTo)) {
-            stonesPerPlayer.get(charToChangeTo-'0'-1).add(new Position(x,y)); //-'0' to convert to int
+            stonesPerPlayer.get(charToChangeTo-'0'-1).add(posToSetChar); //-'0' to convert to int
         }
 
         return true;
@@ -622,6 +639,7 @@ public class Map{
     private boolean handleMap(StreamTokenizer st, int tokenCounter) {
         char minus = '-';
         char charAtPos;
+        char charToImport;
 
         //calculates x and y coordinates out of token counter, width and height
         int x = (tokenCounter-6)%(width-2) + 1; //-2 and +1 is index shift
@@ -630,7 +648,9 @@ public class Map{
         //save char in map
         //if it's a char
         if (st.ttype == StreamTokenizer.TT_WORD) {
-            setCharAt(x, y, st.sval.charAt(0));
+            charToImport = st.sval.charAt(0);
+            setCharAt(x, y, charToImport);
+            if (charToImport == 'x') expansionFields.add(new Position(x,y));
         }
         //if it's a number
         if (st.ttype == StreamTokenizer.TT_NUMBER) {
