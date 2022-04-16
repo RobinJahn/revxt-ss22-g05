@@ -651,9 +651,10 @@ public class Client {
 
 			map.nextPlayer();
 			skippedPlayers++;
-			if (skippedPlayers == map.getAnzPlayers()-1){
+			if (skippedPlayers >= map.getAnzPlayers()-1){ //shouldn't be greater
 				if (phaseOne) {
 					phaseOne = false; //end of phase 1
+					skippedPlayers = 0;
 					//continues while but in phase 2
 				}
 				else {
