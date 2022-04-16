@@ -23,7 +23,7 @@ class Moves {
 
 public class Client {
 	//final variables
-	final boolean calculateMove = false;
+	final boolean calculateMove = true;
 	final boolean printOn;
 
 	//global variables

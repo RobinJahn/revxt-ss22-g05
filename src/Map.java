@@ -368,25 +368,28 @@ public class Map{
      * @param playerId ID of the player with whom to swap stones
      */
     public void swapStonesWithOnePlayer(int playerId) {
+
         //error handling
-        if (playerId <= anzPlayers) {
+        if (playerId > anzPlayers) {
             System.err.println("A Player with ID " + playerId + "doesn't exist");
             return;
         }
-        if (playerId != currentlyPlaying) {
-            System.err.println("The player can't swap stones with himself");
+
+        //Mit sich selber Steine zu tauschen erfordert keinen Tausch
+        if (playerId == currentlyPlaying) {
             return;
         }
 
         //swap stones with player
+        //CurrentlyPlaying und PlayerId müssen hier um 1 reduziert werden, da das StonesPerPlayerSet bei 0 anfängt
         HashSet<Position> buffer;
-        buffer = stonesPerPlayer.get(currentlyPlaying);
-        stonesPerPlayer.set(currentlyPlaying, stonesPerPlayer.get(playerId));
-        stonesPerPlayer.set(playerId, buffer);
+        buffer = stonesPerPlayer.get(currentlyPlaying-1);
+        stonesPerPlayer.set(currentlyPlaying-1, stonesPerPlayer.get(playerId-1));
+        stonesPerPlayer.set(playerId-1, buffer);
 
         //color the new stones of the player in its color
         for (int playerNr : new int[]{playerId, currentlyPlaying}){
-            for (Position pos : stonesPerPlayer.get(playerNr)) {
+            for (Position pos : stonesPerPlayer.get(playerNr-1)) {
                 setCharAtWithoutSetUpdate(pos, (char)('0'+playerNr));
             }
         }
