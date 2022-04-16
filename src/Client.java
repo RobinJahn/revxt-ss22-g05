@@ -974,12 +974,12 @@ public class Client {
                         }
                         //player
                         else {
-                            //player stone - overwrite move
+                            //own or enemy stone -> overwrite move
                             if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
                                 everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-								//if it's an own stone don't go on
-								if (currChar == map.getCurrentlyPlayingC()) break;
                             }
+							//if it's an own stone don't go on
+							if (currChar == map.getCurrentlyPlayingC()) break;
                         }
                     }
                     // c, b, i, x
