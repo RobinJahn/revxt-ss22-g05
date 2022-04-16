@@ -607,12 +607,14 @@ public class Client {
 
 		if (printOn) {
 			int[] posAndInfo;
+			System.out.println("Found " + valueOfMap.size() + " valid Moves");
 			System.out.print("DFS-N("+depth+"): ");
 			for (int i = 0; i < valueOfMap.size(); i++){
 				posAndInfo = everyPossibleMove.get(i);
-				if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %3d], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],Math.round(valueOfMap.get(i)*100)/100);
-				else System.out.printf("[(%2d,%2d)= %3d], ",posAndInfo[0],posAndInfo[1],Math.round(valueOfMap.get(i)*100)/100);
+				if (phaseOne) System.out.printf("[(%2d,%2d,%2d)=%3d], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],Math.round(valueOfMap.get(i)*100)/100);
+				else System.out.printf("[(%2d,%2d)=%3d], ",posAndInfo[0],posAndInfo[1],Math.round(valueOfMap.get(i)*100)/100);
 			}
+			System.out.println();
 			System.out.println("returning: " + highest);
 		}
 
@@ -929,9 +931,10 @@ public class Client {
 
     //  by own color
     private static ArrayList<int[]> getFieldsByOwnColor(Map map){
-        HashSet<int[]> everyPossibleMove = new HashSet<>();
+        HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
         ArrayList<Position> movesToCheck = new ArrayList<>(map.getStonesOfPlayer(map.getCurrentlyPlayingI())); //adds all the stone positions of the player to the moves to check
-        int r;
+        ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
+		int r;
         Integer newR;
         Position currPos;
         char currChar;
@@ -939,7 +942,7 @@ public class Client {
         //add x fields
         if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
             for (Position pos : map.getExpansionFields()) {
-                everyPossibleMove.add(new int[]{pos.x, pos.y, 0});
+                everyPossibleMove.add(new PositionAndInfo(pos.x, pos.y, 0));
             }
         }
 
@@ -966,14 +969,14 @@ public class Client {
                     if (Character.isDigit(currChar)){
                         // 0
                         if (currChar == '0') {
-                            everyPossibleMove.add(new int[]{currPos.x, currPos.y, 0});
+                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                             break;
                         }
                         //player
                         else {
                             //player stone - overwrite move
                             if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                                everyPossibleMove.add(new int[]{currPos.x, currPos.y, 0});
+                                everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
 								//if it's an own stone don't go on
 								if (currChar == map.getCurrentlyPlayingC()) break;
                             }
@@ -982,28 +985,33 @@ public class Client {
                     // c, b, i, x
                     else {
                         if (currChar == 'i') {
-                            everyPossibleMove.add(new int[]{currPos.x, currPos.y, 0});
+                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                             break;
                         }
                         if (currChar == 'c') {
                             for (int playerNr = 1; playerNr < map.getAnzPlayers(); playerNr++){
-                                everyPossibleMove.add(new int[]{currPos.x, currPos.y, playerNr});
+                                everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
                             }
                             break;
                         }
                         if (currChar == 'b'){
-                            everyPossibleMove.add(new int[]{currPos.x, currPos.y, 20});
-                            everyPossibleMove.add(new int[]{currPos.x, currPos.y, 21});
+                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 20));
+                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 21));
                             break;
                         }
                         if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                            everyPossibleMove.add(new int[]{currPos.x, currPos.y, 0});
+                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                         }
                     }
                 }
             }
         }
-        return new ArrayList<int[]>(everyPossibleMove);
+
+		for (PositionAndInfo pai : everyPossibleMove){
+			resultPosAndInfo.add(pai.toIntArray());
+		}
+
+        return resultPosAndInfo;
     }
 
 
