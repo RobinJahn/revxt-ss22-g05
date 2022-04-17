@@ -281,6 +281,41 @@ public class Map{
         return mapString;
     }
 
+
+    //Kopieren und umbauen zur toString_Server Methode
+
+    public String toString_Server(ArrayList<int[]> everyPossibleMove)
+    {
+        String mapString = "";
+        String bufferString;
+
+        ArrayList<Position> possibleMoves = null;
+        if (everyPossibleMove != null) {
+            possibleMoves = new ArrayList<>();
+            for (int[] posAndInfo : everyPossibleMove) {
+                possibleMoves.add(new Position(posAndInfo[0], posAndInfo[1]));
+            }
+        }
+
+        for (int y = 1; y < height-1; y++){
+            for (int x = 1; x < width-1; x++){
+                bufferString = "";
+                bufferString += getCharAt(x,y);
+                if (possibleMoves != null && possibleMoves.contains(new Position(x,y))) {
+                    bufferString += "'";
+                }
+                else
+                {
+                    bufferString += " ";
+                }
+
+                mapString += bufferString;
+            }
+            mapString += "\n";
+        }
+        return mapString;
+    }
+
     //not very clean code - just for testing purposes
     public String toString(ArrayList<int[]> everyPossibleMove, boolean showTransitions, boolean addColorsForIntelliJ){
         final String ANSI_RESET = "\u001B[0m";
