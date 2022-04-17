@@ -164,18 +164,7 @@ public class Client {
 					}
 					if(compare_to_Server)
 					{
-						char currChar;
-						//write map
-						for (int y = 1; y < map.getHeight()-1; y++) {
-							for (int x = 1; x < map.getWidth() - 1; x++) {
-								currChar = map.getCharAt(x, y);
-								if (currChar == 't') currChar = '-';
-								map_For_Comparison += (Character.toString(currChar));
-							}
-
-							map_For_Comparison += "\n";
-						}
-						map_For_Comparison += "valid positions: " + getValidMoves(map).size() + "\n\n";
+						map_For_Comparison += map.toString_Server(getValidMoves(map));
 					}
 
 					//read rest of Message
@@ -208,6 +197,12 @@ public class Client {
 
 				case 8: //End of Phase 1
 					if (printOn) System.out.println("received end of phase 1");
+
+					if(compare_to_Server)
+					{
+						map_For_Comparison += map.toString_Server(getValidMoves(map));
+					}
+
 					serverM.readRestOfNextPhase();
 					firstPhase = false;
 					break;
