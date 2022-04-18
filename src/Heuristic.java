@@ -2,9 +2,9 @@ package src;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 
-public class Heuristik {
+public class Heuristic {
     final boolean printOn;
 
     private Map map; //is automatically updated because of the reference here
@@ -20,9 +20,14 @@ public class Heuristik {
     //relevant information
     private double countOfStonesEvaluation = 0;
     private double countOfMovesEvaluation = 0;
-    private double sumOfMyFields = 0;
+    private double averageFieldValue = 0;
     //heuristic values
     private final int base = 3;
+
+    //booleans to enable or disable certain elements of the heuristic
+    boolean countStones = true;
+    boolean countMoves = false; //TODO: discuss if it makes sense to split into own and enemy
+    boolean useFieldValues = false;
 
 
     /**
@@ -31,7 +36,7 @@ public class Heuristik {
      * @param map the map in any state. Only the static information are relevant
      * @param myColor the number(color) of the player for wich the map is rated - doesn't change for the client
      */
-    public Heuristik(Map map, int myColor, boolean printOn){
+    public Heuristic(Map map, int myColor, boolean printOn){
         this.printOn = printOn;
         this.map = map;
         this.myColorI = myColor;
@@ -50,15 +55,17 @@ public class Heuristik {
      */
     public double evaluate(){
         double result = 0;
+        double stoneCountMultiplier = 1;
+        double moveCountMultiplier = 0.5;
+        double fieldValueMultiplier = 1;
 
         //update relevant infos
         setDynamicInfos();
 
-        if (sumOfMyFields != 0 && map.getStonesOfPlayer(myColorI).size() != 0) result += 0*(sumOfMyFields/ map.getStonesOfPlayer(myColorI).size()); //durchschnittswert meiner felder
-        if (printOn) System.out.println("Sum of my field average: " + result);
+        if (countStones) result += countOfStonesEvaluation * stoneCountMultiplier;
+        if (countMoves) result += countOfMovesEvaluation * moveCountMultiplier;
+        if (useFieldValues) result += averageFieldValue * fieldValueMultiplier;
 
-        result += 0*(countOfMovesEvaluation);
-        result += (countOfStonesEvaluation);
         //value
         return result;
     }
@@ -86,7 +93,7 @@ public class Heuristik {
      */
     public void updateMap(Map mapToUpdateWith){
         this.map = mapToUpdateWith;
-        setDynamicInfos();
+        //setDynamicInfos(); not needed because it's called in evaluate
     }
 
     /**
@@ -212,52 +219,65 @@ public class Heuristik {
      * updates the values that are relevant for the heuristic evaluation for the current state the map is in
      */
     private void setDynamicInfos(){
-        sumOfMyFields = 0;
 
-        //get my stone positions in %
-        int countOfOwnStones;
-        int countOfEnemyStones = 0;
-        //get enemy stone percentage
-        double enemyStonesAverage;
-        double enemyMovesAverage;
-        //get possible moves in %
-        int myPossibleMoves = 0;
-        int possibleMovesOfEnemys = 0;
+        //Count stones
+        if (countStones) {
+            //Variables
+            int countOfOwnStones;
+            int countOfEnemyStones = 0;
+            double enemyStonesAverage;
 
-        //gets count of own stones
-        countOfOwnStones = map.getStonesOfPlayer(myColorI).size();
-        //gets count of enemy stones
-        for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
-            if (playerNr == myColorI) continue;
-            countOfEnemyStones += map.getStonesOfPlayer(playerNr).size();
+            //gets count of own stones
+            countOfOwnStones = map.getStonesOfPlayer(myColorI).size();
+            //gets count of enemy stones
+            for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
+                if (playerNr == myColorI) continue;
+                countOfEnemyStones += map.getStonesOfPlayer(playerNr).size();
+            }
+
+            //get percentages out of it
+            enemyStonesAverage = (double)countOfEnemyStones/((double)map.getAnzPlayers()-1);
+
+            //set stone percentage
+            countOfStonesEvaluation = (countOfOwnStones - enemyStonesAverage);
+            //else countOfStonesEvaluation = 500; //if enemy has no stones you have 100% stones
         }
 
-        //gets possible moves of all players and adds them to the corresponding move counter
-        for (int i = 1; i <= map.getAnzPlayers(); i++){
-            if (myColorI == map.getCurrentlyPlayingI()){
-                myPossibleMoves = Client.getValidMoves(map).size();
+        //count Moves
+        if (countMoves) {
+            //Variables
+            int myPossibleMoves = 0;
+            int possibleMovesOfEnemys = 0;
+            double enemyMovesAverage;
+
+            //gets possible moves of all players and adds them to the corresponding move counter
+            for (int i = 1; i <= map.getAnzPlayers(); i++) {
+                if (myColorI == map.getCurrentlyPlayingI()) {
+                    myPossibleMoves = Client.getValidMoves(map).size();
+                } else {
+                    possibleMovesOfEnemys += Client.getValidMoves(map).size();
+                }
+                map.nextPlayer();
+            } //resets to currently playing
+
+            //get percentages out of it
+            enemyMovesAverage = (double)possibleMovesOfEnemys/((double)map.getAnzPlayers()-1);
+
+            //set possible moves percentage
+            countOfMovesEvaluation = (myPossibleMoves - enemyMovesAverage);
+            //else countOfMovesEvaluation = 500;
+        }
+
+        //use field values
+        if (useFieldValues){
+            averageFieldValue = 0;
+            HashSet<Position> myPositions = map.getStonesOfPlayer(myColorI);
+            if (myPositions.size() != 0) {
+                for (Position pos : myPositions) {
+                    averageFieldValue += matrix[pos.y][pos.x];
+                }
             }
-            else {
-                possibleMovesOfEnemys += Client.getValidMoves(map).size();
-            }
-            map.nextPlayer();
-        } //reset to currently playing
-
-        //get percentages out of the values
-        enemyStonesAverage = (double)countOfEnemyStones/((double)map.getAnzPlayers()-1);
-        enemyMovesAverage = (double)possibleMovesOfEnemys/((double)map.getAnzPlayers()-1);
-
-        //set relevant infos
-
-        //set stone percentage
-        countOfStonesEvaluation = (countOfOwnStones - enemyStonesAverage);
-        //else countOfStonesEvaluation = 500; //if enemy has no stones you have 100% stones
-        //set possible moves percentage
-        countOfMovesEvaluation = (myPossibleMoves - enemyMovesAverage);
-        //else countOfMovesEvaluation = 500;
-
-        if (printOn) System.out.println("countOfOwnStones: " + countOfOwnStones + " countOfEnemyStones average: " + enemyStonesAverage  + " (countOfEnemyStones: " + countOfEnemyStones + ")");
-        if (printOn) System.out.println("myPossibleMoves: " + myPossibleMoves +  " possibleMovesOfEnemys average: " +  enemyMovesAverage  + " (possibleMovesOfEnemys: " + possibleMovesOfEnemys + ")");
+        }
     }
 
     /**
@@ -311,7 +331,8 @@ public class Heuristik {
 
         }
         //heuristik
-        return Math.pow(base,backedUpOutgoings); //backed up outgoings can have values from 0 to 4
+        if (backedUpOutgoings == 0) return 0;
+        else return Math.pow(base,backedUpOutgoings); //backed up outgoings can have values from 0 to 4
     }
 
     /**

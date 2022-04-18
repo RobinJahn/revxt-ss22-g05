@@ -3,7 +3,6 @@ package src;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.rmi.ServerError;
 import java.util.*;
 
 class Moves {
@@ -33,8 +32,8 @@ public class Client {
 	//global variables
 	Map map;
 	ServerMessenger serverM;
-	Heuristik heuristik;
-	Heuristik heuristikForSimulation;
+	Heuristic heuristic;
+	Heuristic heuristicForSimulation;
 	int myPlayerNr;
 	int depth;
 	int time;
@@ -106,8 +105,8 @@ public class Client {
 		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
 
 		//set variables after map was imported
-		heuristik = new Heuristik(map, myPlayerNr,printOn);
-		heuristikForSimulation = new Heuristik(map, myPlayerNr,false);
+		heuristic = new Heuristic(map, myPlayerNr,printOn);
+		heuristicForSimulation = new Heuristic(map, myPlayerNr,false);
 
 		//start playing
 		System.out.println();
@@ -182,7 +181,7 @@ public class Client {
 					if (printOn) {
 						System.out.println(map.toString(null,false,true));
 						//calculate value of map and print it
-						double valueOfMap = (double)Math.round(heuristik.evaluate()*100)/100;
+						double valueOfMap = (double)Math.round(heuristic.evaluate()*100)/100;
 						System.out.println("Value of Map is " + valueOfMap);
 					}
 					break;
@@ -261,7 +260,7 @@ public class Client {
 		if (printOn) System.out.println(map.toString(validMoves, false, true));
 
 		//calculate value of map and print it
-		valueOfMap = (double)Math.round(heuristik.evaluate()*100)/100;
+		valueOfMap = (double)Math.round(heuristic.evaluate()*100)/100;
 		if (printOn) System.out.println("Value of Map is " + valueOfMap);
 
 		if (validMoves.isEmpty()) {
@@ -440,7 +439,7 @@ public class Client {
 		//print valid moves
 		if (printOn) System.out.println(map.toString(validMoves, false, true));
 		//calculate value of map and print it
-		double valueOfMap = (double)Math.round(heuristik.evaluate()*100)/100;
+		double valueOfMap = (double)Math.round(heuristic.evaluate()*100)/100;
 		if (printOn) System.out.println("Value of Map is " + valueOfMap);
 
         //get a move
@@ -593,8 +592,8 @@ public class Client {
 				updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap);
 			}
 
-			heuristikForSimulation.updateMap(nextMap);
-			evaluation = heuristikForSimulation.evaluate();
+			heuristicForSimulation.updateMap(nextMap);
+			evaluation = heuristicForSimulation.evaluate();
 
 			valueOfMap.add(evaluation);
 		}
@@ -617,6 +616,11 @@ public class Client {
             return null;
         }
 
+		if (printOn) {
+			System.out.println("Calculating values for " + everyPossibleMove.size() + " Moves");
+			System.out.print("Currently at: ");
+		}
+
 		for (int[] positionAndInfo : everyPossibleMove){
 			//clones Map
 			nextMap = new Map(map);
@@ -636,11 +640,14 @@ public class Client {
 				evaluation = DFSVisit(nextMap,depth-1, phaseOne, false);
 			}
 			else {
-				heuristikForSimulation.updateMap(nextMap);
-				evaluation = heuristikForSimulation.evaluate();
+				heuristicForSimulation.updateMap(nextMap);
+				evaluation = heuristicForSimulation.evaluate();
 			}
 			valueOfMap.add(evaluation);
+
+			if (printOn) System.out.print(everyPossibleMove.indexOf(positionAndInfo)+1 + ", ");
 		}
+		if (printOn) System.out.println();
 
 		//get the highest value for a Map evaluation and the index of it
 		Double highest = Collections.max(valueOfMap);
@@ -648,7 +655,6 @@ public class Client {
 
 		if (printOn) {
 			int[] posAndInfo;
-			System.out.println("Found " + valueOfMap.size() + " valid Moves");
 			System.out.print("DFS-N("+depth+"): ");
 			for (int i = 0; i < valueOfMap.size(); i++){
 				posAndInfo = everyPossibleMove.get(i);
@@ -656,7 +662,7 @@ public class Client {
 				else System.out.printf("[(%2d,%2d)=%3d], ",posAndInfo[0],posAndInfo[1],Math.round(valueOfMap.get(i)*100)/100);
 			}
 			System.out.println();
-			System.out.println("returning: " + highest);
+			System.out.println("returning highest value: " + highest);
 		}
 
 		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
@@ -677,25 +683,32 @@ public class Client {
 			if (phaseOne) {
                 everyPossibleMove = getValidMoves(map);
 			}
-			else {
+			else { //bomb phase
 				everyPossibleMove = getPositionsToSetABomb(map);
 			}
 
+			//if there are possible moves
 			if (!everyPossibleMove.isEmpty()) {
 				break;
 			}
 
+			//if there are no possible moves
+			//chek if the next player can make a move
 			map.nextPlayer();
 			skippedPlayers++;
-			if (skippedPlayers >= map.getAnzPlayers()-1){ //shouldn't be greater
+			//if no player can make a move
+			if (skippedPlayers >= map.getAnzPlayers()-1){ //shouldn't be greater - just for safety
+				//if no player can make a move in phase 1 switch to phase 2
 				if (phaseOne) {
 					phaseOne = false; //end of phase 1
 					skippedPlayers = 0;
-					//continues while but in phase 2
+					//continues while but in phase 2 -> checks if players can place bombs
 				}
+				//if no player can make a move in phase 2 the game ends
 				else {
-					heuristikForSimulation.updateMap(map);
-					return heuristikForSimulation.placePlayers(); //end of game
+					//update map and get evaluation for placement of own player
+					heuristicForSimulation.updateMap(map);
+					return heuristicForSimulation.placePlayers(); //end of game //TODO: check if it always places own player and doesn't think we are someone else
 				}
 			}
 		}
@@ -718,8 +731,8 @@ public class Client {
 				evaluation = DFSVisit(nextMap,depth-1, phaseOne, printOn);
 			}
 			else {
-				heuristikForSimulation.updateMap(nextMap);
-				evaluation = heuristikForSimulation.evaluate();
+				heuristicForSimulation.updateMap(nextMap); //computing-intensive
+				evaluation = heuristicForSimulation.evaluate();  //computing-intensive
 			}
 			valueOfMap.add(evaluation);
 		}
@@ -974,12 +987,12 @@ public class Client {
     //  by own color
     private static ArrayList<int[]> getFieldsByOwnColor(Map map){
         HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
-        ArrayList<Position> movesToCheck = new ArrayList<>(map.getStonesOfPlayer(map.getCurrentlyPlayingI())); //adds all the stone positions of the player to the moves to check
         ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
 		int r;
         Integer newR;
         Position currPos;
         char currChar;
+
 
         //add x fields
         if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
@@ -988,8 +1001,10 @@ public class Client {
             }
         }
 
-        //check if move is possible
-        for (Position pos : movesToCheck){
+		//TODO: Idea: mark spots where a position was added on the map. Then reset all the information with the move you have added
+
+        //goes over every position of the current player and checks in all directions if a move is possible
+        for (Position pos : map.getStonesOfPlayer(map.getCurrentlyPlayingI())){
             for (r = 0; r <= 7; r++){
                 newR = r;
                 currPos = pos.clone();
@@ -1030,18 +1045,18 @@ public class Client {
                             everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                             break;
                         }
-                        if (currChar == 'c') {
+                        else if (currChar == 'c') {
                             for (int playerNr = 1; playerNr < map.getAnzPlayers(); playerNr++){
                                 everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
                             }
                             break;
                         }
-                        if (currChar == 'b'){
+                        else if (currChar == 'b'){
                             everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 20));
                             everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 21));
                             break;
                         }
-                        if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
+                        else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
                             everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                         }
                     }
