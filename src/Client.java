@@ -49,19 +49,34 @@ public class Client {
 
 		//get call arguments
 		for (int i = 0; i < args.length; i++){
-			if (i < args.length-1) {
-				if (Objects.equals(args[i], "-i")) {
-					i++;
-					ip = args[i];
-				}
-				if (Objects.equals(args[i], "-p")) {
-					i++;
-					port = Integer.parseInt(args[i]);
-				}
+			switch (args[i])
+			{
+				case "--ip":
+				case "-i": if(i<args.length -1) i++; ip = args[i]; break;
+
+				case "--port":
+				case "-p": if(i<args.length -1) i++; port = Integer.parseInt(args[i]); break;
+
+				case "--output":
+				case "-o": printOn = true; break;
+
+				case "--colour":
+				case "-c": intellijPrint = true; break;
+
+				case "--server":
+				case "-s": compare_to_Server = true; break;
+
+				default: System.out.print(args[i] + " is not an option\n");
+				case "--help":
+				case "-h": System.out.println("java -jar client05.jar accepts the following opptional options:\n" +
+						"-i or --ip <IP Address> \t Applies this IP\n" +
+						"-p or --port <Port Number> \t Applies this Port Number\n" +
+						"-o or --output \t\t\t\t Enables Console Output\n" +
+						"-c or --colour \t\t\t\t Enables Coloured Output for the IntelliJ-IDE\n" +
+						"-s or --server \t\t\t\t Enables the Output for Map Comparison with the Server\n" +
+						"-h or --help \t\t\t\t show this blob\n");
+					return;
 			}
-			if (Objects.equals(args[i], "-h")) printOn = true;
-			if (Objects.equals(args[i], "-c")) intellijPrint = true;
-			if (Objects.equals(args[i], "-s")) compare_to_Server = true;
 		}
 
 		//runn client
