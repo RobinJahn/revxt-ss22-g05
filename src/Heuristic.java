@@ -25,9 +25,14 @@ public class Heuristic {
     private final int base = 3;
 
     //booleans to enable or disable certain elements of the heuristic
-    boolean countStones = true;
-    boolean countMoves = false; //TODO: discuss if it makes sense to split into own and enemy
-    boolean useFieldValues = false;
+    boolean countStones;
+    boolean countMoves; //TODO: discuss if it makes sense to split into own and enemy
+    boolean useFieldValues;
+
+    //multipliers
+    double stoneCountMultiplier;
+    double moveCountMultiplier;
+    double fieldValueMultiplier;
 
 
     /**
@@ -35,13 +40,46 @@ public class Heuristic {
      * Calculates static infos about the map
      * @param map the map in any state. Only the static information are relevant
      * @param myColor the number(color) of the player for wich the map is rated - doesn't change for the client
+     * @param printOn boolean that defines if the heuristic should print relevant infos
+     * @param multiplier list of double values to define the multipliers for the different heuristically evaluations
      */
-    public Heuristic(Map map, int myColor, boolean printOn){
+    public Heuristic(Map map, int myColor, boolean printOn, double[] multiplier){
         this.printOn = printOn;
         this.map = map;
         this.myColorI = myColor;
         this.myColorC = (char)('0'+myColor);
         matrix = new double[map.getHeight()][map.getWidth()];
+
+        //set multiplier
+        //default multiplier
+        stoneCountMultiplier = 1;
+        moveCountMultiplier = 0.5;
+        fieldValueMultiplier = 1;
+        //corresponding default enables
+        countMoves = true;
+        countStones = true;
+        useFieldValues = true;
+
+        //set given parameters
+        if (multiplier != null) {
+            for (int i = 0; i < multiplier.length; i++) {
+                switch (i) {
+                    case 0:
+                        stoneCountMultiplier = multiplier[i];
+                        if (stoneCountMultiplier == 0) countStones = false;
+                        break;
+                    case 1:
+                        moveCountMultiplier = multiplier[i];
+                        if (moveCountMultiplier == 0) countMoves = false;
+                        break;
+                    case 2:
+                        fieldValueMultiplier = multiplier[i];
+                        if (fieldValueMultiplier == 0) useFieldValues = false;
+                }
+            }
+        }
+
+
         setStaticInfos();
         if (printOn) printMatrix();
         addWaveMatrix();
@@ -55,9 +93,6 @@ public class Heuristic {
      */
     public double evaluate(){
         double result = 0;
-        double stoneCountMultiplier = 1;
-        double moveCountMultiplier = 0.5;
-        double fieldValueMultiplier = 1;
 
         //update relevant infos
         setDynamicInfos();
@@ -65,6 +100,12 @@ public class Heuristic {
         if (countStones) result += countOfStonesEvaluation * stoneCountMultiplier;
         if (countMoves) result += countOfMovesEvaluation * moveCountMultiplier;
         if (useFieldValues) result += averageFieldValue * fieldValueMultiplier;
+
+        if (printOn) {
+            System.out.println("Value for stone count = " + countOfStonesEvaluation * stoneCountMultiplier);
+            System.out.println("Value for move count = " + countOfMovesEvaluation * moveCountMultiplier);
+            System.out.println("Value for field Values = " + averageFieldValue * fieldValueMultiplier);
+        }
 
         //value
         return result;

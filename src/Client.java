@@ -39,6 +39,7 @@ public class Client {
 	int time;
 	int moveCounter;
 
+
 	public static void main(String[] args) {
 		boolean printOn = false;
 		boolean intellijPrint = false;
@@ -46,6 +47,9 @@ public class Client {
 		//variables for the server
 		String ip = "127.0.0.1";
 		int port = 7777;
+		//variables for the heuristic
+		final int countOfMultipliers = 3;
+		double[] multipliers = null;
 
 		//get call arguments
 		for (int i = 0; i < args.length; i++){
@@ -66,21 +70,40 @@ public class Client {
 				case "--server":
 				case "-s": compare_to_Server = true; break;
 
+				//needs to be the last one before help
+				case "--multiplier":
+				case "-m":
+					multipliers = new double[countOfMultipliers];
+					int offset = ++i;
+					//read in n multipliers
+					try {
+						while (i < args.length && i-offset <= countOfMultipliers-1) {
+							multipliers[i-offset] = Double.parseDouble(args[i]);
+							i++;
+						}
+						i--; //reset the last i++
+						break;
+					}
+					catch (NumberFormatException nfe){
+						nfe.printStackTrace();
+					}
+
 				default: System.out.print(args[i] + " is not an option\n");
 				case "--help":
-				case "-h": System.out.println("java -jar client05.jar accepts the following opptional options:\n" +
-						"-i or --ip <IP Address> \t Applies this IP\n" +
-						"-p or --port <Port Number> \t Applies this Port Number\n" +
-						"-o or --output \t\t\t\t Enables Console Output\n" +
-						"-c or --colour \t\t\t\t Enables Coloured Output for the IntelliJ-IDE\n" +
-						"-s or --server \t\t\t\t Enables the Output for Map Comparison with the Server\n" +
-						"-h or --help \t\t\t\t show this blob\n");
+				case "-h": System.out.println("java -jar client05.jar accepts the following optional options:\n" +
+						"-i or --ip <IP Address>\t\t\t Applies this IP\n" +
+						"-p or --port <Port Number>\t\t Applies this Port Number\n" +
+						"-o or --output\t\t\t\t\t Enables Console Output\n" +
+						"-c or --colour\t\t\t\t\t Enables Coloured Output for the IntelliJ-IDE\n" +
+						"-s or --server\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
+						"-h or --help\t\t\t\t\t show this blob\n" +
+						"-m or --multiplier <m1, m2, m3>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value)");
 					return;
 			}
 		}
 
-		//runn client
-		new Client(ip,port,printOn,compare_to_Server);
+		//run client
+		new Client(ip,port,printOn,compare_to_Server, multipliers);
 	}
 
 	//functions that let the client play
@@ -91,7 +114,7 @@ public class Client {
 	 * @param ip ip of the server
 	 * @param port port of the server
 	 */
-	public Client(String ip, int port, boolean printOn,boolean compare_to_Server){
+	public Client(String ip, int port, boolean printOn,boolean compare_to_Server, double[] multipliers){
 		this.printOn = printOn;
 		this.compare_to_Server = compare_to_Server;
 		//try to connect with server
@@ -120,8 +143,8 @@ public class Client {
 		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
 
 		//set variables after map was imported
-		heuristic = new Heuristic(map, myPlayerNr,printOn);
-		heuristicForSimulation = new Heuristic(map, myPlayerNr,false);
+		heuristic = new Heuristic(map, myPlayerNr,printOn,multipliers);
+		heuristicForSimulation = new Heuristic(map, myPlayerNr,false,multipliers);
 
 		//start playing
 		System.out.println();

@@ -2,6 +2,7 @@ package src;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 
 public class ServerMessenger {
@@ -117,10 +118,16 @@ public class ServerMessenger {
             //create a map with it
             map = new Map(readByteArray);
 
-        } catch (IOException e) {
+        }
+        catch (SocketException e){
+            System.err.println("Server has reset the connection");
+            return null;
+        }
+        catch (IOException e) {
             e.printStackTrace();
             return null;
         }
+
         return map;
     }
 
