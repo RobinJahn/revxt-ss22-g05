@@ -53,8 +53,8 @@ public class Heuristic {
         //set multiplier
         //default multiplier
         stoneCountMultiplier = 1;
-        moveCountMultiplier = 0.5;
-        fieldValueMultiplier = 1;
+        moveCountMultiplier = 6;
+        fieldValueMultiplier = 3;
         //corresponding default enables
         countMoves = true;
         countStones = true;
@@ -329,11 +329,14 @@ public class Heuristic {
      */
     private double checkForEdges(Position pos){
         int backedUpOutgoings = 0; //count's the axes across wich the stone could be captured
+        int blockedAxis = 0; //count's the axes across wich the stone could be captured
         int oppositeDirection;
         boolean firstDirectionIsWall;
         boolean secondDirectionIsWall;
         char charAtPos;
         Position savedPos = pos;
+        boolean isCapturable = true;
+        double result;
 
         for (int r = 0; r <= 3; r++) { //checks the 4 axes
             firstDirectionIsWall = false;
@@ -369,11 +372,22 @@ public class Heuristic {
 
             //increase axis count
             if (firstDirectionIsWall ^ secondDirectionIsWall) backedUpOutgoings++; //xor - if one of them is a wall and the other isn't
+            if (firstDirectionIsWall && secondDirectionIsWall) blockedAxis++;
 
         }
         //heuristik
-        if (backedUpOutgoings == 0) return 0;
-        else return Math.pow(base,backedUpOutgoings); //backed up outgoings can have values from 0 to 4
+        if (blockedAxis + backedUpOutgoings >= 4) { // > not neccessary
+            isCapturable = false;
+        }
+
+        // backed up outgoings
+        if (backedUpOutgoings == 0) result = 0;
+        else result = Math.pow(base,backedUpOutgoings); //backed up outgoings can have values from 0 to 4
+
+        // Capturability
+        if (!isCapturable) result *= base;
+
+        return result;
     }
 
     /**

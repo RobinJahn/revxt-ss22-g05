@@ -25,7 +25,7 @@ class Moves {
 
 public class Client {
 	//final variables
-	final boolean calculateMove = true;
+	final boolean calculateMove = false;
 	final boolean printOn;
 	final boolean compare_to_Server;
 
@@ -683,7 +683,7 @@ public class Client {
 
 			//Call DFS to start building part-tree of children
 			if (depth > 1) {
-				evaluation = DFSVisit(nextMap,depth-1, phaseOne, false);
+				evaluation = DFSVisit(nextMap,depth-1, phaseOne, true);
 			}
 			else {
 				heuristicForSimulation.updateMap(nextMap);
@@ -722,6 +722,7 @@ public class Client {
 		int skippedPlayers = 0;
 		double evaluation;
 		Double highestOrLowest;
+
 
 		//checks if players can make a move
 		while (true) {
