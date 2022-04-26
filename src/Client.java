@@ -1012,7 +1012,7 @@ public class Client {
 				currChar = map.getCharAt(currPos);
 				//check for blank
 				if (currChar == '0' || currChar == 'i' || currChar == 'c' ||currChar == 'b') break;
-				if(currPos.equals(StartingPos)) break; //TODO unnötig
+				if(currPos.equals(StartingPos)) break; //TODO unnoetig
 				//check for players
 				//if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
 				if (wasFirstStep) {
