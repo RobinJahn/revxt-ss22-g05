@@ -74,7 +74,7 @@ do
 		wait $pid1
 		if $extendedPrint; then echo "skript: client ended"; fi
 	
-		#wait for clients
+		#wait for ai's
 		for pid2 in "${pidAIs[@]}"
 		do
 			wait $pid

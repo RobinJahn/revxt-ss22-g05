@@ -474,6 +474,11 @@ public class Client {
 
 		validMoves = getPositionsToSetABomb(map);
 
+		if (validMoves.isEmpty()) {
+			System.err.println("Something's wrong - Positions to set a Bomb are empty but server says they're not");
+			return;
+		}
+
 		//print valid moves
 		if (printOn) System.out.println(map.toString(validMoves, false, true));
 		//calculate value of map and print it
@@ -525,7 +530,10 @@ public class Client {
 		char fieldValue;
 
 		//if player has no bomb's return empty array
-		if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) return validMoves;
+		if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) {
+			System.out.println("Something's wrong - Player has no Bombs but server wants player to place one");
+			return validMoves;
+		}
 
 		//gets the possible positions to set a bomb at
 		for (int y = 0; y < map.getHeight(); y++) {

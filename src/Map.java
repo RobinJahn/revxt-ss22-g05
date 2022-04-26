@@ -496,7 +496,7 @@ public class Map{
     }
 
     public int getBombsForPlayer(int playerId) {
-        return bombsPerPlayer[playerId];
+        return bombsPerPlayer[playerId-1];
     }
 
     public int getExplosionRadius() {
