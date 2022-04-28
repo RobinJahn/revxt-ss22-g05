@@ -25,7 +25,7 @@ class Moves {
 
 public class Client {
 	//final variables
-	final boolean calculateMove = false;
+	final boolean calculateMove = true;
 	final boolean printOn;
 	final boolean compare_to_Server;
 
@@ -48,7 +48,6 @@ public class Client {
 		String ip = "127.0.0.1";
 		int port = 7777;
 		//variables for the heuristic
-		final int countOfMultipliers = 3;
 		double[] multipliers = null;
 
 		//get call arguments
@@ -73,11 +72,11 @@ public class Client {
 				//needs to be the last one before help
 				case "--multiplier":
 				case "-m":
-					multipliers = new double[countOfMultipliers];
+					multipliers = new double[Heuristic.countOfMultipliers];
 					int offset = ++i;
-					//read in n multipliers
+					//read in all multipliers
 					try {
-						while (i < args.length && i-offset <= countOfMultipliers-1) {
+						while (i < args.length && i-offset <= Heuristic.countOfMultipliers-1) {
 							multipliers[i-offset] = Double.parseDouble(args[i]);
 							i++;
 						}
@@ -97,7 +96,7 @@ public class Client {
 						"-c or --colour\t\t\t\t\t Enables Coloured Output for the IntelliJ-IDE\n" +
 						"-s or --server\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
 						"-h or --help\t\t\t\t\t show this blob\n" +
-						"-m or --multiplier <m1, m2, m3>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value)");
+						"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)");
 					return;
 			}
 		}
@@ -1198,7 +1197,7 @@ public class Client {
 	 * @param mapToDoTheStepOn mapToDoTheStepOn where you are
 	 * @return returns null if move isn't possible and the direction after the move if it is possible. If a transition changes the direction this is where to get the new one
 	 */
-	private static Integer doAStep(Position pos, int r, Map mapToDoTheStepOn){
+	public static Integer doAStep(Position pos, int r, Map mapToDoTheStepOn){
 		char transitionLookup;
 		char charAtPos;
 		Character transitionEnd;

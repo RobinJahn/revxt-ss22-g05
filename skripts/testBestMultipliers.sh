@@ -11,6 +11,7 @@ bestResult=0 #worst placement
 bestM1=1
 bestM2=1
 bestM3=1
+bestM4=1
 
 extendedPrint=false
 
@@ -20,11 +21,13 @@ do
 	m1=$(($RANDOM % 10))
 	m2=$(($RANDOM % 10))
 	m3=$(($RANDOM % 10))
+	m4=$(($RANDOM % 10))
 
 	echo "skript: Set m's to:"
 	echo "skript: m1: $m1"
 	echo "skript: m2: $m2"
 	echo "skript: m3: $m3"
+	echo "skript: m4: $m4"
 
 	#get all Maps
 	maps=($(ls | grep "Map."))
@@ -39,7 +42,7 @@ do
 
 		# start own client
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
-		sleep 3 && java -jar client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 &
+		sleep 3 && java -jar client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 &
 		pid1=$!
 
 
@@ -102,13 +105,14 @@ do
 	echo "skript: average result of games: $result"
 
 	#check if it's a new best
-	if [ $( echo "$result > $bestResult" | bc -l ) ]
+	if [ "$( echo "$result > $bestResult" | bc -l )" ]
 	then 
 		#if it is set the best values to the current ones
 		bestResult=$result
 		bestM1=$m1
 		bestM2=$m2
 		bestM3=$m3
+		bestM4=$m4
 	fi
 
 	echo "skript: Currently best results:"
@@ -116,6 +120,7 @@ do
 	echo "skript: m1: $bestM1"
 	echo "skript: m2: $bestM2"
 	echo "skript: m3: $bestM3"
+	echo "skript: m4: $bestM4"
 	echo ""
 
 	i=$((i+1))
