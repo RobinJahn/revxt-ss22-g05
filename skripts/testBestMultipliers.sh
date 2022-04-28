@@ -105,7 +105,9 @@ do
 	echo "skript: average result of games: $result"
 
 	#check if it's a new best
-	if [ "$( echo "$result > $bestResult" | bc -l )" ]
+	res=$( echo "$result > $bestResult" | bc -l )
+  echo "skript: comparison: $result > $bestResult = $res"
+  if [ $res ]
 	then 
 		#if it is set the best values to the current ones
 		bestResult=$result

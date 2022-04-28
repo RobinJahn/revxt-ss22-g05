@@ -338,7 +338,7 @@ public class Heuristic {
         return result;
     }
 
-    //  returning inforamtions
+    //  returning information
     private boolean[] getOutgoingDirections(Position savedPos){
         boolean[] outgoingDirections = new boolean[]{true, true, true, true, true, true, true, true};
         char charAtPos;
@@ -385,6 +385,11 @@ public class Heuristic {
                 newR = Client.doAStep(pos, r, map);
                 if (newR == null) break;
                 reachableFields[r]++;
+                //stop loops
+                if (reachableFields[r] > map.getHeight()*map.getWidth()) {
+                    reachableFields[r] = 10; //TODO: fix later
+                    break;
+                }
             }
         }
 
