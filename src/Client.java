@@ -147,7 +147,7 @@ public class Client {
 		heuristicForSimulation = new Heuristic(map, myPlayerNr,false,multipliers);
 
 		//start playing
-		System.out.println();
+		if (printOn) System.out.println();
 		play();
 	}
 
@@ -1197,7 +1197,7 @@ public class Client {
 	 * @param mapToDoTheStepOn mapToDoTheStepOn where you are
 	 * @return returns null if move isn't possible and the direction after the move if it is possible. If a transition changes the direction this is where to get the new one
 	 */
-	private static Integer doAStep(Position pos, int r, Map mapToDoTheStepOn){
+	public static Integer doAStep(Position pos, int r, Map mapToDoTheStepOn){
 		char transitionLookup;
 		char charAtPos;
 		Character transitionEnd;

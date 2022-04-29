@@ -18,3 +18,5 @@
 /projektbericht/*.bat
 /exportedmap.map
 /bin/*.jar
+/serverAndAi
+/skripts/serverOut.txt

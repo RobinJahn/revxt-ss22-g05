@@ -45,6 +45,6 @@ END {
 
 	#get return value
 	result = 1 - ((placement - 1) / (anzPlayer - 1))
-	printf("%.2f",result)
+	printf("%f",result)
 }
 

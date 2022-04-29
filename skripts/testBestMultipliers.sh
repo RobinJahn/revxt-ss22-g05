@@ -24,13 +24,19 @@ do
 	m4=$(($RANDOM % 10))
 
 	echo "skript: Set m's to:"
-	echo "skript: m1: $m1"
-	echo "skript: m2: $m2"
-	echo "skript: m3: $m3"
-	echo "skript: m4: $m4"
+	echo "m1: $m1"
+       	echo "m2: $m2"
+      	echo "m3: $m3" 
+      	echo "m4: $m4"
 
-	#get all Maps
-	maps=($(ls | grep "Map."))
+	#get all Maps	
+	cd ..
+	cd Maps
+	maps=($(ls | grep "Map[5,4]"))
+
+	#change directory to the one where the server and ai is
+	cd ..
+	cd serverAndAi
 	
 	#start games on different maps
 	result=0
@@ -42,33 +48,35 @@ do
 
 		# start own client
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
-		sleep 3 && java -jar client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 &
+		sleep 3 && 
+			if $extendedPrint; then echo "skript: startet client"; fi && 
+			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 &
 		pid1=$!
 
 
 		#get anzPlayer 
-		anzPlayer=$(awk '(NR==1){printf("%d",$1)}' "$mapName")
+		anzPlayer=$(awk '(NR==1){printf("%d",$1)}' "../Maps/$mapName")
 		if $extendedPrint; then echo "script: anzahl der Player: $anzPlayer"; fi
 	
 		#start trivial ai's
-		if $extendedPrint; then echo "skript: start trivial AIs"; fi
+		if $extendedPrint; then echo "skript: start trivial AIs in 3 sec"; fi
 		ii=1
 		pidAIs=()
 		while [ $ii -lt $anzPlayer ]
 		do
 			if $extendedPrint; then echo "skript: start ai $ii"; fi
-			sleep 3 && ./ai_trivial -q &
+			sleep 3 && 
+				if $extendedPrint; then echo "skript: startet ai"; fi && 
+				./ai_trivial -q &
 			pidAIs+=(ii)
 			ii=$((ii+1))
 		done
-	
-		
+
 		#start server
 		if $extendedPrint; then echo "script: server started"; fi
-		#./server_nogl -C -m $mapName | tee $outFile #with output of server
-		./server_nogl -C -m $mapName > $outFile #without
+		#./server_nogl -C -m ../Maps/$mapName | tee $outFile #with output of server
+		./server_nogl -C -m ../Maps/$mapName > $outFile #without
 		
-	
 	
 		#when game is over
 		if $extendedPrint; then echo "skript: game is over"; fi
@@ -85,7 +93,7 @@ do
 		if $extendedPrint; then echo "skript: all AIs ended"; fi
 		
 		#get result of game
-		resultOfGame=$(awk -f getOwnResults.awk $outFile)
+		resultOfGame=$(awk -f ../skripts/getOwnResults.awk $outFile)
 		resultOfGame=$( echo "$resultOfGame" | tr ',' '.')
 		echo "skript: result: $resultOfGame"
 		
@@ -103,12 +111,18 @@ do
 	
 	result=$( echo "$result / $anzMaps" | bc -l )
 	echo "skript: average result of games: $result"
+	isOne=$( echo "$result = 1" | bc -l )
+	if [ ${isOne} -eq 1 ]
+	then
+		exit
+	fi
 
 	#check if it's a new best
-	res=$( echo "$result > $bestResult" | bc -l )
-  echo "skript: comparison: $result > $bestResult = $res"
-  if [ $res ]
-	then 
+	res=$( echo "$result > $bestResult" | bc -l ) #maybe line splitting of bc is the problem
+	echo "skript: comparison: $result > $bestResult = $res"
+	if [[ ${res} -eq 1 ]]
+	then
+	  echo "skript: set best values to current values"
 		#if it is set the best values to the current ones
 		bestResult=$result
 		bestM1=$m1
@@ -119,10 +133,10 @@ do
 
 	echo "skript: Currently best results:"
 	echo "skript: result: $bestResult"
-	echo "skript: m1: $bestM1"
-	echo "skript: m2: $bestM2"
-	echo "skript: m3: $bestM3"
-	echo "skript: m4: $bestM4"
+	echo "skript: best m1: $bestM1"
+	echo "skript: best m2: $bestM2"
+	echo "skript: best m3: $bestM3"
+	echo "skript: best m4: $bestM4"
 	echo ""
 
 	i=$((i+1))

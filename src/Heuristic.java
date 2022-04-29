@@ -381,13 +381,19 @@ public class Heuristic {
 
         for (int r = 0; r <= 7; r++){
             pos = savedPos.clone();
+            newR = r;
             while (true) {
-                newR = Client.doAStep(pos, r, map);
-                if (newR == null) break;
+                newR = Client.doAStep(pos, newR, map);
+
+                if (newR == null || ( pos.equals(savedPos) && newR == r )){
+                    break;
+                }
                 reachableFields[r]++;
-                //stop loops
+
+                //safety to not run infinitely
                 if (reachableFields[r] > map.getHeight()*map.getWidth()) {
-                    reachableFields[r] = 10; //TODO: fix later
+                    System.err.println("This shouldn't happen - checkReachableFields() ran into an infinite loop");
+                    reachableFields[r] = -1;
                     break;
                 }
             }
