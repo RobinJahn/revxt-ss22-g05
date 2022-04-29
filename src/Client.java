@@ -28,6 +28,7 @@ public class Client {
 	final boolean calculateMove = true;
 	final boolean printOn;
 	final boolean compare_to_Server;
+	final boolean useAB;
 
 	//global variables
 	Map map;
@@ -50,6 +51,7 @@ public class Client {
 		//variables for the heuristic
 		final int countOfMultipliers = 3;
 		double[] multipliers = null;
+		boolean useAB = false;
 
 		//get call arguments
 		for (int i = 0; i < args.length; i++){
@@ -88,6 +90,10 @@ public class Client {
 						nfe.printStackTrace();
 					}
 
+				case "--alpha-beta":
+				case "-ab": useAB = true; break;
+
+
 				default: System.out.print(args[i] + " is not an option\n");
 				case "--help":
 				case "-h": System.out.println("java -jar client05.jar accepts the following optional options:\n" +
@@ -97,13 +103,14 @@ public class Client {
 						"-c or --colour\t\t\t\t\t Enables Coloured Output for the IntelliJ-IDE\n" +
 						"-s or --server\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
 						"-h or --help\t\t\t\t\t show this blob\n" +
-						"-m or --multiplier <m1, m2, m3>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value)");
+						"-m or --multiplier <m1, m2, m3>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value)\n" +
+						"-ab or --alpha-beta Enables Alpha-BetaPruning");
 					return;
 			}
 		}
 
 		//run client
-		new Client(ip,port,printOn,compare_to_Server, multipliers);
+		new Client(ip,port,printOn,compare_to_Server, multipliers, useAB);
 	}
 
 	//functions that let the client play
@@ -114,9 +121,10 @@ public class Client {
 	 * @param ip ip of the server
 	 * @param port port of the server
 	 */
-	public Client(String ip, int port, boolean printOn,boolean compare_to_Server, double[] multipliers){
+	public Client(String ip, int port, boolean printOn,boolean compare_to_Server, double[] multipliers, boolean useAB){
 		this.printOn = printOn;
 		this.compare_to_Server = compare_to_Server;
+		this.useAB = useAB;
 		//try to connect with server
 		try {
 			serverM = new ServerMessenger(ip,port);
@@ -654,10 +662,14 @@ public class Client {
 	private int[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth){
 		ArrayList<Double> valueOfMap = new ArrayList<>();
 		Map nextMap;
-		int indexOfHighest;
+		int indexOfHighest = 0;
 		double evaluation;
+		double alpha = Double.NEGATIVE_INFINITY;
+		double beta = Double.POSITIVE_INFINITY;
+		boolean isMax = true;
+		double highest = Double.NEGATIVE_INFINITY;
 
-        if (everyPossibleMove.isEmpty()){
+		if (everyPossibleMove.isEmpty()){
             System.err.println("Something is wrong - There is no move to check");
             return null;
         }
@@ -667,70 +679,124 @@ public class Client {
 			System.out.print("Currently at: ");
 		}
 
-		for (int[] positionAndInfo : everyPossibleMove){
-			//clones Map
-			nextMap = new Map(map);
-			nextMap.setPlayer(myPlayerNr);
+		if (useAB) {
+			for (int[] positionAndInfo : everyPossibleMove){
+				//clones Map
+				nextMap = new Map(map);
+				nextMap.setPlayer(myPlayerNr);
 
-			//if it's the first phase
-			if (phaseOne) {
-				updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], myPlayerNr, nextMap, false);
-			}
-			//if it's the bomb phase
-			else {
-				updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap); //also updates currently playing player
-			}
+				//if it's the first phase
+				if (phaseOne) {
+					updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], myPlayerNr, nextMap, false);
+				}
+				//if it's the bomb phase
+				else {
+					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap); //also updates currently playing player
+				}
 
-			//Call DFS to start building part-tree of children
-			if (depth > 1) {
-				evaluation = DFSVisit(nextMap,depth-1, phaseOne, false);
-			}
-			else {
-				heuristicForSimulation.updateMap(nextMap);
-				evaluation = heuristicForSimulation.evaluate();
-			}
-			valueOfMap.add(evaluation);
+				//Call DFS to start building part-tree of children
+				if (depth > 1) {
+					evaluation = DFSVisit(nextMap,depth-1, phaseOne, true, alpha, beta);
+				}
+				else {
+					heuristicForSimulation.updateMap(nextMap);
+					evaluation = heuristicForSimulation.evaluate();
+				}
 
-			if (printOn) System.out.print(everyPossibleMove.indexOf(positionAndInfo)+1 + ", ");
+				if (evaluation > highest){
+					highest = evaluation;
+					indexOfHighest = everyPossibleMove.indexOf(positionAndInfo);
+				}
+				if (highest > alpha)
+					alpha = highest;
+				if (highest >= beta) //Is this even needed for top level?
+					return everyPossibleMove.get(indexOfHighest);
+
+				if (printOn) System.out.print(everyPossibleMove.indexOf(positionAndInfo)+1 + ", DFS-V("+depth+"): ");
+				if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %.2f]\n",positionAndInfo[0],positionAndInfo[1],positionAndInfo[2],evaluation);
+				else System.out.printf("[(%2d,%2d)= %.2f]\n",positionAndInfo[0],positionAndInfo[1],evaluation);
+				System.out.println();
+			}
+			if (printOn) System.out.println("returning highest value: " + highest);
 		}
-		if (printOn) System.out.println();
 
-		//get the highest value for a Map evaluation and the index of it
-		Double highest = Collections.max(valueOfMap);
-		indexOfHighest = valueOfMap.indexOf(highest);
 
-		if (printOn) {
-			int[] posAndInfo;
-			System.out.print("DFS-N("+depth+"): ");
-			for (int i = 0; i < valueOfMap.size(); i++){
-				posAndInfo = everyPossibleMove.get(i);
-				if (phaseOne) System.out.printf("[(%2d,%2d,%2d)=%3d], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],Math.round(valueOfMap.get(i)*100)/100);
-				else System.out.printf("[(%2d,%2d)=%3d], ",posAndInfo[0],posAndInfo[1],Math.round(valueOfMap.get(i)*100)/100);
+		else {
+			for (int[] positionAndInfo : everyPossibleMove){
+				//clones Map
+				nextMap = new Map(map);
+				nextMap.setPlayer(myPlayerNr);
+
+				//if it's the first phase
+				if (phaseOne) {
+					updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], myPlayerNr, nextMap, false);
+				}
+				//if it's the bomb phase
+				else {
+					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap); //also updates currently playing player
+				}
+
+				//Call DFS to start building part-tree of children
+				if (depth > 1) {
+					evaluation = DFSVisit(nextMap,depth-1, phaseOne, false, alpha, beta);
+				}
+				else {
+					heuristicForSimulation.updateMap(nextMap);
+					evaluation = heuristicForSimulation.evaluate();
+				}
+				valueOfMap.add(evaluation);
+
+				if (printOn) System.out.print(everyPossibleMove.indexOf(positionAndInfo)+1 + ", ");
 			}
-			System.out.println();
-			System.out.println("returning highest value: " + highest);
+			if (printOn) System.out.println();
+
+			//get the highest value for a Map evaluation and the index of it
+			highest = Collections.max(valueOfMap);
+			indexOfHighest = valueOfMap.indexOf(highest);
+
+			if (printOn) {
+				int[] posAndInfo;
+				System.out.print("DFS-N("+depth+"): ");
+				for (int i = 0; i < valueOfMap.size(); i++){
+					posAndInfo = everyPossibleMove.get(i);
+					if (phaseOne) System.out.printf("[(%2d,%2d,%2d)=%3d], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],Math.round(valueOfMap.get(i)*100)/100);
+					else System.out.printf("[(%2d,%2d)=%3d], ",posAndInfo[0],posAndInfo[1],Math.round(valueOfMap.get(i)*100)/100);
+				}
+				System.out.println();
+				System.out.println("returning highest value: " + highest);
+			}
 		}
 
 		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
-
 	}
 
-	private double DFSVisit(Map map, int depth, boolean phaseOne, boolean printOn){
+	private double DFSVisit(Map map, int depth, boolean phaseOne, boolean printOn, double alpha, double beta){
 		ArrayList<int[]> everyPossibleMove;
 		ArrayList<Double> valueOfMap = new ArrayList<>();
 		Map nextMap;
 		int skippedPlayers = 0;
 		double evaluation;
 		Double highestOrLowest;
+		boolean isMax;
+		double currBestValue;
+		double currAlpha = alpha;
+		double currBeta = beta;
 
+		//if the tree enters a situation where we don't have any stones left
+		if (map.getStonesOfPlayer(myPlayerNr).isEmpty()){
+			return Double.NEGATIVE_INFINITY;
+		}
 		//checks if players can make a move
 		while (true) {
 			//get valid moves depending on stage of game
 			if (phaseOne) {
-                everyPossibleMove = getValidMoves(map);
+				everyPossibleMove = getValidMoves(map);
 			}
 			else { //bomb phase
-				everyPossibleMove = getPositionsToSetABomb(map);
+				if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) > 0)
+					everyPossibleMove = getPositionsToSetABomb(map);
+				else
+					everyPossibleMove = new ArrayList<>();
 			}
 
 			//if there are possible moves
@@ -758,53 +824,133 @@ public class Client {
 				}
 			}
 		}
-
-		for (int[] positionAndInfo : everyPossibleMove){
-			//clones Map
-			nextMap = new Map(map);
-
-			//if it's the first phase
-			if (phaseOne) {
-				updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
+		//with alpha-beta-pruning
+		if(useAB){
+			if(map.getCurrentlyPlayingI() == myPlayerNr){
+				isMax = true;
+				currBestValue = Double.NEGATIVE_INFINITY;
 			}
-			//if it's the bomb phase
+			else{
+				isMax = false;
+				currBestValue = Double.POSITIVE_INFINITY;
+			}
+
+			for (int[] positionAndInfo : everyPossibleMove){
+				//clones Map
+				nextMap = new Map(map);
+
+				//if it's the first phase
+				if (phaseOne) {
+					updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
+				}
+				//if it's the bomb phase
+				else {
+					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap);
+				}
+
+				//Call DFS to start building part-tree of children
+				if (depth > 1) {
+					evaluation = DFSVisit(nextMap,depth-1, phaseOne, printOn, currAlpha, currBeta);
+				}
+				else {
+					heuristicForSimulation.updateMap(nextMap); //computing-intensive
+					evaluation = heuristicForSimulation.evaluate(); //computing-intensive
+				}
+				if (isMax){
+					if (evaluation > currBestValue)
+						currBestValue = evaluation;
+					if (currBestValue > currAlpha)
+						currAlpha = currBestValue;
+					if (currBestValue >= currBeta){
+						if (printOn){
+							System.out.print("DFS-V("+depth+"): ");
+							if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %.2f], ",positionAndInfo[0],positionAndInfo[1],positionAndInfo[2],evaluation);
+							else System.out.printf("[(%2d,%2d)= %.2f], ",positionAndInfo[0],positionAndInfo[1],evaluation);
+							System.out.println("Schnipp schnipp! Returning: " + currBestValue);
+						}
+						return currBestValue;
+					}
+				}
+				else {
+					if (evaluation < currBestValue)
+						currBestValue = evaluation;
+					if (currBestValue < currBeta)
+						currBeta = currBestValue;
+					if (currBestValue <= currAlpha){
+						if (printOn){
+							System.out.print("DFS-V("+depth+"): ");
+							if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %.2f], ",positionAndInfo[0],positionAndInfo[1],positionAndInfo[2],evaluation);
+							else System.out.printf("[(%2d,%2d)= %.2f], ",positionAndInfo[0],positionAndInfo[1],evaluation);
+							System.out.println("Schnipp schnipp! Returning: " + currBestValue);
+						}
+						return currBestValue;
+					}
+				}
+				if (printOn){
+					System.out.print("DFS-V("+depth+"): ");
+					if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %.2f], ",positionAndInfo[0],positionAndInfo[1],positionAndInfo[2],evaluation);
+					else System.out.printf("[(%2d,%2d)= %.2f], ",positionAndInfo[0],positionAndInfo[1],evaluation);
+					if (depth > 1) System.out.println();
+				}
+			}
+			if (printOn){
+				System.out.println("returning: " + currBestValue);
+				if (depth > 1) System.out.println();
+			}
+			return currBestValue;
+		}
+		//dfs without alpha-beta-pruning
+		else{
+			for (int[] positionAndInfo : everyPossibleMove){
+				//clones Map
+				nextMap = new Map(map);
+
+				//if it's the first phase
+				if (phaseOne) {
+					updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
+				}
+				//if it's the bomb phase
+				else {
+					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap);
+				}
+
+				//Call DFS to start building part-tree of children
+				if (depth > 1) {
+					evaluation = DFSVisit(nextMap,depth-1, phaseOne, printOn, alpha, beta);
+				}
+				else {
+					heuristicForSimulation.updateMap(nextMap); //computing-intensive
+					evaluation = heuristicForSimulation.evaluate();  //computing-intensive
+				}
+				valueOfMap.add(evaluation);
+			}
+
+			if (map.getCurrentlyPlayingI() == myPlayerNr) {
+				//get the highest value for a Map evaluation and the index of it
+				highestOrLowest = Collections.max(valueOfMap);
+			}
 			else {
-				updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap);
+				highestOrLowest = Collections.min(valueOfMap);
 			}
 
-			//Call DFS to start building part-tree of children
-			if (depth > 1) {
-				evaluation = DFSVisit(nextMap,depth-1, phaseOne, printOn);
+			if (printOn) {
+				int[] posAndInfo;
+				System.out.print("DFS-V("+depth+"): ");
+				for (int i = 0; i < valueOfMap.size(); i++){
+					posAndInfo = everyPossibleMove.get(i);
+					if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %3d], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],Math.round(valueOfMap.get(i)*100)/100);
+					else System.out.printf("[(%2d,%2d)= %3d], ",posAndInfo[0],posAndInfo[1],Math.round(valueOfMap.get(i)*100)/100);
+				}
+				System.out.println("returning: " + highestOrLowest);
+				if (depth > 1) System.out.println();
 			}
-			else {
-				heuristicForSimulation.updateMap(nextMap); //computing-intensive
-				evaluation = heuristicForSimulation.evaluate();  //computing-intensive
-			}
-			valueOfMap.add(evaluation);
-		}
 
-		if (map.getCurrentlyPlayingI() == myPlayerNr) {
-			//get the highest value for a Map evaluation and the index of it
-			highestOrLowest = Collections.max(valueOfMap);
+			return highestOrLowest;
 		}
-		else {
-			highestOrLowest = Collections.min(valueOfMap);
-		}
-
-		if (printOn) {
-			int[] posAndInfo;
-			System.out.print("DFS-V("+depth+"): ");
-			for (int i = 0; i < valueOfMap.size(); i++){
-				posAndInfo = everyPossibleMove.get(i);
-				if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %3d], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],Math.round(valueOfMap.get(i)*100)/100);
-				else System.out.printf("[(%2d,%2d)= %3d], ",posAndInfo[0],posAndInfo[1],Math.round(valueOfMap.get(i)*100)/100);
-			}
-			System.out.println("returning: " + highestOrLowest);
-			if (depth > 1) System.out.println();
-		}
-
-		return highestOrLowest;
 	}
+
+
+
 
 	//functions to calculate possible moves
 
