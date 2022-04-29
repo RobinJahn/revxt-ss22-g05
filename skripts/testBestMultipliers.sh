@@ -32,7 +32,7 @@ do
 	#get all Maps	
 	cd ..
 	cd Maps
-	maps=($(ls | grep "Map[5,4]"))
+	maps=($(ls | grep "Map."))
 
 	#change directory to the one where the server and ai is
 	cd ..
@@ -50,7 +50,7 @@ do
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
 		sleep 3 && 
 			if $extendedPrint; then echo "skript: startet client"; fi && 
-			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 &
+			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 -ab &
 		pid1=$!
 
 
@@ -74,8 +74,8 @@ do
 
 		#start server
 		if $extendedPrint; then echo "script: server started"; fi
-		#./server_nogl -C -m ../Maps/$mapName | tee $outFile #with output of server
-		./server_nogl -C -m ../Maps/$mapName > $outFile #without
+		#./server_nogl -C -m ../Maps/$mapName -d 3 | tee $outFile #with output of server
+		./server_nogl -C -m ../Maps/$mapName -d 3 > $outFile #without
 		
 	
 		#when game is over
@@ -111,7 +111,7 @@ do
 	
 	result=$( echo "$result / $anzMaps" | bc -l )
 	echo "skript: average result of games: $result"
-	isOne=$( echo "$result = 1" | bc -l )
+	isOne=$( echo "$result >= 0.99" | bc -l )
 	if [ ${isOne} -eq 1 ]
 	then
 		exit

@@ -49,7 +49,7 @@ public class Client {
 		String ip = "127.0.0.1";
 		int port = 7777;
 		//variables for the heuristic
-		final int countOfMultipliers = 3;
+		final int countOfMultipliers = Heuristic.countOfMultipliers;
 		double[] multipliers = null;
 		boolean useAB = false;
 
@@ -72,6 +72,9 @@ public class Client {
 				case "--server":
 				case "-s": compare_to_Server = true; break;
 
+				case "--alpha-beta":
+				case "-ab": useAB = true; break;
+
 				//needs to be the last one before help
 				case "--multiplier":
 				case "-m":
@@ -90,9 +93,6 @@ public class Client {
 						nfe.printStackTrace();
 					}
 
-				case "--alpha-beta":
-				case "-ab": useAB = true; break;
-
 
 				default: System.out.print(args[i] + " is not an option\n");
 				case "--help":
@@ -103,7 +103,7 @@ public class Client {
 						"-c or --colour\t\t\t\t\t Enables Coloured Output for the IntelliJ-IDE\n" +
 						"-s or --server\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
 						"-h or --help\t\t\t\t\t show this blob\n" +
-						"-m or --multiplier <m1, m2, m3>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value)\n" +
+						"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n" +
 						"-ab or --alpha-beta Enables Alpha-BetaPruning");
 					return;
 			}
@@ -478,7 +478,7 @@ public class Client {
 		Position posToSetKeystone = new Position(0, 0);
 		Scanner sc = new Scanner(System.in);
 
-		boolean pickARandom = false;
+		boolean pickARandom = true;
 
 		validMoves = getPositionsToSetABomb(map);
 
@@ -536,6 +536,7 @@ public class Client {
 	private static ArrayList<int[]> getPositionsToSetABomb(Map map) {
 		ArrayList<int[]> validMoves = new ArrayList<>();
 		char fieldValue;
+		int accuracy = 2;
 
 		//if player has no bomb's return empty array
 		if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) {
@@ -544,8 +545,8 @@ public class Client {
 		}
 
 		//gets the possible positions to set a bomb at
-		for (int y = 0; y < map.getHeight(); y++) {
-			for (int x = 0; x < map.getWidth(); x++) {
+		for (int y = 0; y < map.getHeight(); y+=accuracy) {
+			for (int x = 0; x < map.getWidth(); x+=accuracy) {
 				fieldValue = map.getCharAt(x, y);
 				if (fieldValue != '-' && fieldValue != 't') {
 					validMoves.add(new int[]{x, y});
@@ -696,7 +697,7 @@ public class Client {
 
 				//Call DFS to start building part-tree of children
 				if (depth > 1) {
-					evaluation = DFSVisit(nextMap,depth-1, phaseOne, true, alpha, beta);
+					evaluation = DFSVisit(nextMap,depth-1, phaseOne, false, alpha, beta);
 				}
 				else {
 					heuristicForSimulation.updateMap(nextMap);
@@ -712,10 +713,12 @@ public class Client {
 				if (highest >= beta) //Is this even needed for top level?
 					return everyPossibleMove.get(indexOfHighest);
 
-				if (printOn) System.out.print(everyPossibleMove.indexOf(positionAndInfo)+1 + ", DFS-V("+depth+"): ");
-				if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %.2f]\n",positionAndInfo[0],positionAndInfo[1],positionAndInfo[2],evaluation);
-				else System.out.printf("[(%2d,%2d)= %.2f]\n",positionAndInfo[0],positionAndInfo[1],evaluation);
-				System.out.println();
+				if (printOn) {
+					System.out.print(everyPossibleMove.indexOf(positionAndInfo) + 1 + ", DFS-V(" + depth + "): ");
+					if (phaseOne)
+						System.out.printf("[(%2d,%2d,%2d)= %.2f]\n", positionAndInfo[0], positionAndInfo[1], positionAndInfo[2], evaluation);
+					else System.out.printf("[(%2d,%2d)= %.2f]\n", positionAndInfo[0], positionAndInfo[1], evaluation);
+				}
 			}
 			if (printOn) System.out.println("returning highest value: " + highest);
 		}
@@ -784,8 +787,11 @@ public class Client {
 
 		//if the tree enters a situation where we don't have any stones left
 		if (map.getStonesOfPlayer(myPlayerNr).isEmpty()){
+			if (printOn) System.out.println("DFSVisit found situation where we got eliminated");
 			return Double.NEGATIVE_INFINITY;
 		}
+		//TODO: return positive infinity if we won
+
 		//checks if players can make a move
 		while (true) {
 			//get valid moves depending on stage of game
@@ -948,7 +954,6 @@ public class Client {
 			return highestOrLowest;
 		}
 	}
-
 
 
 
