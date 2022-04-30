@@ -1,0 +1,24 @@
+These are the additional Scripts and jars we made in order to improve our AI
+
+List of Authors:
+
+    Robin Jahn
+    Simon Melcher
+    Alex Wess
+
+These Scripts include
+
+    deleteLogs.sh
+        This script deletes all Logfiles in the current and the serverAndAi folder
+
+    getOwnResults.awk
+        This is used to extract Information out of Mapfiles and Outputfiles, created by the testBestMultipliers.sh script
+
+    testBestMultipliers.sh
+        This script makes the client play every Map 100 times with random Values for the Heuristik and saves the overall best Values for it
+    
+    ZOCK_Server_Client_Vergleich.jar
+        This is used in order to compare the Output of the Server and the Client
+
+    ZOCK_Server_Client_Vergleich.jar
+        This script makes the client play on every Map, compares the view of the Client and the Server and then stats on how many Maps they were identicall
