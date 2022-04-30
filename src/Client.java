@@ -207,10 +207,6 @@ public class Client {
 						System.out.println("received Move");
 						System.out.println("Move: " + moveCounter++);
 					}
-					if(compare_to_Server)
-					{
-						map_For_Comparison += map.toString_Server(getValidMoves(map));
-					}
 
 					//read rest of Message
 					int[] moveInfos = serverM.readRestOfMove();
@@ -219,6 +215,15 @@ public class Client {
 					posToSetKeystone.y = moveInfos[1] + 1; //index shift
 					int additionalInfo = moveInfos[2];
 					int moveOfPlayer = moveInfos[3];
+
+					//Ausgabe fuer den Vergleich mit dem Server
+					map.setPlayer(moveOfPlayer);		//@Todo kann dass dann aus der Methode UpadteMapWithMove raus ?
+					if(compare_to_Server)
+					{
+						map_For_Comparison += map.toString_Server(getValidMoves(map));
+					}
+
+
 
 					//Handle Move
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
@@ -242,18 +247,18 @@ public class Client {
 
 				case 8: //End of Phase 1
 					if (printOn) System.out.println("received end of phase 1");
-
-					if(compare_to_Server)
-					{
-						map_For_Comparison += map.toString_Server(getValidMoves(map));
-					}
-
 					serverM.readRestOfNextPhase();
 					firstPhase = false;
 					break;
 
 				case 9: //End of Phase 2
 					if (printOn) System.out.println("received end of phase 2 - game ended");
+
+					if(compare_to_Server)
+					{
+						map_For_Comparison += map.toString_Server(getValidMoves(map));
+					}
+
 					serverM.readRestOfNextPhase();
 					gameOngoing = false;
 					break;

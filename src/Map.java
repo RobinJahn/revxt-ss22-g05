@@ -300,7 +300,16 @@ public class Map{
         for (int y = 1; y < height-1; y++){
             for (int x = 1; x < width-1; x++){
                 bufferString = "";
-                bufferString += getCharAt(x,y);
+                char temp = getCharAt(x,y);
+                if(temp != 't')
+                {
+                    bufferString += temp;
+                }
+                else
+                {
+                    bufferString += "-";
+                }
+
                 if (possibleMoves != null && possibleMoves.contains(new Position(x,y))) {
                     bufferString += "'";
                 }
