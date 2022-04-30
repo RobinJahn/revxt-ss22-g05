@@ -11,6 +11,8 @@ chmod 770 $client
 chmod 770 ZOCK_Server_Client_Vergleich.jar
 
 #get all Maps
+cd ..
+cd Maps
 maps=($(ls | grep "Map."))
 
 #makes all maps readable
@@ -18,16 +20,19 @@ for mapName in "${maps[@]}"
 do
     chmod 770 $mapName
 	anzahl_karten=$((anzahl_karten+1))
-done    
+done
+
+cd ..
+cd serverAndAi
 
 for mapName in "${maps[@]}" 
 do
     # start own client
-    sleep 3 && java -jar $client -s &
+    sleep 3 && java -jar ../bin/client05.jar -s &
     pid1=$!
 
 	#get anzPlayer 
-	anzPlayer=$(awk '(NR==1){printf("%d",$1)}' "$mapName")
+	anzPlayer=$(awk '(NR==1){printf("%d",$1)}' "../Maps/$mapName")
 
     ii=1
 	pidAIs=()
@@ -39,8 +44,8 @@ do
 	done
 
     #start server
-    #./server_nogl -m -C $mapName > Server_View.txt  #without output of server
-    ./server_nogl -C -m $mapName | tee Server_View.txt #with output of server
+    #./server_nogl -m -C ../Maps/$mapName > Server_View.txt  #without output of server
+    ./server_nogl -C -m ../Maps/$mapName | tee Server_View.txt #with output of server
 
     #wait for client
     wait $pid1
@@ -52,7 +57,7 @@ do
 	done
     echo "Spiel Fertig"
 
-    errorcount=$(java -jar ZOCK_Server_Client_Vergleich.jar)
+    errorcount=$(java -jar ../skripts/ZOCK_Server_Client_Vergleich.jar)
 	if [ $errorcount -eq 0 ]
 	then
 		echo "Client und Server View identisch"
