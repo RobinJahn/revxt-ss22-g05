@@ -305,7 +305,6 @@ public class Client {
 		double valueOfMap;
 		ArrayList<int[]> validMoves;
 
-
 		map.setPlayer(myPlayerNr);
 
 		//calculate possible moves and print map with these
@@ -486,6 +485,7 @@ public class Client {
 
 		final boolean pickARandom = false;
 
+		map.setPlayer(myPlayerNr);
 		validMoves = getPositionsToSetABomb(map);
 
 		if (validMoves.isEmpty()) {
@@ -590,12 +590,11 @@ public class Client {
 		char charAtPos;
 		int explosionRadius = map.getExplosionRadius();
 
-		//Decreases the Bombs of the player
-		map.setPlayer(moveOfPlayer);
+		map.setPlayer(moveOfPlayer); //server may have skipped a player
+
 		if (map.getBombsForPlayer(moveOfPlayer) == 0){
 			System.err.println("Something's wrong - Server send a bomb move but Player has no bombs - updating Map anyway");
 		}
-		map.decreaseBombsOfPlayer();
 
 		//for breadth-first search
 		Queue<int[]> posQ = new LinkedList<>(); //int array: [0] == x, [1] == y, [2] == distance from explosion
@@ -651,6 +650,12 @@ public class Client {
 			}
 			map.setCharAt(nextPos.x, nextPos.y, '-'); //next position is still the position it came from
 		}
+
+		//Decreases the Bombs of the player
+		map.decreaseBombsOfPlayer();
+
+		//next player
+		map.nextPlayer();
 	}
 
 	//calculate next move
@@ -985,7 +990,6 @@ public class Client {
 			return highestOrLowest;
 		}
 	}
-
 
 
 	//functions to calculate possible moves

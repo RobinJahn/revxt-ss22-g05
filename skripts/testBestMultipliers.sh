@@ -6,7 +6,7 @@ max=100 #how many games should be played
 
 outFile="serverOut.txt"
 
-bestResult=0 #worst placement
+bestResult=0 #0 is worst placement
 
 bestM1=1
 bestM2=1
@@ -14,6 +14,18 @@ bestM3=1
 bestM4=1
 
 extendedPrint=false
+
+#get all Maps	
+cd ..
+cd Maps
+maps=($(ls | grep "Map."))
+	
+#compile newest version of client
+cd ..
+ant -S jar
+
+#change directory to the one where the server and ai is
+cd serverAndAi
 
 while [ $i -le $max ]
 do
@@ -28,15 +40,6 @@ do
        	echo "m2: $m2"
       	echo "m3: $m3" 
       	echo "m4: $m4"
-
-	#get all Maps	
-	cd ..
-	cd Maps
-	maps=($(ls | grep "Map."))
-
-	#change directory to the one where the server and ai is
-	cd ..
-	cd serverAndAi
 	
 	#start games on different maps
 	result=0
@@ -49,7 +52,7 @@ do
 		# start own client
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
 		sleep 3 && 
-			if $extendedPrint; then echo "skript: startet client"; fi && 
+			if true; then echo "skript: startet client"; fi && 
 			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 -ab -o -c &> "clientOut.txt" &
 		pid1=$!
 
@@ -66,7 +69,7 @@ do
 		do
 			if $extendedPrint; then echo "skript: start ai $ii"; fi
 			sleep 3 && 
-				if $extendedPrint; then echo "skript: startet ai"; fi && 
+				if true; then echo "skript: startet ai"; fi && 
 				./ai_trivial -q &
 			pidAIs+=(ii)
 			ii=$((ii+1))
