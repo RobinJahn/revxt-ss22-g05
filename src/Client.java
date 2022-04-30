@@ -25,25 +25,26 @@ class Moves {
 
 public class Client {
 	//final variables
-	final boolean calculateMove = true;
-	final boolean printOn;
-	final boolean compare_to_Server;
-	final boolean useAB;
+	final private boolean calculateMove = true;
+	final private boolean printOn;
+	final private boolean useColors;
+	final private boolean compare_to_Server;
+	final private boolean useAB;
 
 	//global variables
-	Map map;
-	ServerMessenger serverM;
-	Heuristic heuristic;
-	Heuristic heuristicForSimulation;
-	int myPlayerNr;
-	int depth;
-	int time;
-	int moveCounter;
+	private Map map;
+	private ServerMessenger serverM;
+	private Heuristic heuristic;
+	private Heuristic heuristicForSimulation;
+	private int myPlayerNr;
+	private int depth;
+	private int time;
+	private int moveCounter;
 
 
 	public static void main(String[] args) {
 		boolean printOn = false;
-		boolean intellijPrint = false;
+		boolean useColors = true;
 		boolean compare_to_Server = false;
 		//variables for the server
 		String ip = "127.0.0.1";
@@ -67,7 +68,7 @@ public class Client {
 				case "-o": printOn = true; break;
 
 				case "--colour":
-				case "-c": intellijPrint = true; break;
+				case "-c": useColors = false; break;
 
 				case "--server":
 				case "-s": compare_to_Server = true; break;
@@ -100,7 +101,7 @@ public class Client {
 						"-i or --ip <IP Address>\t\t\t Applies this IP\n" +
 						"-p or --port <Port Number>\t\t Applies this Port Number\n" +
 						"-o or --output\t\t\t\t\t Enables Console Output\n" +
-						"-c or --colour\t\t\t\t\t Enables Coloured Output for the IntelliJ-IDE\n" +
+						"-c or --colour\t\t\t\t\t Disables Coloured Output for the IntelliJ-IDE\n" +
 						"-s or --server\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
 						"-h or --help\t\t\t\t\t show this blob\n" +
 						"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n" +
@@ -110,7 +111,7 @@ public class Client {
 		}
 
 		//run client
-		new Client(ip,port,printOn,compare_to_Server, multipliers, useAB);
+		new Client(ip, port, multipliers, useAB, printOn, useColors, compare_to_Server);
 	}
 
 	//functions that let the client play
@@ -121,8 +122,9 @@ public class Client {
 	 * @param ip ip of the server
 	 * @param port port of the server
 	 */
-	public Client(String ip, int port, boolean printOn,boolean compare_to_Server, double[] multipliers, boolean useAB){
+	public Client(String ip, int port, double[] multipliers, boolean useAB, boolean printOn, boolean useColors, boolean compare_to_Server){
 		this.printOn = printOn;
+		this.useColors = useColors;
 		this.compare_to_Server = compare_to_Server;
 		this.useAB = useAB;
 		//try to connect with server
@@ -170,7 +172,7 @@ public class Client {
 		String map_For_Comparison = "";
 		moveCounter = 0;
 
-		if (printOn) System.out.println(map.toString(null,false,true));
+		if (printOn) System.out.println(map.toString(null,false,useColors));
 
 		while (gameOngoing) {
 
@@ -186,7 +188,7 @@ public class Client {
 					}
 
 					//read rest of move request
-					timeAndDepth = serverM.readRestOfMoveRequest(); //ignore at the moment
+					timeAndDepth = serverM.readRestOfMoveRequest(); //ignore time at the moment
 					if (time == -1 || depth == -1) {
 						System.err.println("Time and Depth couldn't be read");
 						gameOngoing = false;
@@ -217,20 +219,20 @@ public class Client {
 					int moveOfPlayer = moveInfos[3];
 
 					//Ausgabe fuer den Vergleich mit dem Server
-					map.setPlayer(moveOfPlayer);		//@Todo kann dass dann aus der Methode UpadteMapWithMove raus ?
+					map.setPlayer(moveOfPlayer);		//@Todo kann dass dann aus der Methode UpdateMapWithMove raus ? - besser nicht
 					if(compare_to_Server)
 					{
 						map_For_Comparison += map.toString_Server(getValidMoves(map));
 					}
 
-
-
 					//Handle Move
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
+
 					if (firstPhase) updateMapWithMove(posToSetKeystone, additionalInfo, moveOfPlayer, map, printOn);
-					else updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, map);
+					else updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, moveOfPlayer, map);
+
 					if (printOn) {
-						System.out.println(map.toString(null,false,true));
+						System.out.println(map.toString(null,false,useColors));
 						//calculate value of map and print it
 						double valueOfMap = (double)Math.round(heuristic.evaluate()*100)/100;
 						System.out.println("Value of Map is " + valueOfMap);
@@ -308,7 +310,7 @@ public class Client {
 
 		//calculate possible moves and print map with these
 		validMoves = getValidMoves(map);
-		if (printOn) System.out.println(map.toString(validMoves, false, true));
+		if (printOn) System.out.println(map.toString(validMoves, false, useColors));
 
 		//calculate value of map and print it
 		valueOfMap = (double)Math.round(heuristic.evaluate()*100)/100;
@@ -481,9 +483,8 @@ public class Client {
 		ArrayList<int[]> validMoves;
 		boolean moveIsPossible = false;
 		Position posToSetKeystone = new Position(0, 0);
-		Scanner sc = new Scanner(System.in);
 
-		boolean pickARandom = true;
+		final boolean pickARandom = false;
 
 		validMoves = getPositionsToSetABomb(map);
 
@@ -493,7 +494,7 @@ public class Client {
 		}
 
 		//print valid moves
-		if (printOn) System.out.println(map.toString(validMoves, false, true));
+		if (printOn) System.out.println(map.toString(validMoves, false, useColors));
 		//calculate value of map and print it
 		double valueOfMap = (double)Math.round(heuristic.evaluate()*100)/100;
 		if (printOn) System.out.println("Value of Map is " + valueOfMap);
@@ -512,6 +513,8 @@ public class Client {
         }
         //let player pick a move
         else {
+			Scanner sc = new Scanner(System.in);
+
             //change valid moves to a position list to use contains
             ArrayList<Position> possibleMoves = new ArrayList<>();
             for (int[] posAndInfo : validMoves) {
@@ -532,7 +535,9 @@ public class Client {
                 //check if the move is valid
                 moveIsPossible = possibleMoves.contains(posToSetKeystone);
             }
+			sc.close();
         }
+
 
 		//send the move
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, 0, myPlayerNr);
@@ -545,13 +550,27 @@ public class Client {
 
 		//if player has no bomb's return empty array
 		if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) {
-			System.out.println("Something's wrong - Player has no Bombs but server wants player to place one");
-			return validMoves;
+			System.err.println("Something's wrong - Player has no Bombs but server wants player to place one");
+			return validMoves; //returns empty array
 		}
 
+
 		//gets the possible positions to set a bomb at
-		for (int y = 0; y < map.getHeight(); y+=accuracy) {
-			for (int x = 0; x < map.getWidth(); x+=accuracy) {
+		for (int y = 0; y < map.getHeight(); y += accuracy) {
+			for (int x = 0; x < map.getWidth(); x += accuracy) {
+				fieldValue = map.getCharAt(x, y);
+				if (fieldValue != '-' && fieldValue != 't') {
+					validMoves.add(new int[]{x, y});
+				}
+			}
+		}
+
+		if (validMoves.isEmpty()){
+			accuracy = 1;
+		}
+		//gets the possible positions to set a bomb at
+		for (int y = 0; y < map.getHeight(); y += accuracy) {
+			for (int x = 0; x < map.getWidth(); x += accuracy) {
 				fieldValue = map.getCharAt(x, y);
 				if (fieldValue != '-' && fieldValue != 't') {
 					validMoves.add(new int[]{x, y});
@@ -567,9 +586,16 @@ public class Client {
 	 * @param x x coordinate where the bomb was set
 	 * @param y y coordinate where the bomb was set
 	 */
-	private static void updateMapAfterBombingBFS(int x, int y, Map map){
+	private static void updateMapAfterBombingBFS(int x, int y, int moveOfPlayer, Map map){
 		char charAtPos;
 		int explosionRadius = map.getExplosionRadius();
+
+		//Decreases the Bombs of the player
+		map.setPlayer(moveOfPlayer);
+		if (map.getBombsForPlayer(moveOfPlayer) == 0){
+			System.err.println("Something's wrong - Server send a bomb move but Player has no bombs - updating Map anyway");
+		}
+		map.decreaseBombsOfPlayer();
 
 		//for breadth-first search
 		Queue<int[]> posQ = new LinkedList<>(); //int array: [0] == x, [1] == y, [2] == distance from explosion
@@ -649,7 +675,7 @@ public class Client {
 			}
 			//if it's the bomb phase
 			else {
-				updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap);
+				updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], myPlayerNr, nextMap);
 			}
 
 			heuristicForSimulation.updateMap(nextMap);
@@ -697,7 +723,7 @@ public class Client {
 				}
 				//if it's the bomb phase
 				else {
-					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap); //also updates currently playing player
+					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], myPlayerNr, nextMap); //also updates currently playing player
 				}
 
 				//Call DFS to start building part-tree of children
@@ -741,7 +767,7 @@ public class Client {
 				}
 				//if it's the bomb phase
 				else {
-					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap); //also updates currently playing player
+					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], myPlayerNr, nextMap); //also updates currently playing player
 				}
 
 				//Call DFS to start building part-tree of children
@@ -807,7 +833,7 @@ public class Client {
 				if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) > 0)
 					everyPossibleMove = getPositionsToSetABomb(map);
 				else
-					everyPossibleMove = new ArrayList<>();
+					everyPossibleMove = new ArrayList<>(); //empty list
 			}
 
 			//if there are possible moves
@@ -856,7 +882,7 @@ public class Client {
 				}
 				//if it's the bomb phase
 				else {
-					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap);
+					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
 				}
 
 				//Call DFS to start building part-tree of children
@@ -922,7 +948,7 @@ public class Client {
 				}
 				//if it's the bomb phase
 				else {
-					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap);
+					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
 				}
 
 				//Call DFS to start building part-tree of children

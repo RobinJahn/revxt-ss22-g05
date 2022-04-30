@@ -1,7 +1,6 @@
 package src;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class Map{
@@ -326,7 +325,7 @@ public class Map{
     }
 
     //not very clean code - just for testing purposes
-    public String toString(ArrayList<int[]> everyPossibleMove, boolean showTransitions, boolean addColorsForIntelliJ){
+    public String toString(ArrayList<int[]> everyPossibleMove, boolean showTransitions, boolean useColors){
         final String ANSI_RESET = "\u001B[0m";
         final String ANSI_BLACK = "\u001B[30m";
         final String ANSI_RED = "\u001B[31m";
@@ -338,6 +337,15 @@ public class Map{
         final String ANSI_WHITE = "\u001B[37m";
         final String ANSI_BRIGHT_YELLOW = "\u001B[93m";
         final String ANSI_BRIGHT_GREEN = "\u001B[92m";
+
+        final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
+        final String ANSI_RED_BACKGROUND = "\u001B[41m";
+        final String ANSI_GREEN_BACKGROUND = "\u001B[42m";
+        final String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
+        final String ANSI_BLUE_BACKGROUND = "\u001B[44m";
+        final String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
+        final String ANSI_CYAN_BACKGROUND = "\u001B[46m";
+        final String ANSI_WHITE_BACKGROUND = "\u001B[47m";
 
         String mapString = "";
         String bufferString;
@@ -370,7 +378,7 @@ public class Map{
             for (int x = 0; x < width; x++){
                 bufferString = "";
 
-                if (addColorsForIntelliJ) {
+                if (useColors) {
                     switch (getCharAt(x,y)){
                         case '1':
                             bufferString += ANSI_RED;
@@ -396,12 +404,28 @@ public class Map{
                         case '8':
                             bufferString += ANSI_BRIGHT_GREEN;
                             break;
+                        case 'b':
+                            bufferString += ANSI_BLACK;
+                            bufferString += ANSI_GREEN_BACKGROUND;
+                            break;
+                        case 'i':
+                            bufferString += ANSI_BLACK;
+                            bufferString += ANSI_PURPLE_BACKGROUND;
+                            break;
+                        case 'c':
+                            bufferString += ANSI_BLACK;
+                            bufferString += ANSI_CYAN_BACKGROUND;
+                            break;
+                        case 'x':
+                            bufferString += ANSI_BLACK;
+                            bufferString += ANSI_WHITE_BACKGROUND;
+                            break;
                     }
                 }
                 bufferString += getCharAt(x,y);
                 if (possibleMoves != null && possibleMoves.contains(new Position(x,y))) bufferString += "'";
 
-                if (addColorsForIntelliJ) bufferString += ANSI_RESET;
+                if (useColors) bufferString += ANSI_RESET;
 
                 mapString += bufferString + "\t";
             }

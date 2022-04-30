@@ -50,7 +50,7 @@ do
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
 		sleep 3 && 
 			if $extendedPrint; then echo "skript: startet client"; fi && 
-			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 -ab &
+			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 -ab -o -c &> "clientOut.txt" &
 		pid1=$!
 
 
@@ -75,7 +75,7 @@ do
 		#start server
 		if $extendedPrint; then echo "script: server started"; fi
 		#./server_nogl -C -m ../Maps/$mapName -d 3 | tee $outFile #with output of server
-		./server_nogl -C -m ../Maps/$mapName -d 3 > $outFile #without
+		./server_nogl -C -m ../Maps/$mapName -d 3 &> $outFile #without
 		
 	
 		#when game is over
