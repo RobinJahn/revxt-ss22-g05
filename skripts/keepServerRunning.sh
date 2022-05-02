@@ -5,6 +5,8 @@ cd serverAndAi
 
 mapName=${1?"argument 1 needs to be map name"}
 
+depth=${2?"argument 2 needs to be the depth"}
+
 if [[ ! -f "$mapName" ]]; then
     echo "$mapName doesn't exists."
 	exit
@@ -32,5 +34,5 @@ do
 	done
 
 	#start server
-	./server_nogl -m $mapName -d 3
+	./server_nogl -m $mapName -d $depth
 done
