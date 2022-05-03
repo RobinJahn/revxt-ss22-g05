@@ -27,7 +27,7 @@ public class Client{
 	//final variables
 	final private boolean calculateMove = true;
 	final private boolean printOn;
-	final private boolean extendedPrint = true; //TODO: add parameter for that
+	final private boolean extendedPrint = false; //TODO: add parameter for that
 	final private boolean useColors;
 	final private boolean compare_to_Server;
 	final private boolean useAB;

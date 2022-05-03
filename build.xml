@@ -5,10 +5,10 @@
     <property name="build" location="build"/>
 
     <target name="jar">
+        <antcall target="clean"/>
         <antcall target="init"/>
         <antcall target="compile"/>
         <antcall target="makejar"/>
-        <antcall target="clean"/>
     </target>
 
     <target name="init">
@@ -30,5 +30,6 @@
 
     <target name="clean" description="clean up">
         <delete dir="${build}"/>
+        <delete file="./bin/client05.jar"/>
     </target>
 </project>
