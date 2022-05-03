@@ -23,11 +23,11 @@ class Moves {
 	}
 }
 
-public class Client {
+public class Client{
 	//final variables
 	final private boolean calculateMove = true;
 	final private boolean printOn;
-	final private boolean extendedPrint = false; //TODO: add parameter for that
+	final private boolean extendedPrint = true; //TODO: add parameter for that
 	final private boolean useColors;
 	final private boolean compare_to_Server;
 	final private boolean useAB;
@@ -53,7 +53,7 @@ public class Client {
 		//variables for the heuristic
 		final int countOfMultipliers = Heuristic.countOfMultipliers;
 		double[] multipliers = null;
-		boolean useAB = false;
+		boolean useAB = true;
 
 		//get call arguments
 		for (int i = 0; i < args.length; i++){
@@ -75,7 +75,7 @@ public class Client {
 				case "-s": compare_to_Server = true; break;
 
 				case "--alpha-beta":
-				case "-ab": useAB = true; break;
+				case "-ab": useAB = false; break;
 
 				//needs to be the last one before help
 				case "--multiplier":
@@ -106,7 +106,7 @@ public class Client {
 						"-s or --server\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
 						"-h or --help\t\t\t\t\t show this blob\n" +
 						"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n" +
-						"-ab or --alpha-beta Enables Alpha-BetaPruning");
+						"-ab or --alpha-beta Disables Alpha-BetaPruning");
 					return;
 			}
 		}
@@ -942,9 +942,13 @@ public class Client {
 					if (currBestValue > currAlpha)
 						currAlpha = currBestValue;
 					if (currBestValue >= currBeta) {
+						int countOfCutoffLeaves = everyPossibleMove.size() - everyPossibleMove.indexOf(positionAndInfo);
+						//delete nodes out of statistic
+						if (depth > 1) statistic.interiorNodes -= countOfCutoffLeaves;
+						else statistic.leaveNodes -= countOfCutoffLeaves;
 						//Print before return
 						if (extendedPrint) {
-							System.out.println("Cutoff: Current best value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + (everyPossibleMove.size()-everyPossibleMove.indexOf(positionAndInfo)) + " values skipped");
+							System.out.println("Cutoff: Current best value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
 						}
 						return currBestValue;
 					}
@@ -956,9 +960,13 @@ public class Client {
 					if (currBestValue < currBeta)
 						currBeta = currBestValue;
 					if (currBestValue <= currAlpha) {
+						int countOfCutoffLeaves = everyPossibleMove.size()-everyPossibleMove.indexOf(positionAndInfo);
+						//delete nodes out of statistic
+						if (depth > 1) statistic.interiorNodes -= countOfCutoffLeaves;
+						else statistic.leaveNodes -= countOfCutoffLeaves;
 						//Print before return
 						if (extendedPrint) {
-							System.out.println("Cutoff: Current best value (" + currBestValue + ") <= current Alpha (" + currAlpha + ") - " + (everyPossibleMove.size()-everyPossibleMove.indexOf(positionAndInfo)) + " values skipped");
+							System.out.println("Cutoff: Current best value (" + currBestValue + ") <= current Alpha (" + currAlpha + ") - " + countOfCutoffLeaves + " values skipped");
 						}
 						return currBestValue;
 					}

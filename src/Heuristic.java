@@ -1,5 +1,7 @@
 package src;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -49,9 +51,9 @@ public class Heuristic {
 
         //set multiplier
         //default multiplier
-        stoneCountMultiplier = 8;
-        moveCountMultiplier = 8;
-        fieldValueMultiplier = 4;
+        stoneCountMultiplier = 5;
+        moveCountMultiplier = 4;
+        fieldValueMultiplier = 0;
         edgeMultiplier = 8;
         //corresponding default enables
         countMoves = true;

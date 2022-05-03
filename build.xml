@@ -10,6 +10,7 @@
         <antcall target="makejar"/>
         <antcall target="clean"/>
     </target>
+
     <target name="init">
         <mkdir dir="${build}"/>
     </target>
