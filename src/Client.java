@@ -27,7 +27,7 @@ public class Client{
 	//final variables
 	final private boolean calculateMove = true;
 	final private boolean printOn;
-	final private boolean extendedPrint = false; //TODO: add parameter for that
+	final private boolean extendedPrint;
 	final private boolean useColors;
 	final private boolean compare_to_Server;
 	final private boolean useAB;
@@ -44,9 +44,10 @@ public class Client{
 
 
 	public static void main(String[] args) {
-		boolean printOn = false;
+		boolean printOn = true;
 		boolean useColors = true;
 		boolean compare_to_Server = false;
+		boolean extendedPrint = true;
 		//variables for the server
 		String ip = "127.0.0.1";
 		int port = 7777;
@@ -65,8 +66,8 @@ public class Client{
 				case "--port":
 				case "-p": if(i<args.length -1) i++; port = Integer.parseInt(args[i]); break;
 
-				case "--output":
-				case "-o": printOn = true; break;
+				case "--quiet":
+				case "-q": printOn = false; extendedPrint = false; break;
 
 				case "--colour":
 				case "-c": useColors = false; break;
@@ -77,6 +78,8 @@ public class Client{
 				case "--alpha-beta":
 				case "-ab": useAB = false; break;
 
+				case "--no-sorting":
+				case "n": break; //@ToDo Boolean hinzufügen und auf false setzen
 				//needs to be the last one before help
 				case "--multiplier":
 				case "-m":
@@ -101,10 +104,11 @@ public class Client{
 				case "-h": System.out.println("java -jar client05.jar accepts the following optional options:\n" +
 						"-i or --ip <IP Address>\t\t\t Applies this IP\n" +
 						"-p or --port <Port Number>\t\t Applies this Port Number\n" +
-						"-o or --output\t\t\t\t\t Enables Console Output\n" +
+						"-q or --quiet \t\t\t\t\t Disables Console Output\n" +
 						"-c or --colour\t\t\t\t\t Disables Coloured Output for the IntelliJ-IDE\n" +
 						"-s or --server\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
 						"-h or --help\t\t\t\t\t show this blob\n" +
+						"-n or --no-sorting \t\t\t\t Disables Movesorting\n"+
 						"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n" +
 						"-ab or --alpha-beta Disables Alpha-BetaPruning");
 					return;
@@ -112,7 +116,7 @@ public class Client{
 		}
 
 		//run client
-		new Client(ip, port, multipliers, useAB, printOn, useColors, compare_to_Server);
+		new Client(ip, port, multipliers, useAB, printOn, useColors, compare_to_Server,extendedPrint);
 	}
 
 	//functions that let the client play
@@ -123,11 +127,12 @@ public class Client{
 	 * @param ip ip of the server
 	 * @param port port of the server
 	 */
-	public Client(String ip, int port, double[] multipliers, boolean useAB, boolean printOn, boolean useColors, boolean compare_to_Server){
+	public Client(String ip, int port, double[] multipliers, boolean useAB, boolean printOn, boolean useColors, boolean compare_to_Server,boolean extendedPrint){
 		this.printOn = printOn;
 		this.useColors = useColors;
 		this.compare_to_Server = compare_to_Server;
 		this.useAB = useAB;
+		this.extendedPrint = extendedPrint;
 		//try to connect with server
 		try {
 			serverM = new ServerMessenger(ip,port);
