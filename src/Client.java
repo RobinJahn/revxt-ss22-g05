@@ -48,7 +48,7 @@ public class Client{
 		boolean printOn = true;
 		boolean useColors = true;
 		boolean compare_to_Server = false;
-		boolean extendedPrint = true;
+		boolean extendedPrint = false;
 		//variables for the server
 		String ip = "127.0.0.1";
 		int port = 7777;
@@ -309,6 +309,7 @@ public class Client{
 	private void makeAMove(){
 		//calculated Move
 		int[] positionAndInfo = new int[3];
+		Statistic statistic = new Statistic();
 
 		//general
 		double valueOfMap;
@@ -331,7 +332,7 @@ public class Client{
 
 		//make a calculated move
 		if (calculateMove) {
-			positionAndInfo = getNextMoveDFS(validMoves, true, depth);
+			positionAndInfo = getNextMoveDFS(validMoves, true, depth, statistic);
 			if (printOn) System.out.println("Set Keystone at: (" + positionAndInfo[0] + "," + positionAndInfo[1] + "," + positionAndInfo[2] + ")");
 		}
 
@@ -347,7 +348,7 @@ public class Client{
 			char choiceChar;
 
 			//print moves and evaluation
-			positionAndInfo = getNextMoveDFS(validMoves, true, depth);
+			positionAndInfo = getNextMoveDFS(validMoves, true, depth, statistic);
 			if (printOn) System.out.println("Recommended Move: (" + positionAndInfo[0] + "," + positionAndInfo[1] + "," + positionAndInfo[2] + ")");
 
 			//make a move
@@ -491,6 +492,7 @@ public class Client{
 		ArrayList<int[]> validMoves;
 		boolean moveIsPossible = false;
 		Position posToSetKeystone = new Position(0, 0);
+		Statistic statistic = new Statistic();
 
 		final boolean pickARandom = false;
 
@@ -511,7 +513,7 @@ public class Client{
         //get a move
         if (calculateMove){
             if (!pickARandom) {
-                positionAndInfo = getNextMoveDFS(validMoves, false, depth);
+                positionAndInfo = getNextMoveDFS(validMoves, false, depth, statistic);
                 posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
                 if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
             }
@@ -704,18 +706,16 @@ public class Client{
 		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
 	}
 
-	//recursive DFS
-	private int[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth){
+	//Functions to calculate the best next move
+	private int[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth, Statistic statistic){
 		//For DFS
-		int indexOfHighest = 0;
+		int indexOfHighest;
 		//For alpha beta
 		double alpha = Double.NEGATIVE_INFINITY;
 		double beta = Double.POSITIVE_INFINITY;
 		double highest;
 		//For Statistics
-		Statistic statistic = new Statistic();
 		long startTime;
-		long savedTime = 0;
 		long totalTime;
 
 		//check if an error occurred
@@ -754,7 +754,7 @@ public class Client{
 
 		//If we have no stones -> LOSS
 		if (map.getStonesOfPlayer(myPlayerNr).isEmpty()){
-			if (printOn) System.out.println("DFSVisit found situation where we got eliminated");
+			if (printOn && extendedPrint) System.out.println("DFSVisit found situation where we got eliminated");
 			return Double.NEGATIVE_INFINITY;
 		}
 
@@ -854,8 +854,7 @@ public class Client{
 		}
 
 		//add values to statistic
-		if (depth > 1) statistic.interiorNodes += everyPossibleMove.size();
-		else statistic.leafNodes += everyPossibleMove.size();
+		statistic.addNodes(everyPossibleMove.size(), depth);
 
 		//print for leaf layer
 		if (extendedPrint && depth == 1) System.out.print("DFS-V(1): ");
@@ -863,8 +862,10 @@ public class Client{
 		//go over every possible move
 		for (int[] positionAndInfo : everyPossibleMove){
 
-			if (printOn && getIndex)
-				System.out.println(everyPossibleMove.indexOf(positionAndInfo) + ", ");
+			if (printOn && getIndex) {
+				if (extendedPrint) System.out.println(everyPossibleMove.indexOf(positionAndInfo) + ", ");
+				else System.out.print(everyPossibleMove.indexOf(positionAndInfo) + ", ");
+			}
 
 			//clones Map
 			nextMap = new Map(map);
@@ -908,8 +909,7 @@ public class Client{
 					if (currBestValue >= currBeta) {
 						int countOfCutoffLeaves = everyPossibleMove.size() - everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
-						if (depth > 1) statistic.interiorNodes -= countOfCutoffLeaves;
-						else statistic.leafNodes -= countOfCutoffLeaves;
+						statistic.reduceNodes(countOfCutoffLeaves, depth);
 						//Print before return
 						if (extendedPrint) {
 							System.out.println("Cutoff: Current best value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
@@ -928,8 +928,7 @@ public class Client{
 					if (currBestValue <= currAlpha) {
 						int countOfCutoffLeaves = everyPossibleMove.size()- everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
-						if (depth > 1) statistic.interiorNodes -= countOfCutoffLeaves;
-						else statistic.leafNodes -= countOfCutoffLeaves;
+						statistic.reduceNodes(countOfCutoffLeaves, depth);
 						//Print before return
 						if (extendedPrint) {
 							System.out.println("Cutoff: Current best value (" + currBestValue + ") <= current Alpha (" + currAlpha + ") - " + countOfCutoffLeaves + " values skipped");
