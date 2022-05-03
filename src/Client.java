@@ -3,6 +3,7 @@ package src;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Time;
 import java.util.*;
 
 class Moves {
@@ -717,7 +718,12 @@ public class Client{
 		//For Statistics
 		long startTime;
 		long totalTime;
+		long UpperTimeLimit;
+		long TimeOffset = 10000; // 10ms
+		long TimeNextDepth = 1000; //1ms für die erste Ebene
+		long depthfactor = 2;
 
+		int bestindex = 0;
 		//check if an error occurred
 		if (everyPossibleMove.isEmpty()){
             System.err.println("Something is wrong - There is no move to check");
@@ -732,9 +738,25 @@ public class Client{
 
 		//start timing
 		startTime = System.nanoTime();
+		UpperTimeLimit = startTime + (long)time * 1000000 - TimeOffset;
 
 		//simulate all moves and return best value
-		indexOfHighest = (int) getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, true);
+		for(int i = 1;i<depth;i++)
+		{
+			if(System.nanoTime()+TimeNextDepth<UpperTimeLimit)
+			{
+				indexOfHighest = (int) getBestValueForMoves(map, everyPossibleMove, i, phaseOne, alpha, beta, statistic, true,UpperTimeLimit);
+				if(System.nanoTime() < UpperTimeLimit)
+				{
+					bestindex = indexOfHighest;
+					TimeNextDepth = (System.nanoTime()-startTime) * depthfactor;
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
 
 		//end of timing
 		totalTime = System.nanoTime() - startTime;
@@ -743,10 +765,16 @@ public class Client{
 		//print statistic
 		if (printOn) System.out.println(statistic);
 
-		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
+		return everyPossibleMove.get(bestindex); //returns the position and the additional info of the move that has the highest evaluation
 	}
 
-	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic){
+	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long uppertimelimit){
+		//TimeLimitAbbruch
+		if(System.nanoTime() >= uppertimelimit)
+		{
+			return 0;
+		}
+
 		ArrayList<int[]> everyPossibleMove = new ArrayList<>();
 		double currBestValue;
 		double currAlpha = alpha;
@@ -779,7 +807,7 @@ public class Client{
 		}
 
 		//simulate all moves and return best value
-		currBestValue = getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,  false);
+		currBestValue = getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,false,uppertimelimit);
 
 		return currBestValue;
 	}
@@ -835,7 +863,13 @@ public class Client{
 		return phaseOne;
 	}
 
-	private double getBestValueForMoves(Map map, ArrayList<int[]> everyPossibleMove, int depth, boolean phaseOne, double currAlpha, double currBeta, Statistic statistic, boolean getIndex) {
+	private double getBestValueForMoves(Map map, ArrayList<int[]> everyPossibleMove, int depth, boolean phaseOne, double currAlpha, double currBeta, Statistic statistic, boolean getIndex, long uppertimelimit) {
+		//TimeLimit-Abbruch
+		if(System.nanoTime() >= uppertimelimit)
+		{
+			return 0;
+		}
+
 		Map nextMap;
 		boolean isMax;
 		double currBestValue;
@@ -862,6 +896,11 @@ public class Client{
 
 		//go over every possible move
 		for (int[] positionAndInfo : everyPossibleMove){
+			//Time Limit Abbruch
+			if(System.nanoTime() >= uppertimelimit)
+			{
+				return 0;
+			}
 
 			if (printOn && getIndex) {
 				if (extendedPrint) System.out.println(everyPossibleMove.indexOf(positionAndInfo) + ", ");
@@ -883,7 +922,7 @@ public class Client{
 			//Call DFS to start building part-tree of children
 			if (depth > 1) {
 				//call dfs visit
-				evaluation = DFSVisit(nextMap, depth -1, phaseOne, currAlpha, currBeta, statistic);
+				evaluation = DFSVisit(nextMap, depth -1, phaseOne, currAlpha, currBeta, statistic,uppertimelimit);
 			}
 			//get evaluation of map when it's a leaf
 			else {
