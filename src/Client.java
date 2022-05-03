@@ -749,7 +749,7 @@ public class Client{
 				if(System.nanoTime() < UpperTimeLimit)
 				{
 					bestindex = indexOfHighest;
-					TimeNextDepth = (System.nanoTime()-startTime) * depthfactor;
+					TimeNextDepth = (System.nanoTime()-startTime) * (long)statistic.branchFactor();
 				}
 			}
 			else
