@@ -18,7 +18,7 @@ extendedPrint=false
 #get all Maps	
 cd ..
 cd Maps
-maps=($(ls | grep "Map."))
+maps=($(ls | grep ".*\.map"))
 	
 #compile newest version of client
 cd ..
@@ -53,7 +53,7 @@ do
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
 		sleep 3 && 
 			if true; then echo "skript: startet client"; fi && 
-			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 -ab -o -c &> "clientOut.txt" &
+			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 -ab -c &> "clientOut.txt" &
 		pid1=$!
 
 

@@ -732,6 +732,7 @@ public class Client{
 
 		//start timing
 		startTime = System.nanoTime();
+
 		//simulate all moves and return best value
 		indexOfHighest = (int) getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, true);
 
