@@ -31,6 +31,7 @@ public class Client{
 	final private boolean useColors;
 	final private boolean compare_to_Server;
 	final private boolean useAB;
+	final private boolean useMS;
 
 	//global variables
 	private Map map;
@@ -55,6 +56,7 @@ public class Client{
 		final int countOfMultipliers = Heuristic.countOfMultipliers;
 		double[] multipliers = null;
 		boolean useAB = true;
+		boolean useMS = true;
 
 		//get call arguments
 		for (int i = 0; i < args.length; i++){
@@ -79,7 +81,7 @@ public class Client{
 				case "-ab": useAB = false; break;
 
 				case "--no-sorting":
-				case "n": break; //@ToDo Boolean hinzufügen und auf false setzen
+				case "n": useMS = false; break;
 				//needs to be the last one before help
 				case "--multiplier":
 				case "-m":
@@ -108,7 +110,7 @@ public class Client{
 						"-c or --colour\t\t\t\t\t Disables Coloured Output for the IntelliJ-IDE\n" +
 						"-s or --server\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
 						"-h or --help\t\t\t\t\t show this blob\n" +
-						"-n or --no-sorting \t\t\t\t Disables Movesorting\n"+
+						"-n or --no-sorting \t\t\t\t Disables Move-sorting\n"+
 						"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n" +
 						"-ab or --alpha-beta Disables Alpha-BetaPruning");
 					return;
@@ -116,7 +118,7 @@ public class Client{
 		}
 
 		//run client
-		new Client(ip, port, multipliers, useAB, printOn, useColors, compare_to_Server,extendedPrint);
+		new Client(ip, port, multipliers, useAB, printOn, useColors, compare_to_Server,extendedPrint,useMS);
 	}
 
 	//functions that let the client play
@@ -127,12 +129,13 @@ public class Client{
 	 * @param ip ip of the server
 	 * @param port port of the server
 	 */
-	public Client(String ip, int port, double[] multipliers, boolean useAB, boolean printOn, boolean useColors, boolean compare_to_Server,boolean extendedPrint){
+	public Client(String ip, int port, double[] multipliers, boolean useAB, boolean printOn, boolean useColors, boolean compare_to_Server,boolean extendedPrint,boolean useMS){
 		this.printOn = printOn;
 		this.useColors = useColors;
 		this.compare_to_Server = compare_to_Server;
 		this.useAB = useAB;
 		this.extendedPrint = extendedPrint;
+		this.useMS = useMS;
 		//try to connect with server
 		try {
 			serverM = new ServerMessenger(ip,port);
