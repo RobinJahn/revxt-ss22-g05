@@ -20,3 +20,4 @@
 /bin/*.jar
 /serverAndAi
 /skripts/serverOut.txt
+/build

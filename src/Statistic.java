@@ -5,6 +5,7 @@ public class Statistic {
     public int interiorNodes;
     private long totalComputationTime;
     private int countOfCalcValues;
+    private double brachingFactor;
 
     public Statistic(){
         leaveNodes = 0;
