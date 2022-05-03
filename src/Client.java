@@ -707,34 +707,39 @@ public class Client{
 	//recursive DFS
 	private int[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth){
 		//For DFS
-		Map nextMap;
 		int indexOfHighest = 0;
-		double evaluation;
 		//For alpha beta
 		double alpha = Double.NEGATIVE_INFINITY;
 		double beta = Double.POSITIVE_INFINITY;
-		boolean isMax = true;
-		double highest = Double.NEGATIVE_INFINITY;
+		double highest;
 		//For Statistics
 		Statistic statistic = new Statistic();
 		long startTime;
 		long savedTime = 0;
 		long totalTime;
 
+		//check if an error occurred
 		if (everyPossibleMove.isEmpty()){
             System.err.println("Something is wrong - There is no move to check");
             return null;
         }
 
+		//Print start of dfs
 		if (printOn) {
 			System.out.println("Calculating values for " + everyPossibleMove.size() + " Moves");
 			System.out.println("Currently at: ");
 		}
 
-		highest = getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic);
+		//start timing
+		startTime = System.nanoTime();
+		//simulate all moves and return best value
+		indexOfHighest = (int) getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, true);
 
-		if (printOn) System.out.println("returning highest value: " + highest);
+		//end of timing
+		totalTime = System.nanoTime() - startTime;
+		statistic.totalComputationTime += totalTime;
 
+		//print statistic
 		if (printOn) System.out.println(statistic);
 
 		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
@@ -747,14 +752,13 @@ public class Client{
 		double currBeta = beta;
 		int enemyStoneCount = 0;
 
-
-		//if the tree enters a situation where we don't have any stones left
+		//If we have no stones -> LOSS
 		if (map.getStonesOfPlayer(myPlayerNr).isEmpty()){
 			if (printOn) System.out.println("DFSVisit found situation where we got eliminated");
 			return Double.NEGATIVE_INFINITY;
 		}
 
-		//if the tree enters a situation where we won
+		//If we have all stones -> WINN
 		for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
 			if (playerNr == myPlayerNr) continue;
 			enemyStoneCount += map.getStonesOfPlayer(playerNr).size();
@@ -766,6 +770,7 @@ public class Client{
 
 		//get moves for the next player
 		phaseOne = getMovesForNextPlayer(map, everyPossibleMove, phaseOne);
+
 		//check if it reached the end of the game
 		if (everyPossibleMove.isEmpty()) {
 			heuristicForSimulation.updateMap(map); //computing-intensive
@@ -773,26 +778,26 @@ public class Client{
 		}
 
 		//simulate all moves and return best value
-		currBestValue = getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic);
+		currBestValue = getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,  false);
 
 		return currBestValue;
 	}
 
-	private boolean getMovesForNextPlayer(Map map, ArrayList<int[]> movesToReturn, boolean phaseOne){
+	private static boolean getMovesForNextPlayer(Map map, ArrayList<int[]> movesToReturn, boolean phaseOne){
 		ArrayList<int[]> everyPossibleMove;
 		int skippedPlayers = 0;
 
 		//checks if players can make a move
 		while (true) {
 			//get valid moves depending on stage of game
-			if (phaseOne) {
+			if (phaseOne) { //phase one
 				everyPossibleMove = getValidMoves(map);
 			}
 			else { //bomb phase
-				if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) > 0)
-					everyPossibleMove = getPositionsToSetABomb(map);
-				else
-					everyPossibleMove = new ArrayList<>(); //empty list
+				//if we have bombs
+				if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) > 0) everyPossibleMove = getPositionsToSetABomb(map);
+				//if not
+				else everyPossibleMove = new ArrayList<>(); //empty list
 			}
 
 			//if there are possible moves
@@ -801,6 +806,7 @@ public class Client{
 			}
 
 			//if there are no possible moves
+
 			//chek if the next player can make a move
 			map.nextPlayer();
 			skippedPlayers++;
@@ -815,7 +821,7 @@ public class Client{
 				}
 				//if no player can make a move in phase 2 the game ends
 				else {
-					//list is empty here
+					everyPossibleMove = new ArrayList<>(); //empty list
 					break;
 				}
 			}
@@ -828,13 +834,14 @@ public class Client{
 		return phaseOne;
 	}
 
-	private double getBestValueForMoves(Map map, ArrayList<int[]> everyPossibleMove, int depth, boolean phaseOne, double currAlpha, double currBeta, Statistic statistic) {
+	private double getBestValueForMoves(Map map, ArrayList<int[]> everyPossibleMove, int depth, boolean phaseOne, double currAlpha, double currBeta, Statistic statistic, boolean getIndex) {
 		Map nextMap;
 		boolean isMax;
 		double currBestValue;
 		double evaluation;
+		int indexOfBest = 0;
 
-		//set starting values for alpha-beta-pruning
+		//Get if we 're a maximizer or a minimizer - set starting values for alpha-beta-pruning
 		//	Maximizer
 		if (map.getCurrentlyPlayingI() == myPlayerNr) {
 			isMax = true;
@@ -848,12 +855,16 @@ public class Client{
 
 		//add values to statistic
 		if (depth > 1) statistic.interiorNodes += everyPossibleMove.size();
-		else statistic.leaveNodes += everyPossibleMove.size();
+		else statistic.leafNodes += everyPossibleMove.size();
 
+		//print for leaf layer
 		if (extendedPrint && depth == 1) System.out.print("DFS-V(1): ");
 
 		//go over every possible move
 		for (int[] positionAndInfo : everyPossibleMove){
+
+			if (printOn && getIndex)
+				System.out.println(everyPossibleMove.indexOf(positionAndInfo) + ", ");
 
 			//clones Map
 			nextMap = new Map(map);
@@ -888,15 +899,17 @@ public class Client{
 			if (useAB) {
 				//Maximizer
 				if (isMax) {
-					if (evaluation > currBestValue)
+					if (evaluation > currBestValue) {
 						currBestValue = evaluation;
+						if (getIndex) indexOfBest = everyPossibleMove.indexOf(positionAndInfo);
+					}
 					if (currBestValue > currAlpha)
 						currAlpha = currBestValue;
 					if (currBestValue >= currBeta) {
 						int countOfCutoffLeaves = everyPossibleMove.size() - everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
 						if (depth > 1) statistic.interiorNodes -= countOfCutoffLeaves;
-						else statistic.leaveNodes -= countOfCutoffLeaves;
+						else statistic.leafNodes -= countOfCutoffLeaves;
 						//Print before return
 						if (extendedPrint) {
 							System.out.println("Cutoff: Current best value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
@@ -906,15 +919,17 @@ public class Client{
 				}
 				//Minimizer
 				else {
-					if (evaluation < currBestValue)
+					if (evaluation < currBestValue) {
 						currBestValue = evaluation;
+						if (getIndex) indexOfBest = everyPossibleMove.indexOf(positionAndInfo);
+					}
 					if (currBestValue < currBeta)
 						currBeta = currBestValue;
 					if (currBestValue <= currAlpha) {
 						int countOfCutoffLeaves = everyPossibleMove.size()- everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
 						if (depth > 1) statistic.interiorNodes -= countOfCutoffLeaves;
-						else statistic.leaveNodes -= countOfCutoffLeaves;
+						else statistic.leafNodes -= countOfCutoffLeaves;
 						//Print before return
 						if (extendedPrint) {
 							System.out.println("Cutoff: Current best value (" + currBestValue + ") <= current Alpha (" + currAlpha + ") - " + countOfCutoffLeaves + " values skipped");
@@ -926,21 +941,29 @@ public class Client{
 			//without alpha beta pruning
 			else {
 				if (isMax) {
-					if (evaluation > currBestValue) currBestValue = evaluation;
+					if (evaluation > currBestValue) {
+						currBestValue = evaluation;
+						if (getIndex) indexOfBest = everyPossibleMove.indexOf(positionAndInfo);
+					}
 				}
 				else {
-					if (evaluation < currBestValue) currBestValue = evaluation;
+					if (evaluation < currBestValue) {
+						currBestValue = evaluation;
+						if (getIndex) indexOfBest = everyPossibleMove.indexOf(positionAndInfo);
+					}
 				}
 			}
 
 			if (extendedPrint && depth > 1) System.out.println();
 		}
 
-		if (extendedPrint){
-			if (depth > 1) System.out.print("DFS-V("+ depth +"): ");
+		if (printOn && (extendedPrint || getIndex)) {
+			if (depth > 1) System.out.print("DFS-V(" + depth + "): ");
 			System.out.println("returning: " + currBestValue);
 		}
-		return currBestValue;
+
+		if (getIndex) return (double)indexOfBest;
+		else return currBestValue;
 	}
 
 

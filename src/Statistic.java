@@ -1,26 +1,23 @@
 package src;
 
 public class Statistic {
-    public int leaveNodes;
+    public int leafNodes;
     public int interiorNodes;
-    private long totalComputationTime;
-    private int countOfCalcValues;
-    private double brachingFactor;
+    public long totalComputationTime;
+    private double breachingFactor;
 
     public Statistic(){
-        leaveNodes = 0;
+        leafNodes = 0;
         interiorNodes = 0;
         totalComputationTime = 0;
-        countOfCalcValues = 0;
     }
 
     public double getAverageComputationTime() {
-        return (double) totalComputationTime / (double)countOfCalcValues;
+        return (double) totalComputationTime / (double) (leafNodes +interiorNodes);
     }
 
     public void addComputationTime(long totalCalculationTime) {
         this.totalComputationTime += totalCalculationTime;
-        this.countOfCalcValues++;
     }
 
     @Override
@@ -29,8 +26,8 @@ public class Statistic {
         double totalComputationTimeMs = (double)totalComputationTime / 1_000_000_000;
 
         return "\nStatistical values:\n" +
-                "total Nodes = " + (leaveNodes+interiorNodes) + "\n" +
-                "leave Nodes = " + leaveNodes + "\n" +
+                "total Nodes = " + (leafNodes +interiorNodes) + "\n" +
+                "leaf Nodes = " + leafNodes + "\n" +
                 "interiorNodes = " + interiorNodes + "\n" +
                 "average computation time = " + averageComputationTimeMs + "ms\n" +
                 "total computation time = " + totalComputationTimeMs + "s\n";
