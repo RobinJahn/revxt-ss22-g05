@@ -33,7 +33,7 @@ public class Client{
 	final private boolean compare_to_Server;
 	final private boolean useAB;
 	final private boolean useMS;
-	final private boolean timed = false;
+	final private boolean timed = true;
 
 	//global variables
 	private Map map;
@@ -327,7 +327,7 @@ public class Client{
 		int[] bestposition = new int[3];
 
 		startTime = System.nanoTime();
-		UpperTimeLimit = startTime + (long)time * 1000000000 - TimeOffset;
+		UpperTimeLimit = startTime + (long)time * 1000000 - TimeOffset;
 
 		map.setPlayer(myPlayerNr);
 
@@ -348,15 +348,21 @@ public class Client{
 		if (calculateMove) {
 
 			for(int i = 0;i<depth;i++) {
-				if (!timed || System.nanoTime() + TimeNextDepth < UpperTimeLimit)
+				if(printOn) System.out.println("TIEFE: " + i);
+				if (!timed || (UpperTimeLimit - System.nanoTime() - TimeNextDepth > 0))
 				{
 					positionAndInfo = getNextMoveDFS(validMoves, true, i, statistic, UpperTimeLimit);
 					if (!timed || System.nanoTime() < UpperTimeLimit)
 					{
 						bestposition = positionAndInfo;
-						TimeNextDepth = (System.nanoTime() - startTime) * (long) statistic.branchFactor();
+						TimeNextDepth = (System.nanoTime() - startTime) * 5;
 					}
-					if(printOn) System.out.println("Current Time" + System.nanoTime()+ "\nUppertimeLimit " + UpperTimeLimit);
+					if(printOn)
+					{
+						System.out.println("TimenextDepth: " + TimeNextDepth);
+						System.out.println("Current Time" + System.nanoTime()+ "\nUppertimeLimit " + UpperTimeLimit);
+						System.out.println(UpperTimeLimit - System.nanoTime()- TimeNextDepth);
+					}
 				}
 				else
 				{
@@ -775,9 +781,9 @@ public class Client{
 		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
 	}
 
-	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long uppertimelimit){
+	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long UpperTimeLimit){
 		//TimeLimitAbbruch
-		if(timed && System.nanoTime() >= uppertimelimit)
+		if(timed && (UpperTimeLimit - System.nanoTime()<0))
 		{
 			return 0;
 		}
@@ -814,7 +820,7 @@ public class Client{
 		}
 
 		//simulate all moves and return best value
-		currBestValue = getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,false,uppertimelimit);
+		currBestValue = getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,false,UpperTimeLimit);
 
 		return currBestValue;
 	}
@@ -870,9 +876,9 @@ public class Client{
 		return phaseOne;
 	}
 
-	private double getBestValueForMoves(Map map, ArrayList<int[]> everyPossibleMove, int depth, boolean phaseOne, double currAlpha, double currBeta, Statistic statistic, boolean getIndex, long uppertimelimit) {
+	private double getBestValueForMoves(Map map, ArrayList<int[]> everyPossibleMove, int depth, boolean phaseOne, double currAlpha, double currBeta, Statistic statistic, boolean getIndex, long UpperTimeLimit) {
 		//TimeLimit-Abbruch
-		if(timed && System.nanoTime() >= uppertimelimit)
+		if(timed && (UpperTimeLimit - System.nanoTime()<0))
 		{
 			return 0;
 		}
@@ -904,7 +910,7 @@ public class Client{
 		//go over every possible move
 		for (int[] positionAndInfo : everyPossibleMove){
 			//Time Limit Abbruch
-			if(timed && System.nanoTime() >= uppertimelimit)
+			if(timed && (UpperTimeLimit - System.nanoTime()<0))
 			{
 				return 0;
 			}
@@ -929,7 +935,7 @@ public class Client{
 			//Call DFS to start building part-tree of children
 			if (depth > 1) {
 				//call dfs visit
-				evaluation = DFSVisit(nextMap, depth -1, phaseOne, currAlpha, currBeta, statistic,uppertimelimit);
+				evaluation = DFSVisit(nextMap, depth -1, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit);
 			}
 			//get evaluation of map when it's a leaf
 			else {
