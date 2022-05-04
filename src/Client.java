@@ -33,6 +33,7 @@ public class Client{
 	final private boolean compare_to_Server;
 	final private boolean useAB;
 	final private boolean useMS;
+	final private boolean timed = false;
 
 	//global variables
 	private Map map;
@@ -316,6 +317,18 @@ public class Client{
 		double valueOfMap;
 		ArrayList<int[]> validMoves;
 
+		//Timing
+		long startTime;
+		long totalTime;
+		long UpperTimeLimit;
+		long TimeOffset = 10000; // 10ms
+		long TimeNextDepth = 1000; //1ms für die erste Ebene
+
+		int[] bestposition = new int[3];
+
+		startTime = System.nanoTime();
+		UpperTimeLimit = startTime + (long)time * 1000000000 - TimeOffset;
+
 		map.setPlayer(myPlayerNr);
 
 		//calculate possible moves and print map with these
@@ -333,8 +346,26 @@ public class Client{
 
 		//make a calculated move
 		if (calculateMove) {
-			positionAndInfo = getNextMoveDFS(validMoves, true, depth, statistic);
-			if (printOn) System.out.println("Set Keystone at: (" + positionAndInfo[0] + "," + positionAndInfo[1] + "," + positionAndInfo[2] + ")");
+
+			for(int i = 0;i<depth;i++) {
+				if (!timed || System.nanoTime() + TimeNextDepth < UpperTimeLimit)
+				{
+					positionAndInfo = getNextMoveDFS(validMoves, true, i, statistic, UpperTimeLimit);
+					if (!timed || System.nanoTime() < UpperTimeLimit)
+					{
+						bestposition = positionAndInfo;
+						TimeNextDepth = (System.nanoTime() - startTime) * (long) statistic.branchFactor();
+					}
+					if(printOn) System.out.println("Current Time" + System.nanoTime()+ "\nUppertimeLimit " + UpperTimeLimit);
+				}
+				else
+				{
+					break;
+				}
+			}
+
+
+			if (printOn) System.out.println("Set Keystone at: (" + bestposition[0] + "," + bestposition[1] + "," + bestposition[2] + ")");
 		}
 
 		//let player enter a move
@@ -349,7 +380,7 @@ public class Client{
 			char choiceChar;
 
 			//print moves and evaluation
-			positionAndInfo = getNextMoveDFS(validMoves, true, depth, statistic);
+			positionAndInfo = getNextMoveDFS(validMoves, true, depth, statistic, -1);
 			if (printOn) System.out.println("Recommended Move: (" + positionAndInfo[0] + "," + positionAndInfo[1] + "," + positionAndInfo[2] + ")");
 
 			//make a move
@@ -419,15 +450,15 @@ public class Client{
 				}
 			}
 
-			positionAndInfo[0] = posToSetKeystone.x;
-			positionAndInfo[1] = posToSetKeystone.y;
-			positionAndInfo[2] = additionalInfo;
+			bestposition[0] = posToSetKeystone.x;
+			bestposition[1] = posToSetKeystone.y;
+			bestposition[2] = additionalInfo;
 
-			if (printOn) System.out.println("Set Keystone at: (" + positionAndInfo[0] + "," + positionAndInfo[1] + "," + positionAndInfo[2] + ")");
+			if (printOn) System.out.println("Set Keystone at: (" + bestposition[0] + "," + bestposition[1] + "," + bestposition[2] + ")");
 		}
 
 		//send message where to move
-		serverM.sendMove(positionAndInfo[0], positionAndInfo[1], positionAndInfo[2], myPlayerNr);
+		serverM.sendMove(bestposition[0], bestposition[1], bestposition[2], myPlayerNr);
 	}
 
 	/**
@@ -514,7 +545,7 @@ public class Client{
         //get a move
         if (calculateMove){
             if (!pickARandom) {
-                positionAndInfo = getNextMoveDFS(validMoves, false, depth, statistic);
+                positionAndInfo = getNextMoveDFS(validMoves, false, depth, statistic,-1);
                 posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
                 if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
             }
@@ -708,7 +739,7 @@ public class Client{
 	}
 
 	//Functions to calculate the best next move
-	private int[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth, Statistic statistic){
+	private int[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth, Statistic statistic, long UpperTimeLimit){
 		//For DFS
 		int indexOfHighest;
 		//For alpha beta
@@ -716,14 +747,9 @@ public class Client{
 		double beta = Double.POSITIVE_INFINITY;
 		double highest;
 		//For Statistics
-		long startTime;
+		long startTime = System.nanoTime();
 		long totalTime;
-		long UpperTimeLimit;
-		long TimeOffset = 10000; // 10ms
-		long TimeNextDepth = 1000; //1ms für die erste Ebene
-		long depthfactor = 2;
 
-		int bestindex = 0;
 		//check if an error occurred
 		if (everyPossibleMove.isEmpty()){
             System.err.println("Something is wrong - There is no move to check");
@@ -736,27 +762,8 @@ public class Client{
 			System.out.println("Currently at: ");
 		}
 
-		//start timing
-		startTime = System.nanoTime();
-		UpperTimeLimit = startTime + (long)time * 1000000 - TimeOffset;
-
 		//simulate all moves and return best value
-		for(int i = 1;i<depth;i++)
-		{
-			if(System.nanoTime()+TimeNextDepth<UpperTimeLimit)
-			{
-				indexOfHighest = (int) getBestValueForMoves(map, everyPossibleMove, i, phaseOne, alpha, beta, statistic, true,UpperTimeLimit);
-				if(System.nanoTime() < UpperTimeLimit)
-				{
-					bestindex = indexOfHighest;
-					TimeNextDepth = (System.nanoTime()-startTime) * (long)statistic.branchFactor();
-				}
-			}
-			else
-			{
-				break;
-			}
-		}
+		indexOfHighest = (int) getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, true,UpperTimeLimit);
 
 		//end of timing
 		totalTime = System.nanoTime() - startTime;
@@ -765,12 +772,12 @@ public class Client{
 		//print statistic
 		if (printOn) System.out.println(statistic);
 
-		return everyPossibleMove.get(bestindex); //returns the position and the additional info of the move that has the highest evaluation
+		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
 	}
 
 	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long uppertimelimit){
 		//TimeLimitAbbruch
-		if(System.nanoTime() >= uppertimelimit)
+		if(timed && System.nanoTime() >= uppertimelimit)
 		{
 			return 0;
 		}
@@ -865,7 +872,7 @@ public class Client{
 
 	private double getBestValueForMoves(Map map, ArrayList<int[]> everyPossibleMove, int depth, boolean phaseOne, double currAlpha, double currBeta, Statistic statistic, boolean getIndex, long uppertimelimit) {
 		//TimeLimit-Abbruch
-		if(System.nanoTime() >= uppertimelimit)
+		if(timed && System.nanoTime() >= uppertimelimit)
 		{
 			return 0;
 		}
@@ -897,7 +904,7 @@ public class Client{
 		//go over every possible move
 		for (int[] positionAndInfo : everyPossibleMove){
 			//Time Limit Abbruch
-			if(System.nanoTime() >= uppertimelimit)
+			if(timed && System.nanoTime() >= uppertimelimit)
 			{
 				return 0;
 			}
