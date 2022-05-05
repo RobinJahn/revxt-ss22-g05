@@ -319,7 +319,6 @@ public class Client{
 
 		//Timing
 		long startTime;
-		long totalTime;
 		long UpperTimeLimit;
 		long TimeOffset = 10000; // 10ms
 		long TimeNextDepth = 1000; //1ms für die erste Ebene
@@ -369,8 +368,6 @@ public class Client{
 					break;
 				}
 			}
-
-
 			if (printOn) System.out.println("Set Keystone at: (" + bestposition[0] + "," + bestposition[1] + "," + bestposition[2] + ")");
 		}
 
@@ -532,6 +529,17 @@ public class Client{
 		Position posToSetKeystone = new Position(0, 0);
 		Statistic statistic = new Statistic();
 
+		//Timing
+		long startTime;
+		long UpperTimeLimit;
+		long TimeOffset = 10000; // 10ms
+		long TimeNextDepth = 1000; //1ms für die erste Ebene
+
+		int[] bestposition = new int[3];
+
+		startTime = System.nanoTime();
+		UpperTimeLimit = startTime + (long)time * 1000000 - TimeOffset;
+
 		final boolean pickARandom = false;
 
 		map.setPlayer(myPlayerNr);
@@ -549,13 +557,36 @@ public class Client{
 		if (printOn) System.out.println("Value of Map is " + valueOfMap);
 
         //get a move
-        if (calculateMove){
-            if (!pickARandom) {
-                positionAndInfo = getNextMoveDFS(validMoves, false, depth, statistic,-1);
-                posToSetKeystone = new Position(positionAndInfo[0], positionAndInfo[1]);
-                if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
+        if (calculateMove)
+		{
+            if (!pickARandom)
+			{
+				for(int i = 0;i<depth;i++)
+				{
+					if(printOn) System.out.println("TIEFE: " + i);
+					if (!timed || (UpperTimeLimit - System.nanoTime() - TimeNextDepth > 0))
+					{
+						positionAndInfo = getNextMoveDFS(validMoves, false, i, statistic, UpperTimeLimit);
+						if (!timed || System.nanoTime() < UpperTimeLimit)
+						{
+							bestposition = positionAndInfo;
+							TimeNextDepth = (System.nanoTime() - startTime) * 5;
+						}
+						if(printOn)
+						{
+							System.out.println("TimenextDepth: " + TimeNextDepth);
+							System.out.println("Current Time" + System.nanoTime()+ "\nUppertimeLimit " + UpperTimeLimit);
+							System.out.println(UpperTimeLimit - System.nanoTime()- TimeNextDepth);
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
             }
-            else {
+            else
+			{
                 int[] posAndInfo = validMoves.get((int)Math.floor( Math.random() * (validMoves.size()-1) ));
                 posToSetKeystone = new Position(posAndInfo[0], posAndInfo[1]);
             }
@@ -587,6 +618,9 @@ public class Client{
 			sc.close();
         }
 
+
+		posToSetKeystone = new Position(bestposition[0], bestposition[1]);
+		if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
 
 		//send the move
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, 0, myPlayerNr);
