@@ -1,5 +1,7 @@
 package src;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -210,6 +212,9 @@ public class Client{
 					}
 					//set timed
 					timed = time != 0;
+					if(timed && printOn) System.out.println("We have: " + time + "ms");
+
+					if (depth == 0) depth = Integer.MAX_VALUE;
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) makeAMove();
@@ -312,22 +317,12 @@ public class Client{
 	private void makeAMove(){
 		//calculated Move
 		int[] positionAndInfo = new int[]{-1,-1,-1};
-		int[] bestposition = new int[]{-1,-1,-1};
-		Statistic statistic = new Statistic();
+		int[] validPosition = new int[]{-1,-1,-1};
+		final boolean phaseOne = true;
 
 		//general
 		double valueOfMap;
 		ArrayList<int[]> validMoves;
-
-		//Timing
-		long startTime;
-		long UpperTimeLimit;
-		long TimeOffset = 10000; // 10ms
-		long TimeNextDepth = 1000; //1ms für die erste Ebene
-
-
-		startTime = System.nanoTime();
-		UpperTimeLimit = startTime + (long)time * 1000000 - TimeOffset;
 
 		map.setPlayer(myPlayerNr);
 
@@ -346,43 +341,13 @@ public class Client{
 
 		//make a calculated move
 		if (calculateMove) {
-			if (timed) {
-				for (int i = 0; i < depth; i++) {
-					if (printOn) System.out.println("DEPTH: " + i);
-
-					//check time
-					if (timed && (UpperTimeLimit - System.nanoTime() - TimeNextDepth <= 0)) break;
-
-
-					positionAndInfo = getNextMoveDFS(validMoves, true, i, statistic, UpperTimeLimit);
-
-					//TODO: ?????
-					if (!timed || System.nanoTime() < UpperTimeLimit) {
-						bestposition = positionAndInfo;
-						TimeNextDepth = (System.nanoTime() - startTime) * 5;
-					}
-
-					if (printOn) {
-						System.out.println("TimeNextDepth: " + TimeNextDepth);
-						System.out.println("Current Time" + System.nanoTime() + "\nUppertimeLimit " + UpperTimeLimit);
-						System.out.println(UpperTimeLimit - System.nanoTime() - TimeNextDepth);
-					}
-				}
-				//make shure to send a valid move //TODO: check
-				if (bestposition[0] == -1 && bestposition[1] == -1 && bestposition[2] == -1){ //Todo: from where comes this null pointer excption waning
-					validMoves.get( (int)Math.round(Math.random()*(validMoves.size()-1)) );
-				}
-			}
-			//if we have no time limit
-			else {
-				bestposition = getNextMoveDFS(validMoves, true, depth, statistic, UpperTimeLimit);
-			}
-			if (printOn) System.out.println("Set Keystone at: (" + bestposition[0] + "," + bestposition[1] + "," + bestposition[2] + ")");
+			validPosition = getValidPosition(phaseOne, validMoves);
 		}
 
 		//let player enter a move
 		if (!calculateMove) {
 			//Variables needed for human player
+			Statistic statistic = new Statistic();
 			boolean moveIsPossible = false;
 			char fieldValue;
 			int additionalInfo = 0;
@@ -462,15 +427,15 @@ public class Client{
 				}
 			}
 
-			bestposition[0] = posToSetKeystone.x;
-			bestposition[1] = posToSetKeystone.y;
-			bestposition[2] = additionalInfo;
+			validPosition[0] = posToSetKeystone.x;
+			validPosition[1] = posToSetKeystone.y;
+			validPosition[2] = additionalInfo;
 
-			if (printOn) System.out.println("Set Keystone at: (" + bestposition[0] + "," + bestposition[1] + "," + bestposition[2] + ")");
+			if (printOn) System.out.println("Set Keystone at: (" + validPosition[0] + "," + validPosition[1] + "," + validPosition[2] + ")");
 		}
 
 		//send message where to move
-		serverM.sendMove(bestposition[0], bestposition[1], bestposition[2], myPlayerNr);
+		serverM.sendMove(validPosition[0], validPosition[1], validPosition[2], myPlayerNr);
 	}
 
 	/**
@@ -532,22 +497,11 @@ public class Client{
 	//phase 2 - bomb phase
 
 	private void setABomb(){
-		int[] positionAndInfo;
+		int[] validPosition;
 		ArrayList<int[]> validMoves;
 		boolean moveIsPossible = false;
 		Position posToSetKeystone = new Position(0, 0);
-		Statistic statistic = new Statistic();
-
-		//Timing
-		long startTime;
-		long UpperTimeLimit;
-		long TimeOffset = 10000; // 10ms
-		long TimeNextDepth = 1000; //1ms für die erste Ebene
-
-		int[] bestposition = new int[3];
-
-		startTime = System.nanoTime();
-		UpperTimeLimit = startTime + (long)time * 1000000 - TimeOffset;
+		final boolean phaseOne = false;
 
 		final boolean pickARandom = false;
 
@@ -560,43 +514,24 @@ public class Client{
 		}
 
 		//print valid moves
-		if (printOn) System.out.println(map.toString(validMoves, false, useColors));
-		//calculate value of map and print it
-		double valueOfMap = (double)Math.round(heuristic.evaluate()*100)/100;
-		if (printOn) System.out.println("Value of Map is " + valueOfMap);
+		if (printOn) {
+			System.out.println(map.toString(validMoves, false, useColors));
+			//calculate value of map and print it
+			double valueOfMap = (double) Math.round(heuristic.evaluate() * 100) / 100;
+			System.out.println("Value of Map is " + valueOfMap);
+		}
 
         //get a move
         if (calculateMove)
 		{
             if (!pickARandom)
 			{
-				for(int i = 0;i<depth;i++)
-				{
-					if(printOn) System.out.println("TIEFE: " + i);
-					if (!timed || (UpperTimeLimit - System.nanoTime() - TimeNextDepth > 0))
-					{
-						positionAndInfo = getNextMoveDFS(validMoves, false, i, statistic, UpperTimeLimit);
-						if (!timed || System.nanoTime() < UpperTimeLimit)
-						{
-							bestposition = positionAndInfo;
-							TimeNextDepth = (System.nanoTime() - startTime) * 5;
-						}
-						if(printOn)
-						{
-							System.out.println("TimenextDepth: " + TimeNextDepth);
-							System.out.println("Current Time" + System.nanoTime()+ "\nUppertimeLimit " + UpperTimeLimit);
-							System.out.println(UpperTimeLimit - System.nanoTime()- TimeNextDepth);
-						}
-					}
-					else
-					{
-						break;
-					}
-				}
+				validPosition = getValidPosition(phaseOne, validMoves);
+				posToSetKeystone = new Position(validPosition[0], validPosition[1]);
             }
             else
 			{
-                int[] posAndInfo = validMoves.get((int)Math.floor( Math.random() * (validMoves.size()-1) ));
+                int[] posAndInfo = validMoves.get((int)Math.round( Math.random() * (validMoves.size()-1) ));
                 posToSetKeystone = new Position(posAndInfo[0], posAndInfo[1]);
             }
         }
@@ -627,8 +562,6 @@ public class Client{
 			sc.close();
         }
 
-
-		posToSetKeystone = new Position(bestposition[0], bestposition[1]);
 		if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
 
 		//send the move
@@ -750,6 +683,58 @@ public class Client{
 		map.nextPlayer();
 	}
 
+
+	private int[] getValidPosition(boolean phaseOne, ArrayList<int[]> validMoves) {
+		Statistic statistic = new Statistic();
+		int[] positionAndInfo;
+		int[] validPosition;
+		//Timing
+		long startTime = System.nanoTime();
+		long TimeOffset = 10_000; // 10ms
+		long TimeNextDepth = 0;
+		long UpperTimeLimit = startTime + (long)time * 1_000_000 - TimeOffset;
+		double leavesNextDepth;
+		double totalNodesToGoOver;
+
+		//get a random valid position for valid moves
+		validPosition = validMoves.get( (int)Math.round( Math.random() * (validMoves.size()-1) ) );
+
+		if (timed) {
+			for (int currDepth = 1; currDepth <= depth; currDepth++) {
+				//check time
+				if (timed && (UpperTimeLimit - System.nanoTime() - TimeNextDepth <= 0)) break;
+
+				statistic = new Statistic();
+				if (printOn) System.out.println("DEPTH: " + currDepth);
+
+				positionAndInfo = getNextMoveDFS(validMoves, phaseOne, currDepth, statistic, UpperTimeLimit); //takes time
+
+				//if we didn't run out of time
+				if (positionAndInfo[0] != -1 || positionAndInfo[1] != -1 || positionAndInfo[2] != -1) {
+					validPosition = positionAndInfo;
+					//calculate time needed for next depth
+					leavesNextDepth = statistic.leafNodes * statistic.branchFactor();
+					totalNodesToGoOver = statistic.totalNodesSeen + leavesNextDepth;
+					TimeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime());
+
+					//TimeNextDepth = Math.round( (System.nanoTime() - startTime) * statistic.branchFactor() );
+				}
+
+				if (printOn) {
+					System.out.println("Expected time needed for next depth: " + (double)TimeNextDepth/ 1_000_000 + "ms");
+					System.out.println("Time Remaining: " + (double)(UpperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
+					System.out.println("Expected remaining time after calculating next depth: " + (double)(UpperTimeLimit - System.nanoTime() - TimeNextDepth)/ 1_000_000 + "ms");
+					System.out.println();
+				}
+			}
+		}
+		//if we have no time limit
+		else {
+			validPosition = getNextMoveDFS(validMoves, phaseOne, depth, statistic, 0);
+		}
+		return validPosition;
+	}
+
 	//calculate next move
 	//depth 1
 	private int[] getNextMoveWithHeuristik(ArrayList<Position> validMoves, boolean phaseOne){
@@ -791,10 +776,10 @@ public class Client{
 	private int[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth, Statistic statistic, long UpperTimeLimit){
 		//For DFS
 		int indexOfHighest;
+		int[] result;
 		//For alpha beta
 		double alpha = Double.NEGATIVE_INFINITY;
 		double beta = Double.POSITIVE_INFINITY;
-		double highest;
 		//For Statistics
 		long startTime = System.nanoTime();
 		long totalTime;
@@ -814,22 +799,33 @@ public class Client{
 		//simulate all moves and return best value
 		indexOfHighest = (int) getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, true,UpperTimeLimit);
 
+		//if time was up and no move can be returned, return erroc code
+		if (indexOfHighest == -1) {
+			result = new int[]{-1,-1,-1};
+		}
+		//if we got a valid position
+		else {
+			result = everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
+		}
+
 		//end of timing
 		totalTime = System.nanoTime() - startTime;
 		statistic.totalComputationTime += totalTime;
 
 		//print statistic
-		if (printOn) System.out.println(statistic);
+		if (printOn) {
+			if (phaseOne) System.out.println("Recommended Move: (" + result[0] + "," + result[1] + "," + result[2] + ")");
+			else System.out.println("Recommended Move: (" + result[0] + "," + result[1] + ")");
 
-		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
+			System.out.println(statistic);
+		}
+
+		return result;
 	}
 
 	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long UpperTimeLimit){
 		//TimeLimitAbbruch
-		if(timed && (UpperTimeLimit - System.nanoTime()<0))
-		{
-			return 0;
-		}
+		if(timed && (UpperTimeLimit - System.nanoTime()<0)) return 0;
 
 		ArrayList<int[]> everyPossibleMove = new ArrayList<>();
 		double currBestValue;
@@ -849,7 +845,7 @@ public class Client{
 			enemyStoneCount += map.getStonesOfPlayer(playerNr).size();
 		}
 		if (enemyStoneCount == 0) {
-			if (printOn) System.out.println("DFSVisit found situation where we WON");
+			if (printOn && extendedPrint) System.out.println("DFSVisit found situation where we WON");
 			return Double.POSITIVE_INFINITY;
 		}
 
@@ -920,12 +916,6 @@ public class Client{
 	}
 
 	private double getBestValueForMoves(Map map, ArrayList<int[]> everyPossibleMove, int depth, boolean phaseOne, double currAlpha, double currBeta, Statistic statistic, boolean getIndex, long UpperTimeLimit) {
-		//TimeLimit-Abbruch
-		if(timed && (UpperTimeLimit - System.nanoTime()<0))
-		{
-			return 0;
-		}
-
 		//declarations
 		Map nextMap;
 		boolean isMax;
@@ -956,9 +946,10 @@ public class Client{
 		if (useMS) {
 			for (int[] positionAndInfo : everyPossibleMove) {
 				//Time Limit Abbruch
-				if(timed && (UpperTimeLimit - System.nanoTime()<0)) return 0;
-
-
+				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
+					if (getIndex) return -1;
+					else return 0;
+				}
 
 				//clones Map
 				nextMap = new Map(map);
@@ -1000,7 +991,10 @@ public class Client{
 		//go over every possible move
 		for (int i = 0; i < everyPossibleMove.size(); i++){
 			//Time Limit Abbruch
-			if(timed && (UpperTimeLimit - System.nanoTime()<0)) return 0;
+			if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
+				if (getIndex) return -1;
+				else return 0;
+			}
 
 
 			int[] positionAndInfo = everyPossibleMove.get(i);

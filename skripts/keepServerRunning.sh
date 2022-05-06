@@ -7,6 +7,8 @@ mapName=${1?"argument 1 needs to be map name"}
 
 depth=${2?"argument 2 needs to be the depth"}
 
+time=${3?"argument 3 needs to be the time"}
+
 if [[ ! -f "$mapName" ]]; then
     echo "$mapName doesn't exists."
 	exit
@@ -34,5 +36,5 @@ do
 	done
 
 	#start server
-	./server_nogl -m $mapName -d $depth
+	./server_nogl -m $mapName -d $depth -t $time
 done

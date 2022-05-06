@@ -28,7 +28,7 @@ public class Statistic {
     }
 
     public double branchFactor(){
-        return (double)totalNodesSeen/timesNodesGotAdded;
+        return (double)(totalNodesSeen-1)/timesNodesGotAdded;
     }
 
     public void reduceNodes(int countOfCutoffLeaves, int depth) {
@@ -40,7 +40,7 @@ public class Statistic {
     @Override
     public String toString() {
         double averageComputationTimeMs = getAverageComputationTime() / 1_000_000;
-        double totalComputationTimeMs = (double)totalComputationTime / 1_000_000_000;
+        double totalComputationTimeMs = (double)totalComputationTime / 1_000_000;
 
         return "\nStatistical values:\n" +
                 "total Nodes seen = " + totalNodesSeen + "\n" +
@@ -48,8 +48,8 @@ public class Statistic {
                 "leaf Nodes visited = " + leafNodes + "\n" +
                 "interiorNodes visited= " + interiorNodes + "\n" +
                 "average computation time = " + averageComputationTimeMs + "ms\n" +
-                "total computation time = " + totalComputationTimeMs + "s\n" +
-                "branching factor = " + branchFactor() + " = " + totalNodesSeen + "/" + timesNodesGotAdded + "\n";
+                "total computation time = " + totalComputationTimeMs + "ms\n" +
+                "branching factor = " + branchFactor() + " = " + (totalNodesSeen-1) + "/" + timesNodesGotAdded + "\n";
     }
 
 
