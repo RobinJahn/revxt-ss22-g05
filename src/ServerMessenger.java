@@ -42,7 +42,6 @@ public class ServerMessenger {
             time = dis.readInt(); //TODO: unsigned?
             depth = dis.readUnsignedByte();
 
-            //TODO: if time is set ignore depth
             return new int[]{time, depth};
         }
         catch (IOException e) {

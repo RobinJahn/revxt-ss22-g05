@@ -33,7 +33,7 @@ public class Client{
 	final private boolean compare_to_Server;
 	final private boolean useAB;
 	final private boolean useMS;
-	final private boolean timed = true;
+	private boolean timed = true;
 
 	//global variables
 	private Map map;
@@ -200,15 +200,16 @@ public class Client{
 
 					//read rest of move request
 					timeAndDepth = serverM.readRestOfMoveRequest(); //ignore time at the moment
+					time = timeAndDepth[0];
+					depth = timeAndDepth[1];
+
 					if (time == -1 || depth == -1) {
 						System.err.println("Time and Depth couldn't be read");
 						gameOngoing = false;
 						break;
 					}
-					else {
-						time = timeAndDepth[0];
-						depth = timeAndDepth[1];
-					}
+					//set timed
+					timed = time != 0;
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) makeAMove();
@@ -310,7 +311,8 @@ public class Client{
 	 */
 	private void makeAMove(){
 		//calculated Move
-		int[] positionAndInfo = new int[3];
+		int[] positionAndInfo = new int[]{-1,-1,-1};
+		int[] bestposition = new int[]{-1,-1,-1};
 		Statistic statistic = new Statistic();
 
 		//general
@@ -323,7 +325,6 @@ public class Client{
 		long TimeOffset = 10000; // 10ms
 		long TimeNextDepth = 1000; //1ms für die erste Ebene
 
-		int[] bestposition = new int[3];
 
 		startTime = System.nanoTime();
 		UpperTimeLimit = startTime + (long)time * 1000000 - TimeOffset;
@@ -345,28 +346,36 @@ public class Client{
 
 		//make a calculated move
 		if (calculateMove) {
+			if (timed) {
+				for (int i = 0; i < depth; i++) {
+					if (printOn) System.out.println("DEPTH: " + i);
 
-			for(int i = 0;i<depth;i++) {
-				if(printOn) System.out.println("TIEFE: " + i);
-				if (!timed || (UpperTimeLimit - System.nanoTime() - TimeNextDepth > 0))
-				{
+					//check time
+					if (timed && (UpperTimeLimit - System.nanoTime() - TimeNextDepth <= 0)) break;
+
+
 					positionAndInfo = getNextMoveDFS(validMoves, true, i, statistic, UpperTimeLimit);
-					if (!timed || System.nanoTime() < UpperTimeLimit)
-					{
+
+					//TODO: ?????
+					if (!timed || System.nanoTime() < UpperTimeLimit) {
 						bestposition = positionAndInfo;
 						TimeNextDepth = (System.nanoTime() - startTime) * 5;
 					}
-					if(printOn)
-					{
-						System.out.println("TimenextDepth: " + TimeNextDepth);
-						System.out.println("Current Time" + System.nanoTime()+ "\nUppertimeLimit " + UpperTimeLimit);
-						System.out.println(UpperTimeLimit - System.nanoTime()- TimeNextDepth);
+
+					if (printOn) {
+						System.out.println("TimeNextDepth: " + TimeNextDepth);
+						System.out.println("Current Time" + System.nanoTime() + "\nUppertimeLimit " + UpperTimeLimit);
+						System.out.println(UpperTimeLimit - System.nanoTime() - TimeNextDepth);
 					}
 				}
-				else
-				{
-					break;
+				//make shure to send a valid move //TODO: check
+				if (bestposition[0] == -1 && bestposition[1] == -1 && bestposition[2] == -1){ //Todo: from where comes this null pointer excption waning
+					validMoves.get( (int)Math.round(Math.random()*(validMoves.size()-1)) );
 				}
+			}
+			//if we have no time limit
+			else {
+				bestposition = getNextMoveDFS(validMoves, true, depth, statistic, UpperTimeLimit);
 			}
 			if (printOn) System.out.println("Set Keystone at: (" + bestposition[0] + "," + bestposition[1] + "," + bestposition[2] + ")");
 		}
@@ -917,11 +926,13 @@ public class Client{
 			return 0;
 		}
 
+		//declarations
 		Map nextMap;
 		boolean isMax;
 		double currBestValue;
 		double evaluation;
 		int indexOfBest = 0;
+		ArrayList<Map> mapList = new ArrayList<>();
 
 		//Get if we 're a maximizer or a minimizer - set starting values for alpha-beta-pruning
 		//	Maximizer
@@ -941,29 +952,79 @@ public class Client{
 		//print for leaf layer
 		if (extendedPrint && depth == 1) System.out.print("DFS-V(1): ");
 
-		//go over every possible move
-		for (int[] positionAndInfo : everyPossibleMove){
-			//Time Limit Abbruch
-			if(timed && (UpperTimeLimit - System.nanoTime()<0))
-			{
-				return 0;
+		//simulate every move
+		if (useMS) {
+			for (int[] positionAndInfo : everyPossibleMove) {
+				//Time Limit Abbruch
+				if(timed && (UpperTimeLimit - System.nanoTime()<0)) return 0;
+
+
+
+				//clones Map
+				nextMap = new Map(map);
+
+				//if it's the first phase
+				if (phaseOne) {
+					updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
+				}
+				//if it's the bomb phase
+				else {
+					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
+				}
+
+				mapList.add(nextMap);
 			}
+		}
+
+		if (isMax) {
+			mapList.sort(new Comparator<Map>() {
+				@Override
+				public int compare(Map m1, Map m2) {
+					double valueM1 = Heuristic.fastEvaluate(m1, myPlayerNr);
+					double valueM2 = Heuristic.fastEvaluate(m2, myPlayerNr);
+					return Double.compare(valueM2, valueM1);
+				}
+			});
+		}
+		else {
+			mapList.sort(new Comparator<Map>() {
+				@Override
+				public int compare(Map m1, Map m2) {
+					double valueM1 = Heuristic.fastEvaluate(m1, myPlayerNr);
+					double valueM2 = Heuristic.fastEvaluate(m2, myPlayerNr);
+					return Double.compare(valueM1, valueM2);
+				}
+			});
+		}
+
+		//go over every possible move
+		for (int i = 0; i < everyPossibleMove.size(); i++){
+			//Time Limit Abbruch
+			if(timed && (UpperTimeLimit - System.nanoTime()<0)) return 0;
+
+
+			int[] positionAndInfo = everyPossibleMove.get(i);
 
 			if (printOn && getIndex) {
 				if (extendedPrint) System.out.println(everyPossibleMove.indexOf(positionAndInfo) + ", ");
 				else System.out.print(everyPossibleMove.indexOf(positionAndInfo) + ", ");
 			}
 
-			//clones Map
-			nextMap = new Map(map);
+			if (!useMS) {
+				//clones Map
+				nextMap = new Map(map);
 
-			//if it's the first phase
-			if (phaseOne) {
-				updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
+				//if it's the first phase
+				if (phaseOne) {
+					updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
+				}
+				//if it's the bomb phase
+				else {
+					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
+				}
 			}
-			//if it's the bomb phase
-			else {
-				updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
+			else{
+				nextMap = mapList.get(i);
 			}
 
 			//Call DFS to start building part-tree of children
@@ -989,7 +1050,7 @@ public class Client{
 				if (isMax) {
 					if (evaluation > currBestValue) {
 						currBestValue = evaluation;
-						if (getIndex) indexOfBest = everyPossibleMove.indexOf(positionAndInfo);
+						indexOfBest = i;
 					}
 					if (currBestValue > currAlpha)
 						currAlpha = currBestValue;
@@ -1008,7 +1069,7 @@ public class Client{
 				else {
 					if (evaluation < currBestValue) {
 						currBestValue = evaluation;
-						if (getIndex) indexOfBest = everyPossibleMove.indexOf(positionAndInfo);
+						indexOfBest = i;
 					}
 					if (currBestValue < currBeta)
 						currBeta = currBestValue;
@@ -1029,13 +1090,13 @@ public class Client{
 				if (isMax) {
 					if (evaluation > currBestValue) {
 						currBestValue = evaluation;
-						if (getIndex) indexOfBest = everyPossibleMove.indexOf(positionAndInfo);
+						indexOfBest = i;
 					}
 				}
 				else {
 					if (evaluation < currBestValue) {
 						currBestValue = evaluation;
-						if (getIndex) indexOfBest = everyPossibleMove.indexOf(positionAndInfo);
+						indexOfBest = i;
 					}
 				}
 			}

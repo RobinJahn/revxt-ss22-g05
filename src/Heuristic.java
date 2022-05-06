@@ -115,6 +115,29 @@ public class Heuristic {
         return result;
     }
 
+    public static double fastEvaluate(Map map, int myPlayerNr){
+
+        int myStoneCout = map.getStonesOfPlayer(myPlayerNr).size();
+        int enemyStoneCount = 0;
+        double result;
+
+        for (int playerNr = 1; playerNr < map.getAnzPlayers(); playerNr++){
+            if (playerNr == myPlayerNr) continue;
+            enemyStoneCount += map.getStonesOfPlayer(playerNr).size();
+        }
+
+        result = (double)myStoneCout / ((double)enemyStoneCount/ (map.getAnzPlayers() - 1));
+        return result;
+    }
+
+    public static ArrayList<Double> fastEvalAll(ArrayList<Map> mapList, int myPlayerNr){
+        ArrayList<Double> result = new ArrayList<>();
+        for (Map map : mapList){
+            result.add(fastEvaluate(map, myPlayerNr));
+        }
+        return result;
+    }
+
     /**
      * prints out the evaluation matrix
      */
