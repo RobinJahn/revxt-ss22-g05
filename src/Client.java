@@ -1,11 +1,8 @@
 package src;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.Time;
 import java.util.*;
 
 class Moves {
@@ -695,6 +692,7 @@ public class Client{
 		long UpperTimeLimit = startTime + (long)time * 1_000_000 - TimeOffset;
 		double leavesNextDepth;
 		double totalNodesToGoOver;
+		double approximation = 1.0;
 
 		//get a random valid position for valid moves
 		validPosition = validMoves.get( (int)Math.round( Math.random() * (validMoves.size()-1) ) );
@@ -715,8 +713,9 @@ public class Client{
 					//calculate time needed for next depth
 					leavesNextDepth = statistic.leafNodes * statistic.branchFactor();
 					totalNodesToGoOver = statistic.totalNodesSeen + leavesNextDepth;
-					TimeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime());
 
+					approximation = (approximation + ((System.nanoTime()-(double)statistic.totalComputationTime)/TimeNextDepth))/2;
+					TimeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime() * approximation);
 					//TimeNextDepth = Math.round( (System.nanoTime() - startTime) * statistic.branchFactor() );
 				}
 
