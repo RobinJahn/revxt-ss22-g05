@@ -82,7 +82,7 @@ public class Client{
 				case "-ab": useAB = false; break;
 
 				case "--no-sorting":
-				case "n": useMS = false; break;
+				case "-n": useMS = false; break;
 				//needs to be the last one before help
 				case "--multiplier":
 				case "-m":
@@ -338,7 +338,7 @@ public class Client{
 
 		//make a calculated move
 		if (calculateMove) {
-			validPosition = getValidPosition(phaseOne, validMoves);
+			validPosition = getMoveTimeDepth(phaseOne, validMoves);
 		}
 
 		//let player enter a move
@@ -346,6 +346,7 @@ public class Client{
 			//Variables needed for human player
 			Statistic statistic = new Statistic();
 			boolean moveIsPossible = false;
+			double[] valueAndIndex;
 			char fieldValue;
 			int additionalInfo = 0;
 			Position posToSetKeystone = new Position(0, 0);
@@ -354,8 +355,15 @@ public class Client{
 			char choiceChar;
 
 			//print moves and evaluation
-			positionAndInfo = getNextMoveDFS(validMoves, true, depth, statistic, -1);
-			if (printOn) System.out.println("Recommended Move: (" + positionAndInfo[0] + "," + positionAndInfo[1] + "," + positionAndInfo[2] + ")");
+			valueAndIndex = getNextMoveDFS(validMoves, true, depth, statistic, -1);
+			if (valueAndIndex[1] != -1) {
+				positionAndInfo = validMoves.get( (int)valueAndIndex[1] );
+				if (printOn) System.out.println("Recommended Move: (" + positionAndInfo[0] + "," + positionAndInfo[1] + "," + positionAndInfo[2] + ")");
+			}
+			else {
+				System.err.println("Something went wrong. Didn't get a value back");
+			}
+
 
 			//make a move
 			while (!moveIsPossible) {
@@ -523,7 +531,7 @@ public class Client{
 		{
             if (!pickARandom)
 			{
-				validPosition = getValidPosition(phaseOne, validMoves);
+				validPosition = getMoveTimeDepth(phaseOne, validMoves);
 				posToSetKeystone = new Position(validPosition[0], validPosition[1]);
             }
             else
@@ -681,9 +689,9 @@ public class Client{
 	}
 
 
-	private int[] getValidPosition(boolean phaseOne, ArrayList<int[]> validMoves) {
+	private int[] getMoveTimeDepth(boolean phaseOne, ArrayList<int[]> everyPossibleMove) {
 		Statistic statistic = new Statistic();
-		int[] positionAndInfo;
+		double[] valueAndIndex;
 		int[] validPosition;
 		//Timing
 		long startTime = System.nanoTime();
@@ -695,7 +703,7 @@ public class Client{
 		double approximation = 1.0;
 
 		//get a random valid position for valid moves
-		validPosition = validMoves.get( (int)Math.round( Math.random() * (validMoves.size()-1) ) );
+		validPosition = everyPossibleMove.get( (int)Math.round( Math.random() * (everyPossibleMove.size()-1) ) );
 
 		if (timed) {
 			for (int currDepth = 1; currDepth <= depth; currDepth++) {
@@ -705,21 +713,35 @@ public class Client{
 				statistic = new Statistic();
 				if (printOn) System.out.println("DEPTH: " + currDepth);
 
-				positionAndInfo = getNextMoveDFS(validMoves, phaseOne, currDepth, statistic, UpperTimeLimit); //takes time
+				valueAndIndex = getNextMoveDFS(everyPossibleMove, phaseOne, currDepth, statistic, UpperTimeLimit); //takes time
 
 				//if we didn't run out of time
-				if (positionAndInfo[0] != -1 || positionAndInfo[1] != -1 || positionAndInfo[2] != -1) {
-					validPosition = positionAndInfo;
+				if (valueAndIndex[1] != -1) {
+
+					validPosition = everyPossibleMove.get( (int)valueAndIndex[1] );
 					//calculate time needed for next depth
 					leavesNextDepth = statistic.leafNodes * statistic.branchFactor();
 					totalNodesToGoOver = statistic.totalNodesSeen + leavesNextDepth;
 
-					approximation = (approximation + ((System.nanoTime()-(double)statistic.totalComputationTime)/TimeNextDepth))/2;
-					TimeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime() * approximation);
+					//approximation = (approximation + ((System.nanoTime() - (double)statistic.totalComputationTime) /TimeNextDepth) ) / 2;
+					//TimeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime() * approximation);
+					TimeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime());
+
 					//TimeNextDepth = Math.round( (System.nanoTime() - startTime) * statistic.branchFactor() );
 				}
 
+				//If we know we won or lost -> no need to check deeper
+				if (valueAndIndex[0] == Double.NEGATIVE_INFINITY || valueAndIndex[0] == Double.POSITIVE_INFINITY){
+					return validPosition;
+				}
+
+				//prints
 				if (printOn) {
+					if (phaseOne) System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + "," + validPosition[2] + ")");
+					else System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + ")");
+
+					System.out.println(statistic);
+
 					System.out.println("Expected time needed for next depth: " + (double)TimeNextDepth/ 1_000_000 + "ms");
 					System.out.println("Time Remaining: " + (double)(UpperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
 					System.out.println("Expected remaining time after calculating next depth: " + (double)(UpperTimeLimit - System.nanoTime() - TimeNextDepth)/ 1_000_000 + "ms");
@@ -729,14 +751,21 @@ public class Client{
 		}
 		//if we have no time limit
 		else {
-			validPosition = getNextMoveDFS(validMoves, phaseOne, depth, statistic, 0);
+			valueAndIndex = getNextMoveDFS(everyPossibleMove, phaseOne, depth, statistic, 0);
+			if (valueAndIndex[1] != -1) {
+				validPosition = everyPossibleMove.get( (int)valueAndIndex[1] );
+			}
+
 		}
+
+
+
 		return validPosition;
 	}
 
 	//calculate next move
 	//depth 1
-	private int[] getNextMoveWithHeuristik(ArrayList<Position> validMoves, boolean phaseOne){
+	private int[] getNextMoveWithHeuristic(ArrayList<Position> validMoves, boolean phaseOne){
 		ArrayList<int[]> everyPossibleMove;
 		ArrayList<Double> valueOfMap = new ArrayList<>();
 		Map nextMap;
@@ -772,10 +801,9 @@ public class Client{
 	}
 
 	//Functions to calculate the best next move
-	private int[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth, Statistic statistic, long UpperTimeLimit){
+	private double[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth, Statistic statistic, long UpperTimeLimit){
 		//For DFS
-		int indexOfHighest;
-		int[] result;
+		double[] valueAndIndex;
 		//For alpha beta
 		double alpha = Double.NEGATIVE_INFINITY;
 		double beta = Double.POSITIVE_INFINITY;
@@ -789,37 +817,14 @@ public class Client{
             return null;
         }
 
-		//Print start of dfs
-		if (printOn) {
-			System.out.println("Calculating values for " + everyPossibleMove.size() + " Moves");
-			System.out.println("Currently at: ");
-		}
-
 		//simulate all moves and return best value
-		indexOfHighest = (int) getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, true,UpperTimeLimit);
-
-		//if time was up and no move can be returned, return erroc code
-		if (indexOfHighest == -1) {
-			result = new int[]{-1,-1,-1};
-		}
-		//if we got a valid position
-		else {
-			result = everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
-		}
+		valueAndIndex = getBestValueAndIndexFromMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, UpperTimeLimit);
 
 		//end of timing
 		totalTime = System.nanoTime() - startTime;
 		statistic.totalComputationTime += totalTime;
 
-		//print statistic
-		if (printOn) {
-			if (phaseOne) System.out.println("Recommended Move: (" + result[0] + "," + result[1] + "," + result[2] + ")");
-			else System.out.println("Recommended Move: (" + result[0] + "," + result[1] + ")");
-
-			System.out.println(statistic);
-		}
-
-		return result;
+		return valueAndIndex;
 	}
 
 	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long UpperTimeLimit){
@@ -830,15 +835,16 @@ public class Client{
 		double currBestValue;
 		double currAlpha = alpha;
 		double currBeta = beta;
+		double[] valueAndIndex;
 		int enemyStoneCount = 0;
 
-		//If we have no stones -> LOSS
+		//If we have no stones -> LOSS //TODO: add Overwrite stones
 		if (map.getStonesOfPlayer(myPlayerNr).isEmpty()){
 			if (printOn && extendedPrint) System.out.println("DFSVisit found situation where we got eliminated");
 			return Double.NEGATIVE_INFINITY;
 		}
 
-		//If we have all stones -> WINN
+		//If we have all stones -> WINN //TODO: add Overwrite stones
 		for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
 			if (playerNr == myPlayerNr) continue;
 			enemyStoneCount += map.getStonesOfPlayer(playerNr).size();
@@ -858,7 +864,8 @@ public class Client{
 		}
 
 		//simulate all moves and return best value
-		currBestValue = getBestValueForMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,false,UpperTimeLimit);
+		valueAndIndex = getBestValueAndIndexFromMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit);
+		currBestValue = valueAndIndex[0];
 
 		return currBestValue;
 	}
@@ -914,14 +921,22 @@ public class Client{
 		return phaseOne;
 	}
 
-	private double getBestValueForMoves(Map map, ArrayList<int[]> everyPossibleMove, int depth, boolean phaseOne, double currAlpha, double currBeta, Statistic statistic, boolean getIndex, long UpperTimeLimit) {
+	private double[] getBestValueAndIndexFromMoves(Map map, ArrayList<int[]> everyPossibleMove, int depth, boolean phaseOne, double currAlpha, double currBeta, Statistic statistic, long UpperTimeLimit) {
 		//declarations
 		Map nextMap;
 		boolean isMax;
 		double currBestValue;
 		double evaluation;
 		int indexOfBest = 0;
+		int currIndex;
 		ArrayList<Map> mapList = new ArrayList<>();
+		ArrayList<Integer> indexList = new ArrayList<>(everyPossibleMove.size());
+		boolean firstCall = (currAlpha == Double.NEGATIVE_INFINITY && currBeta == Double.POSITIVE_INFINITY);
+
+		//fill indexList
+		for (int i = 0; i < everyPossibleMove.size(); i++){
+			indexList.add(i);
+		}
 
 		//Get if we 're a maximizer or a minimizer - set starting values for alpha-beta-pruning
 		//	Maximizer
@@ -938,16 +953,20 @@ public class Client{
 		//add values to statistic
 		statistic.addNodes(everyPossibleMove.size(), depth);
 
-		//print for leaf layer
+		//prints
+		if (firstCall && printOn) {//Print start of dfs
+			System.out.println("Calculating values for " + everyPossibleMove.size() + " Moves");
+			System.out.println("Currently at: ");
+		}
+
 		if (extendedPrint && depth == 1) System.out.print("DFS-V(1): ");
 
-		//simulate every move
+		//simulate every move and sort the maps
 		if (useMS) {
 			for (int[] positionAndInfo : everyPossibleMove) {
 				//Time Limit Abbruch
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
-					if (getIndex) return -1;
-					else return 0;
+					return new double[]{0, -1};
 				}
 
 				//clones Map
@@ -964,43 +983,34 @@ public class Client{
 
 				mapList.add(nextMap);
 			}
-		}
 
-		if (isMax) {
-			mapList.sort(new Comparator<Map>() {
+			indexList.sort(new Comparator<Integer>() {
 				@Override
-				public int compare(Map m1, Map m2) {
+				public int compare(Integer i1, Integer i2) {
+					Map m1 = mapList.get(i1);
+					Map m2 = mapList.get(i2);
 					double valueM1 = Heuristic.fastEvaluate(m1, myPlayerNr);
 					double valueM2 = Heuristic.fastEvaluate(m2, myPlayerNr);
-					return Double.compare(valueM2, valueM1);
-				}
-			});
-		}
-		else {
-			mapList.sort(new Comparator<Map>() {
-				@Override
-				public int compare(Map m1, Map m2) {
-					double valueM1 = Heuristic.fastEvaluate(m1, myPlayerNr);
-					double valueM2 = Heuristic.fastEvaluate(m2, myPlayerNr);
-					return Double.compare(valueM1, valueM2);
+					if (isMax) return Double.compare(valueM2, valueM1);
+					else return Double.compare(valueM1, valueM2);
 				}
 			});
 		}
 
 		//go over every possible move
 		for (int i = 0; i < everyPossibleMove.size(); i++){
+
 			//Time Limit Abbruch
 			if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-				if (getIndex) return -1;
-				else return 0;
+				return new double[]{0, -1};
 			}
 
+			currIndex = indexList.get(i);
+			int[] positionAndInfo = everyPossibleMove.get( currIndex );
 
-			int[] positionAndInfo = everyPossibleMove.get(i);
-
-			if (printOn && getIndex) {
-				if (extendedPrint) System.out.println(everyPossibleMove.indexOf(positionAndInfo) + ", ");
-				else System.out.print(everyPossibleMove.indexOf(positionAndInfo) + ", ");
+			if (printOn && (firstCall || extendedPrint)) {
+				if (depth > 1) System.out.println(i + ", ");
+				else System.out.print(i + ", ");
 			}
 
 			if (!useMS) {
@@ -1017,7 +1027,7 @@ public class Client{
 				}
 			}
 			else{
-				nextMap = mapList.get(i);
+				nextMap = mapList.get( currIndex );
 			}
 
 			//Call DFS to start building part-tree of children
@@ -1055,14 +1065,14 @@ public class Client{
 						if (extendedPrint) {
 							System.out.println("Cutoff: Current best value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
 						}
-						return currBestValue;
+						return new double[]{currBestValue, indexOfBest};
 					}
 				}
 				//Minimizer
 				else {
 					if (evaluation < currBestValue) {
 						currBestValue = evaluation;
-						indexOfBest = i;
+						indexOfBest = currIndex;
 					}
 					if (currBestValue < currBeta)
 						currBeta = currBestValue;
@@ -1074,7 +1084,7 @@ public class Client{
 						if (extendedPrint) {
 							System.out.println("Cutoff: Current best value (" + currBestValue + ") <= current Alpha (" + currAlpha + ") - " + countOfCutoffLeaves + " values skipped");
 						}
-						return currBestValue;
+						return new double[]{currBestValue, indexOfBest};
 					}
 				}
 			}
@@ -1083,13 +1093,13 @@ public class Client{
 				if (isMax) {
 					if (evaluation > currBestValue) {
 						currBestValue = evaluation;
-						indexOfBest = i;
+						indexOfBest = currIndex;
 					}
 				}
 				else {
 					if (evaluation < currBestValue) {
 						currBestValue = evaluation;
-						indexOfBest = i;
+						indexOfBest = currIndex;
 					}
 				}
 			}
@@ -1097,13 +1107,12 @@ public class Client{
 			if (extendedPrint && depth > 1) System.out.println();
 		}
 
-		if (printOn && (extendedPrint || getIndex)) {
+		if (printOn && (extendedPrint || firstCall)) {
 			if (depth > 1) System.out.print("DFS-V(" + depth + "): ");
 			System.out.println("returning: " + currBestValue);
 		}
 
-		if (getIndex) return (double)indexOfBest;
-		else return currBestValue;
+		return new double[]{currBestValue, indexOfBest};
 	}
 
 

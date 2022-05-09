@@ -36,5 +36,11 @@ do
 	done
 
 	#start server
-	./server_nogl -m $mapName -d $depth -t $time
+	if [ $time -eq 0 ]
+	then
+		./server_nogl -m $mapName -d $depth
+	else
+		./server_nogl -m $mapName -d $depth -t $time
+	fi
+
 done
