@@ -1,4 +1,5 @@
 #!/bin/bash
+
 clear
 
 i=1
@@ -29,13 +30,13 @@ cd serverAndAi
 
 while [ $i -le $max ]
 do
-	#set m's to random varaibles
+	#set m's to random variables
 	m1=$(($RANDOM % 10))
 	m2=$(($RANDOM % 10))
 	m3=$(($RANDOM % 10))
 	m4=$(($RANDOM % 10))
 
-	echo "skript: Set m's to:"
+	echo "script: Set m's to:"
 	echo "m1: $m1"
        	echo "m2: $m2"
       	echo "m3: $m3" 
@@ -46,30 +47,30 @@ do
 	for mapName in "${maps[@]}"
 	do
 		if $extendedPrint; then echo ""; fi
-		echo "skript: now Playing on: $mapName"
+		echo "script: now Playing on: $mapName"
 		
 
 		# start own client
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
 		sleep 3 && 
-			if true; then echo "skript: startet client"; fi && 
+			if true; then echo "script: started client"; fi &&
 			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 -ab -c &> "clientOut.txt" &
 		pid1=$!
 
 
-		#get anzPlayer 
-		anzPlayer=$(awk '(NR==1){printf("%d",$1)}' "../Maps/$mapName")
-		if $extendedPrint; then echo "script: anzahl der Player: $anzPlayer"; fi
+		#get countOfPlayer
+		countOfPlayer=$(awk '(NR==1){printf("%d",$1)}' "../Maps/$mapName")
+		if $extendedPrint; then echo "script: count of players: $countOfPlayer"; fi
 	
 		#start trivial ai's
-		if $extendedPrint; then echo "skript: start trivial AIs in 3 sec"; fi
+		if $extendedPrint; then echo "script: start trivial AIs in 3 sec"; fi
 		ii=1
 		pidAIs=()
-		while [ $ii -lt $anzPlayer ]
+		while [ $ii -lt $countOfPlayer ]
 		do
-			if $extendedPrint; then echo "skript: start ai $ii"; fi
+			if $extendedPrint; then echo "script: start ai $ii"; fi
 			sleep 3 && 
-				if true; then echo "skript: startet ai"; fi && 
+				if true; then echo "script: started ai"; fi &&
 				./ai_trivial -q &
 			pidAIs+=(ii)
 			ii=$((ii+1))
@@ -77,8 +78,8 @@ do
 
 		#start server
 		if $extendedPrint; then echo "script: server started"; fi
-		#./server_nogl -C -m ../Maps/$mapName -d 3 | tee $outFile #with output of server
-		./server_nogl -C -m ../Maps/$mapName -d 3 &> $outFile #without
+		#./server_nogl -C -m ../Maps/$mapName -t 1 | tee $outFile #with output of server
+		./server_nogl -C -m ../Maps/$mapName -t 1 &> $outFile #without
 		
 	
 		#when game is over

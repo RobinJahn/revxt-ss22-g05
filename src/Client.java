@@ -51,7 +51,7 @@ public class Client{
 		boolean printOn = true;
 		boolean useColors = true;
 		boolean compare_to_Server = false;
-		boolean extendedPrint = true;
+		boolean extendedPrint = false;
 		//variables for the server
 		String ip = "127.0.0.1";
 		int port = 7777;
