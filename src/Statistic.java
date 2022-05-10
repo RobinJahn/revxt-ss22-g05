@@ -4,7 +4,7 @@ public class Statistic {
     public int leafNodes;
     public int interiorNodes;
     public int totalNodesSeen;
-    private int timesNodesGotAdded;
+    public int timesNodesGotAdded;
     public long totalComputationTime;
 
 

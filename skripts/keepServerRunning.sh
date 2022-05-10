@@ -38,9 +38,17 @@ do
 	#start server
 	if [ $time -eq 0 ]
 	then
-		./server_nogl -m $mapName -d $depth
+		if [ $depth -eq 0 ]; then
+			./server_nogl -m $mapName
+		else
+			./server_nogl -m $mapName -d $depth
+		fi
 	else
-		./server_nogl -m $mapName -d $depth -t $time
+		if [ $depth -eq 0 ]; then
+			./server_nogl -m $mapName -t $time
+		else
+		       	./server_nogl -m $mapName -d $depth -t $time
+		fi
 	fi
 
 done
