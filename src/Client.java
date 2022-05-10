@@ -51,7 +51,7 @@ public class Client{
 		boolean printOn = true;
 		boolean useColors = true;
 		boolean compare_to_Server = false;
-		boolean extendedPrint = false;
+		boolean extendedPrint = true;
 		//variables for the server
 		String ip = "127.0.0.1";
 		int port = 7777;
@@ -216,8 +216,12 @@ public class Client{
 					if (depth == 0) depth = Integer.MAX_VALUE;
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
-					if (firstPhase) makeAMove();
-					else setABomb();
+					if (firstPhase) {
+						makeAMove();
+					}
+					else {
+						setABomb();
+					}
 					break;
 
 				case 6: //Move
@@ -235,7 +239,7 @@ public class Client{
 					int moveOfPlayer = moveInfos[3];
 
 					//Ausgabe fuer den Vergleich mit dem Server
-					map.setPlayer(moveOfPlayer);		//@Todo kann dass dann aus der Methode UpdateMapWithMove raus ? - besser nicht
+					map.setPlayer(moveOfPlayer);
 					if(compare_to_Server)
 					{
 						map_For_Comparison += map.toString_Server(getValidMoves(map));
@@ -605,17 +609,17 @@ public class Client{
 
 		if (validMoves.isEmpty()){
 			accuracy = 1;
-		}
-		//gets the possible positions to set a bomb at
-		for (int y = 0; y < map.getHeight(); y += accuracy) {
-			for (int x = 0; x < map.getWidth(); x += accuracy) {
-				fieldValue = map.getCharAt(x, y);
-				if (fieldValue != '-' && fieldValue != 't') {
-					validMoves.add(new int[]{x, y});
+
+			//gets the possible positions to set a bomb at
+			for (int y = 0; y < map.getHeight(); y += accuracy) {
+				for (int x = 0; x < map.getWidth(); x += accuracy) {
+					fieldValue = map.getCharAt(x, y);
+					if (fieldValue != '-' && fieldValue != 't') {
+						validMoves.add(new int[]{x, y});
+					}
 				}
 			}
 		}
-
 		return validMoves;
 	}
 
@@ -1117,7 +1121,7 @@ public class Client{
 				if (isMax) {
 					if (evaluation > currBestValue) {
 						currBestValue = evaluation;
-						indexOfBest = i;
+						indexOfBest = currIndex;
 					}
 					if (currBestValue > currAlpha)
 						currAlpha = currBestValue;
