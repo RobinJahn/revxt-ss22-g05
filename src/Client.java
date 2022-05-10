@@ -194,6 +194,7 @@ public class Client{
 			switch (messageType) {
 
 				case 4: //Move Request
+				{
 					if (printOn) {
 						System.out.println("received Move Request");
 						System.out.println("Move: " + moveCounter);
@@ -211,20 +212,21 @@ public class Client{
 					}
 					//set timed
 					timed = time != 0;
-					if(timed && printOn) System.out.println("We have: " + time + "ms");
+					if (timed && printOn) System.out.println("We have: " + time + "ms");
 
 					if (depth == 0) depth = Integer.MAX_VALUE;
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) {
 						makeAMove();
-					}
-					else {
+					} else {
 						setABomb();
 					}
 					break;
+				}
 
 				case 6: //Move
+				{
 					if (printOn) {
 						System.out.println("received Move");
 						System.out.println("Move: " + moveCounter++);
@@ -232,7 +234,7 @@ public class Client{
 
 					//read rest of Message
 					int[] moveInfos = serverM.readRestOfMove();
-					Position posToSetKeystone = new Position(0,0);
+					Position posToSetKeystone = new Position(0, 0);
 					posToSetKeystone.x = moveInfos[0] + 1; //index shift
 					posToSetKeystone.y = moveInfos[1] + 1; //index shift
 					int additionalInfo = moveInfos[2];
@@ -240,55 +242,68 @@ public class Client{
 
 					//Ausgabe fuer den Vergleich mit dem Server
 					map.setPlayer(moveOfPlayer);
-					if(compare_to_Server)
-					{
+					if (compare_to_Server) {
 						map_For_Comparison += map.toString_Server(getValidMoves(map));
 					}
 
 					//Handle Move
-					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
+					if (printOn)
+						System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
 
 					if (firstPhase) updateMapWithMove(posToSetKeystone, additionalInfo, moveOfPlayer, map, printOn);
 					else updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, moveOfPlayer, map);
 
 					if (printOn) {
-						System.out.println(map.toString(null,false,useColors));
+						System.out.println(map.toString(null, false, useColors));
 						//calculate value of map and print it
-						double valueOfMap = (double)Math.round(heuristic.evaluate(firstPhase)*100)/100;
+						double valueOfMap = (double) Math.round(heuristic.evaluate(firstPhase) * 100) / 100;
 						System.out.println("Value of Map is " + valueOfMap);
 					}
 					break;
+				}
 
 				case 7: //Disqualification
+				{
 					if (printOn) System.out.println("received Disqualification");
 					int player = serverM.readRestOfDisqualification();
 					map.disqualifyPlayer(player);
 					if (printOn) System.out.println("Player " + player + " was disqualified");
 					if (player == myPlayerNr) gameOngoing = false;
 					break;
+				}
 
 				case 8: //End of Phase 1
-					if (printOn) System.out.println("received end of phase 1");
+				{
 					serverM.readRestOfNextPhase();
 					firstPhase = false;
+					approximation = 1;
+					if (printOn) {
+						System.out.println("received end of phase 1");
+						System.out.println("reset approximation");
+					}
 					break;
+				}
 
 				case 9: //End of Phase 2
+				{
 					if (printOn) System.out.println("received end of phase 2 - game ended");
 
-					if(compare_to_Server)
-					{
+					if (compare_to_Server) {
 						map_For_Comparison += map.toString_Server(getValidMoves(map));
 					}
 
 					serverM.readRestOfNextPhase();
 					gameOngoing = false;
 					break;
+				}
 
 				case -1:
+				{
 					gameOngoing = false;
 					System.err.println("Server closed connection or a message was received that couldn't be handled");
 					break;
+				}
+
 			}
 		}
 
@@ -702,45 +717,9 @@ public class Client{
 	}
 
 
-	//calculate next move
-	//depth 1
-	private int[] getNextMoveWithHeuristic(ArrayList<Position> validMoves, boolean phaseOne){
-		ArrayList<int[]> everyPossibleMove;
-		ArrayList<Double> valueOfMap = new ArrayList<>();
-		Map nextMap;
-		int indexOfHighest;
-		double evaluation;
-
-		everyPossibleMove = getEveryPossibleMove(map, validMoves);
-
-		for (int[] positionAndInfo : everyPossibleMove) {
-			//clones Map
-			nextMap = new Map(map);
-			nextMap.setPlayer(myPlayerNr);
-
-			//if it's the first phase
-			if (phaseOne) {
-				updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], myPlayerNr, nextMap, false);
-			}
-			//if it's the bomb phase
-			else {
-				updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], myPlayerNr, nextMap);
-			}
-
-			heuristicForSimulation.updateMap(nextMap);
-			evaluation = heuristicForSimulation.evaluate(phaseOne);
-
-			valueOfMap.add(evaluation);
-		}
-
-		Double highest = Collections.max(valueOfMap);
-		indexOfHighest = valueOfMap.indexOf(highest);
-
-		return everyPossibleMove.get(indexOfHighest); //returns the position and the additional info of the move that has the highest evaluation
-	}
-
 	//Functions to calculate the best next move
 	private int[] getMoveTimeDepth(boolean phaseOne, ArrayList<int[]> everyPossibleMove) {
+		//declarations
 		Statistic statistic = new Statistic();
 		double[] valueAndIndex;
 		int[] validPosition;
@@ -752,35 +731,53 @@ public class Client{
 		double leavesNextDepth;
 		double totalNodesToGoOver;
 
-		//get a random valid position for valid moves
+		//get a random valid position to allways have a valid return value
 		validPosition = everyPossibleMove.get( (int)Math.round( Math.random() * (everyPossibleMove.size()-1) ) );
 
+		//if there is a time limit
 		if (timed) {
+			//iterative deepening
 			for (int currDepth = 1; (upperTimeLimit - System.nanoTime() - timeNextDepth > 0); currDepth++) { //check if we can calculate next layer
 
+				//reset statistic
 				statistic = new Statistic();
+
+				//print
 				if (printOn) System.out.println("DEPTH: " + currDepth);
 
+				//get the best move for this depth
 				try {
 					valueAndIndex = getNextMoveDFS(everyPossibleMove, phaseOne, currDepth, statistic, upperTimeLimit); //takes time
 				}
+				//if it noticed we have no more time
 				catch (TimeoutException te){
-					if (printOn) System.out.println("Time out Exception thrown");
-					System.out.println("Time Remaining: " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
+					if (printOn) {
+						System.out.println("Time out Exception thrown");
+						System.out.println("Time Remaining: " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
+					}
 					return validPosition;
 				}
 
+				//if we got a valid Position without running out of time - update it
 				validPosition = everyPossibleMove.get( (int)valueAndIndex[1] );
+
 				//calculate time needed for next depth
 				leavesNextDepth = statistic.leafNodes * statistic.branchFactor();
 				totalNodesToGoOver = statistic.totalNodesSeen + leavesNextDepth;
 
+				//time camparison prints
 				if (printOn){
 					System.out.println("Expected Time needed for this depth: " + timeNextDepth/ 1_000_000 + "ms");
 					System.out.println("Actual time needed: " + (double)statistic.totalComputationTime/ 1_000_000 + "ms");
 					System.out.println("Approximation: " + approximation);
 				}
 
+				//If we know we won or lost -> no need to check deeper
+				if (valueAndIndex[0] == Double.NEGATIVE_INFINITY || valueAndIndex[0] == Double.POSITIVE_INFINITY){
+					return validPosition;
+				}
+
+				//calculate time needed for the next depth
 				if (timeNextDepth == 0) {
 					timeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime());
 				}
@@ -789,18 +786,16 @@ public class Client{
 					timeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime() * approximation);
 				}
 
-				//If we know we won or lost -> no need to check deeper
-				if (valueAndIndex[0] == Double.NEGATIVE_INFINITY || valueAndIndex[0] == Double.POSITIVE_INFINITY){
-					return validPosition;
-				}
-
-				//prints
+				//prints after one depth
 				if (printOn) {
+					//print recommendet move
 					if (phaseOne) System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + "," + validPosition[2] + ")");
 					else System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + ")");
 
+					//print statisic
 					System.out.println(statistic);
 
+					//print timing informations
 					System.out.println("Expected time needed for next depth: " + (double)timeNextDepth/ 1_000_000 + "ms");
 					System.out.println("Time Remaining: " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
 					System.out.println("Expected remaining time after calculating next depth: " + (double)(upperTimeLimit - System.nanoTime() - timeNextDepth)/ 1_000_000 + "ms");
@@ -808,19 +803,17 @@ public class Client{
 				}
 			}
 		}
+
 		//if we have no time limit
 		else {
+			//catch will never happen
 			try {
 				valueAndIndex = getNextMoveDFS(everyPossibleMove, phaseOne, depth, statistic, 0);
-			}
-			catch (TimeoutException ts){
-				valueAndIndex = new double[]{0,-1};
-				if (printOn) System.out.println("Time out Exception thrown");
-			}
-			if (valueAndIndex[1] != -1) {
 				validPosition = everyPossibleMove.get( (int)valueAndIndex[1] );
 			}
-
+			catch (TimeoutException ts){
+				if (printOn) System.out.println("Something went wrong - Time out Exception thrown but no time limit was set");
+			}
 		}
 
 		return validPosition;
@@ -833,7 +826,7 @@ public class Client{
 		double alpha = Double.NEGATIVE_INFINITY;
 		double beta = Double.POSITIVE_INFINITY;
 		//For Statistics
-		long startTime = System.nanoTime();
+		long startTime = System.nanoTime(); //start timing
 		long totalTime;
 
 
@@ -854,43 +847,39 @@ public class Client{
 	}
 
 	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long UpperTimeLimit) throws TimeoutException{
-		//TimeLimitAbbruch
+		//Out of Time ?
 		if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
 			System.out.println("Out of Time (DFSVisit - start of Method)");
 			throw new TimeoutException();
 		}
 
+		//declarations
 		ArrayList<int[]> everyPossibleMove = new ArrayList<>();
 		double currBestValue;
 		double currAlpha = alpha;
 		double currBeta = beta;
 		double[] valueAndIndex;
-		int enemyStoneCount = 0;
+		int enemyStoneAndOverwriteCount = 0;
 
-		//If we have no stones -> LOSS //TODO: add Overwrite stones
-		if (map.getStonesOfPlayer(myPlayerNr).isEmpty()){
+		//If we have no stones and no overwrite stones -> LOSS
+		if (map.getStonesOfPlayer(myPlayerNr).isEmpty() && map.getOverwriteStonesForPlayer(myPlayerNr) == 0){
 			if (printOn && extendedPrint) System.out.println("DFSVisit found situation where we got eliminated");
 			return Double.NEGATIVE_INFINITY;
 		}
 
-		//If we have all stones -> WINN //TODO: add Overwrite stones
+		//If we have all stones and no enemy has an overwrite stone -> WINN
 		for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
 			if (playerNr == myPlayerNr) continue;
-			enemyStoneCount += map.getStonesOfPlayer(playerNr).size();
+			enemyStoneAndOverwriteCount += map.getStonesOfPlayer(playerNr).size();
+			enemyStoneAndOverwriteCount += map.getOverwriteStonesForPlayer(playerNr);
 		}
-		if (enemyStoneCount == 0) {
+		if (enemyStoneAndOverwriteCount == 0) {
 			if (printOn && extendedPrint) System.out.println("DFSVisit found situation where we WON");
 			return Double.POSITIVE_INFINITY;
 		}
 
 		//get moves for the next player
 		phaseOne = getMovesForNextPlayer(map, everyPossibleMove, phaseOne);
-
-		//TimeLimitAbbruch
-		if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-			System.out.println("Out of Time (DFSVisit - after getMoves)");
-			throw new TimeoutException();
-		}
 
 		//check if it reached the end of the game
 		if (everyPossibleMove.isEmpty()) {
@@ -963,7 +952,8 @@ public class Client{
 												   double currAlpha,
 												   double currBeta,
 												   Statistic statistic,
-												   long UpperTimeLimit) throws TimeoutException{
+												   long UpperTimeLimit) throws TimeoutException
+	{
 		//declarations
 		Map nextMap;
 		boolean isMax;
@@ -975,7 +965,7 @@ public class Client{
 		ArrayList<Integer> indexList = new ArrayList<>(everyPossibleMove.size());
 		boolean firstCall = (statistic.timesNodesGotAdded == 0);
 
-		//fill indexList
+		//fill index List
 		for (int i = 0; i < everyPossibleMove.size(); i++){
 			indexList.add(i);
 		}
@@ -996,17 +986,16 @@ public class Client{
 		statistic.addNodes(everyPossibleMove.size(), depth);
 
 		//prints
-		if (firstCall && printOn) {//Print start of dfs
+		if (firstCall && printOn) {
 			System.out.println("Calculating values for " + everyPossibleMove.size() + " Moves");
 			System.out.println("Currently at: ");
 		}
-
 		if (extendedPrint && depth == 1) System.out.print("DFS-V(1): ");
 
-		//simulate every move and sort the maps
+		//sort moves
 		if (useMS) {
 			for (int[] positionAndInfo : everyPossibleMove) {
-				//Time Limit Abbruch
+				//Out of Time ?
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
 					if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - start of for)");
 					throw new TimeoutException();
@@ -1024,7 +1013,7 @@ public class Client{
 					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
 				}
 
-				//Out of Time
+				//Out of Time ?
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
 					if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after update)");
 					throw new TimeoutException();
@@ -1045,7 +1034,7 @@ public class Client{
 				}
 			});
 
-			//Out of Time
+			//Out of Time ?
 			if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
 				if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after sort)");
 				throw new TimeoutException();
@@ -1056,25 +1045,23 @@ public class Client{
 		//go over every possible move
 		for (int i = 0; i < everyPossibleMove.size(); i++){
 
-			//Out of Time
+			//Out of Time ?
 			if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
 				if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - in go over moves)");
 				throw new TimeoutException();
 			}
 
+			//set values
 			currIndex = indexList.get(i);
 			int[] positionAndInfo = everyPossibleMove.get( currIndex );
 
-			if (printOn && (firstCall || extendedPrint)) {
-				if (extendedPrint) {
-					if (depth > 1) System.out.println(i + ", ");
-					else System.out.print(i + ", ");
-				}
-				else {
-					System.out.print(i + ", ");
-				}
+			//prints
+			if (printOn && firstCall) {
+				if (depth > 1) System.out.println(i + ", ");
+				else System.out.print(i + ", ");
 			}
 
+			//Without move sorting - simulate move
 			if (!useMS) {
 				//clones Map
 				nextMap = new Map(map);
@@ -1088,13 +1075,13 @@ public class Client{
 					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
 				}
 			}
+			//With move sorting - get simulated map
 			else{
 				nextMap = mapList.get( currIndex );
 			}
 
 			//Call DFS to start building part-tree of children
 			if (depth > 1) {
-				//call dfs visit
 				evaluation = DFSVisit(nextMap, depth -1, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit);
 			}
 			//get evaluation of map when it's a leaf
@@ -1103,7 +1090,7 @@ public class Client{
 				evaluation = heuristicForSimulation.evaluate(phaseOne); //computing-intensive
 			}
 
-			//TimeLimitAbbruch
+			//Out of Time ?
 			if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
 				if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - after DFS Visit call)");
 				throw new TimeoutException();
@@ -1114,65 +1101,69 @@ public class Client{
 				if (depth > 1) System.out.print("DFS-V("+ depth +"): ");
 				if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %.2f], ",positionAndInfo[0],positionAndInfo[1],positionAndInfo[2],evaluation);
 				else System.out.printf("[(%2d,%2d)= %.2f], ",positionAndInfo[0],positionAndInfo[1],evaluation);
+				if (depth > 1) System.out.println();
 			}
 
+			//Get highest or lowest value
+			if (isMax) {
+				//get highest value
+				if (evaluation > currBestValue) {
+					currBestValue = evaluation;
+					indexOfBest = currIndex;
+				}
+			}
+			else {
+				//get lowest value
+				if (evaluation < currBestValue) {
+					currBestValue = evaluation;
+					indexOfBest = currIndex;
+				}
+			}
+
+			//Use Alpha Beta Pruning
 			if (useAB) {
 				//Maximizer
 				if (isMax) {
-					if (evaluation > currBestValue) {
-						currBestValue = evaluation;
-						indexOfBest = currIndex;
-					}
-					if (currBestValue > currAlpha)
+					//update Alpha ?
+					if (currBestValue > currAlpha) {
 						currAlpha = currBestValue;
+						if (extendedPrint) System.out.println("Alpha Updated: " + currAlpha);
+					}
+
+
+					//Cuttoff ?
 					if (currBestValue >= currBeta) {
 						int countOfCutoffLeaves = everyPossibleMove.size() - everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
 						statistic.reduceNodes(countOfCutoffLeaves, depth);
 						//Print before return
 						if (extendedPrint) {
-							System.out.println("Cutoff: Current best value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
+							System.out.println("Cutoff: Current highest value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
 						}
 						return new double[]{currBestValue, indexOfBest};
 					}
 				}
 				//Minimizer
 				else {
-					if (evaluation < currBestValue) {
-						currBestValue = evaluation;
-						indexOfBest = currIndex;
-					}
-					if (currBestValue < currBeta)
+					//update Beta ?
+					if (currBestValue < currBeta) {
 						currBeta = currBestValue;
+						if (extendedPrint) System.out.println("Beta Updated: " + currBeta);
+					}
+
+					//Cuttoff ?
 					if (currBestValue <= currAlpha) {
 						int countOfCutoffLeaves = everyPossibleMove.size()- everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
 						statistic.reduceNodes(countOfCutoffLeaves, depth);
 						//Print before return
 						if (extendedPrint) {
-							System.out.println("Cutoff: Current best value (" + currBestValue + ") <= current Alpha (" + currAlpha + ") - " + countOfCutoffLeaves + " values skipped");
+							System.out.println("Cutoff: Current lowest value (" + currBestValue + ") <= current Alpha (" + currAlpha + ") - " + countOfCutoffLeaves + " values skipped");
 						}
 						return new double[]{currBestValue, indexOfBest};
 					}
 				}
 			}
-			//without alpha beta pruning
-			else {
-				if (isMax) {
-					if (evaluation > currBestValue) {
-						currBestValue = evaluation;
-						indexOfBest = currIndex;
-					}
-				}
-				else {
-					if (evaluation < currBestValue) {
-						currBestValue = evaluation;
-						indexOfBest = currIndex;
-					}
-				}
-			}
-
-			if (extendedPrint && depth > 1) System.out.println();
 		}
 
 		if (printOn && (extendedPrint || firstCall)) {
@@ -1184,7 +1175,7 @@ public class Client{
 	}
 
 
-	//functions to calculate possible moves
+	//functions to calculate all possible moves
 
     //function to call
 	/**
@@ -1496,7 +1487,7 @@ public class Client{
     }
 
 
-	//coloring of map
+	//function to color the map
 
 	/**
 	 * colors the map when the keystone is placed in the specified position
@@ -1567,6 +1558,8 @@ public class Client{
 		}
 	}
 
+
+	//function to simplify making a step
 
 	/**
 	 * goes one step in the specified direction. If there's a wall or the end of the map it returns null if there's a transition it goes through it
