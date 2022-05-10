@@ -87,11 +87,18 @@ public class Heuristic {
      * Function to evaluate the map that was given the constructor (call by reference)
      * @return returns the value of the map
      */
-    public double evaluate(){
+    public double evaluate(boolean phaseOne){
         double countOfStonesEvaluation = 0;
         double countOfMovesEvaluation = 0;
         double averageFieldValue = 0;
         double result = 0;
+
+        if (!phaseOne){
+            stoneCountMultiplier = 1;
+            countStones = true;
+            countMoves = false;
+            useFieldValues = false;
+        }
 
         //update relevant infos
         if (countStones) countOfStonesEvaluation = countStones();
