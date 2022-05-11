@@ -8,9 +8,9 @@ public class Map{
     private char[][] map;
 
     //Data Structure and needed Variables to store Transitions
-    public HashMap<Character,Character> transitionen = new HashMap<>();
-    int[] transitionsBuffer = new int[9];
-    int posInTransitionBuffer=0;
+    private HashMap<Character,Character> transitions = new HashMap<>();
+    private int[] transitionsBuffer = new int[9];
+    private int posInTransitionBuffer=0;
     
     //General Map Infos
     private int anzPlayers;
@@ -68,7 +68,7 @@ public class Map{
         for (int y = 0; y < mapToCopy.map.length; y++){ //inner array can be copied this way
             System.arraycopy(mapToCopy.map[y], 0, map[y], 0, mapToCopy.map[0].length);
         }
-        transitionen = (HashMap<Character, Character>) mapToCopy.transitionen.clone();
+        transitions = (HashMap<Character, Character>) mapToCopy.transitions.clone();
         anzPlayers = mapToCopy.anzPlayers;
         overwriteStonesPerPlayer = mapToCopy.overwriteStonesPerPlayer.clone(); //see if that creates a new object
         bombsPerPlayer = mapToCopy.bombsPerPlayer.clone();
@@ -242,7 +242,7 @@ public class Map{
             }
 
             //write transitions
-            fw.write(Transitions.AllToStringWithIndexShift(transitionen));
+            fw.write(Transitions.AllToStringWithIndexShift(transitions));
             
             fw.close();
         } catch (IOException e) {
@@ -275,7 +275,7 @@ public class Map{
 
         mapString += "\n\n";
         
-        mapString += Transitions.AllToString(transitionen);
+        mapString += Transitions.AllToString(transitions);
         
         return mapString;
     }
@@ -434,7 +434,7 @@ public class Map{
 
         if (showTransitions) {
             mapString += '\n';
-            mapString += Transitions.AllToString(transitionen);
+            mapString += Transitions.AllToString(transitions);
         }
 
         return mapString;
@@ -555,6 +555,10 @@ public class Map{
 
     public HashSet<Position> getExpansionFields(){
         return expansionFields;
+    }
+
+    public HashMap<Character, Character> getTransitions() {
+        return transitions;
     }
 
     //SETTER
@@ -801,8 +805,8 @@ public class Map{
         	System.out.println((int)buffer + " , " + (int)buffer2);
         	*/
             //Add transition to hash Map
-            transitionen.put(buffer, buffer2);
-            transitionen.put(buffer2, buffer);
+            transitions.put(buffer, buffer2);
+            transitions.put(buffer2, buffer);
 
             //Add Transitions to Map
             //first end

@@ -691,12 +691,12 @@ public class Client{
 						//tries to go through transition
 						newR = doAStep(posAfterStep, r, map); //takes Position it came from. Because from there it needs to go through
 						if (newR != null) {
-							//TODO: unnecassary
+							//TODO: unnecessary or check if it works with getter
 							//removes transition pair from the hash List - if it's here it wen through the transition
 							transitionEnd1 = Transitions.saveInChar(posAfterStep.x, posAfterStep.y, (newR + 4) % 8);
-							transitionEnd2 = map.transitionen.get(transitionEnd1);
-							map.transitionen.remove(transitionEnd1);
-							map.transitionen.remove(transitionEnd2);
+							transitionEnd2 = map.getTransitions().get(transitionEnd1);
+							map.getTransitions().remove(transitionEnd1);
+							map.getTransitions().remove(transitionEnd2);
 						}
 					}
 
@@ -1602,7 +1602,7 @@ public class Client{
 		if (charAtPos == 't') {
 			//check if the direction matches the current one
 			transitionLookup = Transitions.saveInChar(pos.x,pos.y,r); //pos is the old position
-			transitionEnd = mapToDoTheStepOn.transitionen.get(transitionLookup);
+			transitionEnd = mapToDoTheStepOn.getTransitions().get(transitionLookup);
 			if (transitionEnd == null) return null; //if there isn't an entry
 
 			//go through the transition

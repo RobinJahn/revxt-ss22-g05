@@ -39,7 +39,7 @@ extendedPrint=false
 #get all Maps	
 cd ..
 cd Maps
-maps=($(ls | grep "Map[1-6].*\.map"))
+maps=($(ls | grep "Map.*\.map"))
 echo "maps: "
 echo "${maps[@]}"
 

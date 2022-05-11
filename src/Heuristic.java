@@ -386,7 +386,7 @@ public class Heuristic {
             }
             //check if there's a transition and if it's relevant
             else if(charAtPos == 't'){
-                if (map.transitionen.get(Transitions.saveInChar(savedPos.x,savedPos.y,r)) == null) outgoingDirections[r] = false;
+                if (map.getTransitions().get(Transitions.saveInChar(savedPos.x,savedPos.y,r)) == null) outgoingDirections[r] = false;
             }
         }
         return outgoingDirections;
