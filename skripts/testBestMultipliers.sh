@@ -1,10 +1,26 @@
 #!/bin/bash
 
-depth=${1?"argument 1 needs to be the depth"}
+#default values
+depth=4
+time=0
+print=0
 
-time=${2?"argument 2 needs to be the time"}
+#read in parameters
+while getopts "d:t:p:" opt
+do
+   case "$opt" in
+      d ) depth="$OPTARG" ;;
+      t ) time="$OPTARG" ;;
+      p ) print="$OPTARG" ;;
+      ? ) echo "parameter wrong" ;;
+   esac
+done
 
 clear
+
+echo "depth: $depth"
+echo "time: $time"
+echo "print: $print"
 
 i=1
 max=100 #how many games should be played
@@ -23,8 +39,10 @@ extendedPrint=false
 #get all Maps	
 cd ..
 cd Maps
-maps=($(ls | grep ".*\.map"))
-	
+maps=($(ls | grep "Map[1-6].*\.map"))
+echo "maps: "
+echo "${maps[@]}"
+
 #compile newest version of client
 cd ..
 ant -S jar
@@ -82,25 +100,43 @@ do
 
 		#start server
 		if $extendedPrint; then echo "script: server started"; fi
-		#./server_nogl -C -m ../Maps/$mapName -t 1 | tee $outFile #with output of server
-		./server_nogl -C -m ../Maps/$mapName -t 1 &> $outFile #without
 
 		if [ $time -eq 0 ]
     	then
     		if [ $depth -eq 0 ]; then
-    			#./server_nogl -C -m ../Maps/$mapName | tee $outFile #with output of server
-          ./server_nogl -C -m ../Maps/$mapName &> $outFile #without
+    		  if [ $print -eq 0 ]; then
+    		    echo "script: with output"
+    			  ./server_nogl -C -m ../Maps/$mapName | tee $outFile #with output of server
+    			else
+    			  echo "script: without output"
+            ./server_nogl -C -m ../Maps/$mapName &> $outFile #without
+          fi
     		else
-    			#./server_nogl -C -m ../Maps/$mapName -d $depth | tee $outFile #with output of server
-          ./server_nogl -C -m ../Maps/$mapName -d $depth &> $outFile #without
+    		  if [ $print -eq 0 ]; then
+    		    echo "script: with output"
+    			  ./server_nogl -C -m ../Maps/$mapName -d $depth | tee $outFile #with output of server
+    			else
+    			  echo "script: without output"
+            ./server_nogl -C -m ../Maps/$mapName -d $depth &> $outFile #without
+          fi
     		fi
     	else
     		if [ $depth -eq 0 ]; then
-    			#./server_nogl -C -m ../Maps/$mapName -t $time | tee $outFile #with output of server
-          ./server_nogl -C -m ../Maps/$mapName -t $time &> $outFile #without
+    		  if [ $print -eq 0 ]; then
+    		    echo "script: with output"
+    			  ./server_nogl -C -m ../Maps/$mapName -t $time | tee $outFile #with output of server
+          else
+            echo "script: without output"
+            ./server_nogl -C -m ../Maps/$mapName -t $time &> $outFile #without
+          fi
     		else
-    		   #./server_nogl -C -m ../Maps/$mapName -t $time -d $depth | tee $outFile #with output of server
-           ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth &> $outFile #without
+    		  if [ $print -eq 0 ]; then
+    		    echo "script: with output"
+    		    ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth | tee $outFile #with output of server
+    		  else
+    		    echo "script: without output"
+            ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth &> $outFile #without
+          fi
     		fi
     	fi
 		
