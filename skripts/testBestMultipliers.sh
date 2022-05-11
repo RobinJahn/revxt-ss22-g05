@@ -1,5 +1,9 @@
 #!/bin/bash
 
+depth=${1?"argument 1 needs to be the depth"}
+
+time=${2?"argument 2 needs to be the time"}
+
 clear
 
 i=1
@@ -80,6 +84,25 @@ do
 		if $extendedPrint; then echo "script: server started"; fi
 		#./server_nogl -C -m ../Maps/$mapName -t 1 | tee $outFile #with output of server
 		./server_nogl -C -m ../Maps/$mapName -t 1 &> $outFile #without
+
+		if [ $time -eq 0 ]
+    	then
+    		if [ $depth -eq 0 ]; then
+    			#./server_nogl -C -m ../Maps/$mapName | tee $outFile #with output of server
+          ./server_nogl -C -m ../Maps/$mapName &> $outFile #without
+    		else
+    			#./server_nogl -C -m ../Maps/$mapName -d $depth | tee $outFile #with output of server
+          ./server_nogl -C -m ../Maps/$mapName -d $depth &> $outFile #without
+    		fi
+    	else
+    		if [ $depth -eq 0 ]; then
+    			#./server_nogl -C -m ../Maps/$mapName -t $time | tee $outFile #with output of server
+          ./server_nogl -C -m ../Maps/$mapName -t $time &> $outFile #without
+    		else
+    		   #./server_nogl -C -m ../Maps/$mapName -t $time -d $depth | tee $outFile #with output of server
+           ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth &> $outFile #without
+    		fi
+    	fi
 		
 	
 		#when game is over
