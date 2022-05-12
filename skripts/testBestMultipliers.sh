@@ -113,28 +113,28 @@ do
           fi
     		else
     		  if [ $print -eq 0 ]; then
-    		    echo "script: with output"
+    		    echo "script: with output -d"
     			  ./server_nogl -C -m ../Maps/$mapName -d $depth | tee $outFile #with output of server
     			else
-    			  echo "script: without output"
+    			  echo "script: without output -d"
             ./server_nogl -C -m ../Maps/$mapName -d $depth &> $outFile #without
           fi
     		fi
     	else
     		if [ $depth -eq 0 ]; then
     		  if [ $print -eq 0 ]; then
-    		    echo "script: with output"
+    		    echo "script: with output -t"
     			  ./server_nogl -C -m ../Maps/$mapName -t $time | tee $outFile #with output of server
           else
-            echo "script: without output"
+            echo "script: without output -t"
             ./server_nogl -C -m ../Maps/$mapName -t $time &> $outFile #without
           fi
     		else
     		  if [ $print -eq 0 ]; then
-    		    echo "script: with output"
+    		    echo "script: with output -d -t"
     		    ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth | tee $outFile #with output of server
     		  else
-    		    echo "script: without output"
+    		    echo "script: without output -d -t"
             ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth &> $outFile #without
           fi
     		fi

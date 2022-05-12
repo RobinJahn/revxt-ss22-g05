@@ -49,10 +49,10 @@ public class Heuristic {
 
         //set multiplier
         //default multiplier
-        stoneCountMultiplier = 5;
-        moveCountMultiplier = 4;
-        fieldValueMultiplier = 0;
-        edgeMultiplier = 8;
+        stoneCountMultiplier = 4;
+        moveCountMultiplier = 8;
+        fieldValueMultiplier = 1;
+        edgeMultiplier = 6;
         //corresponding default enables
         countMoves = true;
         countStones = true;
