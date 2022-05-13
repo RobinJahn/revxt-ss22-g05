@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 public class Transitions {
     public static char saveInChar(int x, int y, int r){
-        char mem = (char) (1000 * (short)x + 10 * (short)y + (short)r); //TODO: handle error
+        char mem = (char) (1000 * (short)x + 10 * (short)y + (short)r);
         return mem;
     }
 

@@ -21,7 +21,7 @@ public class Heuristic {
 
     //booleans to enable or disable certain elements of the heuristic
     private boolean countStones;
-    private boolean countMoves; //TODO: discuss if it makes sense to split into own and enemy
+    private boolean countMoves;
     private boolean useFieldValues;
 
     //multipliers
@@ -175,57 +175,18 @@ public class Heuristic {
      * Calculates placement of all players
      * @return returns a value according to the placement of the player
      */
-    public double placePlayers(){ //TODO do better
-        ArrayList<int[]> countOfStonesPerPlayer = new ArrayList<>(8);
-        char charAtPos;
-        int myPlacement = 8;
+    public double placePlayers(){
+        int placement = 1;
+        int myScore = map.getStonesOfPlayer(myColorI).size();
 
-        for (int playerNr = 1; playerNr <= 8; playerNr++){
-            countOfStonesPerPlayer.add(new int[]{playerNr, 0});
-        }
-
-        //goes through every position of the map
-        for (int y = 0; y < map.getHeight(); y++) {
-            for (int x = 0; x < map.getWidth(); x++) {
-                charAtPos = map.getCharAt(x,y);
-                if (Character.isDigit(charAtPos) && charAtPos != '0') countOfStonesPerPlayer.get(charAtPos-'0' -1)[1]++; //-1 because of index shift of array
+        for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
+            if (playerNr == myColorI) continue;
+            if (map.getStonesOfPlayer(playerNr).size() > myScore){
+                placement++;
             }
         }
 
-        countOfStonesPerPlayer.sort(new Comparator<int[]>() {
-            @Override
-            public int compare(int[] o1, int[] o2) {
-                return Integer.compare(o1[1], o2[1]);
-            }
-        });
-
-
-        for (int i = 1; i <= 8; i++){
-            if (countOfStonesPerPlayer.get(i-1)[0] == myColorI){
-                myPlacement = i;
-            }
-        }
-
-        switch (myPlacement){
-            case 1:
-                return 1000;
-            case 2:
-                return 700;
-            case 3:
-                return 400;
-            case 4:
-                return 100;
-            case 5:
-                return -100;
-            case 6:
-                return -400;
-            case 7:
-                return -700;
-            case 8:
-                return -1000;
-        }
-
-        return 0;
+        return 1 - ((double)placement - 1) / ((double)map.getAnzPlayers() -1);
     }
 
 
@@ -310,7 +271,6 @@ public class Heuristic {
 
         //set possible moves percentage
         countOfMovesEvaluation = (myPossibleMoves - enemyMovesAverage);
-        //else countOfMovesEvaluation = 500;
 
         return countOfMovesEvaluation;
     }

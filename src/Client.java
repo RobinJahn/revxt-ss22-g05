@@ -361,9 +361,8 @@ public class Client{
 		if (calculateMove) {
 			validPosition = getMoveTimeDepth(phaseOne, validMoves);
 		}
-
 		//let player enter a move
-		if (!calculateMove) {
+		else {
 			//Variables needed for human player
 			Statistic statistic = new Statistic();
 			boolean moveIsPossible = false;
@@ -691,12 +690,13 @@ public class Client{
 						//tries to go through transition
 						newR = doAStep(posAfterStep, r, map); //takes Position it came from. Because from there it needs to go through
 						if (newR != null) {
-							//TODO: unnecessary or check if it works with getter
+							/* should be uneccessary
 							//removes transition pair from the hash List - if it's here it wen through the transition
 							transitionEnd1 = Transitions.saveInChar(posAfterStep.x, posAfterStep.y, (newR + 4) % 8);
 							transitionEnd2 = map.getTransitions().get(transitionEnd1);
 							map.getTransitions().remove(transitionEnd1);
 							map.getTransitions().remove(transitionEnd2);
+							 */
 						}
 					}
 
@@ -725,7 +725,7 @@ public class Client{
 		int[] validPosition;
 		//Timing
 		long startTime = System.nanoTime();
-		long timeOffset = 30_000_000; // 30ms
+		long timeOffset = 40_000_000; //ns -> xx ms
 		long timeNextDepth = 0;
 		long upperTimeLimit = startTime + (long)time * 1_000_000 - timeOffset;
 		double leavesNextDepth;
@@ -1004,6 +1004,12 @@ public class Client{
 				//clones Map
 				nextMap = new Map(map);
 
+				//Out of Time ?
+				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
+					if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after clone)");
+					throw new TimeoutException();
+				}
+
 				//if it's the first phase
 				if (phaseOne) {
 					updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
@@ -1011,12 +1017,6 @@ public class Client{
 				//if it's the bomb phase
 				else {
 					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
-				}
-
-				//Out of Time ?
-				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
-					if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after update)");
-					throw new TimeoutException();
 				}
 
 				mapList.add(nextMap);
@@ -1371,7 +1371,7 @@ public class Client{
 			wasFirstStep = true;
 			newR = r;
 
-			//go in one direction until there is something relevant //TODO: check if it can go forever
+			//go in one direction until there is something relevant
 			while (true) {
 				//does one step
 				newR = doAStep(currPos, newR, map); //currPos is changed here
@@ -1381,7 +1381,7 @@ public class Client{
 				currChar = map.getCharAt(currPos);
 				//check for blank
 				if (currChar == '0' || currChar == 'i' || currChar == 'c' ||currChar == 'b') break;
-				if(currPos.equals(StartingPos)) break; //TODO unnoetig
+
 				//check for players
 				//if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
 				if (wasFirstStep) {
@@ -1390,6 +1390,8 @@ public class Client{
 				}
 				//if it's not the first move - finding an own keystone is a connection
 				else {
+					if(currPos.equals(StartingPos)) break; //if we would color with the stone we started from
+
 					if (currChar == map.getCurrentlyPlayingC()) {
 						return true;
 					}
@@ -1415,8 +1417,6 @@ public class Client{
                 everyPossibleMove.add(new PositionAndInfo(pos.x, pos.y, 0));
             }
         }
-
-		//TODO: Idea: mark spots where a position was added on the map. Then reset all the information with the move you have added
 
         //goes over every position of the current player and checks in all directions if a move is possible
         for (Position pos : map.getStonesOfPlayer(map.getCurrentlyPlayingI())){
@@ -1504,7 +1504,6 @@ public class Client{
 		LinkedHashSet<Position> positionsToColor = new LinkedHashSet<>(); //doesn't store duplicates
 		ArrayList<Position> positionsAlongOneDirection;
 
-		//TODO: handle overwrite stones right
 		if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
 			map.setCharAt(pos.x, pos.y, map.getCurrentlyPlayingC());
 		}
@@ -1520,12 +1519,14 @@ public class Client{
 			positionsAlongOneDirection.add(currPos.clone());
 			foundEnd = false;
 
-			//go in one direction until there is something relevant //TODO: check if it can go forever
+			//go in one direction until there is something relevant
 			while (true) {
 				//does one step
 				newR = doAStep(currPos, newR, map); //currPos is changed here
 				if (newR == null) break; //if the step wasn't possible
+
 				if(currPos.equals(StartingPos)) break;
+
 				//check what's there
 				currChar = map.getCharAt(currPos);
 				//check for blank
@@ -1610,7 +1611,11 @@ public class Client{
 			newPos.y= Transitions.getY(transitionEnd);
 			newR = Transitions.getR(transitionEnd);
 			newR = (newR+4)%8; //flips direction because transition came out of that direction, so you go through the other way
+
+			if (mapToDoTheStepOn.getCharAt(newPos) == '-') return null; //only relevant in bomb phase
 		}
+
+
 
 		//sets the position to the new One (call by reference)
 		pos.x = newPos.x;

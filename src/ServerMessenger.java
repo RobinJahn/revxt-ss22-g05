@@ -39,7 +39,11 @@ public class ServerMessenger {
         try {
             in.readNBytes(4); //reads size and ignores it
 
-            time = dis.readInt(); //TODO: unsigned?
+            time = dis.readInt(); // is signed but in message it's unsigned
+            if (time < 0) {
+                System.err.println("Got to big value for time - overflow");
+                time = Integer.MAX_VALUE;
+            }
             depth = dis.readUnsignedByte();
 
             return new int[]{time, depth};
@@ -191,7 +195,7 @@ public class ServerMessenger {
                 message = new byte[10];
                 messageBuffer = ByteBuffer.allocate(10);
                 messageBuffer.put((byte)5); //nachrichtentyp
-                messageBuffer.putInt(5); //length of message //TODO: IN HEX
+                messageBuffer.putInt(5); //length of message
                 messageBuffer.putShort(Short.parseShort(Integer.toString(arguments[0]))); //x
                 messageBuffer.putShort(Short.parseShort(Integer.toString(arguments[1]))); //y
                 messageBuffer.put(Byte.parseByte(Integer.toString(arguments[2]))); //extra info

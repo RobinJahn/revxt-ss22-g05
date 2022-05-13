@@ -82,13 +82,11 @@ public class Map{
         transitionsBuffer = new int[9];
         posInTransitionBuffer = 0;
 
-        //TODO: check if you can clone this
         initStonesPerPlayerSet();
         for (int playerNr = 1; playerNr <= anzPlayers; playerNr++){
             stonesPerPlayer.set(playerNr-1, (HashSet<Position>) mapToCopy.getStonesOfPlayer(playerNr).clone());
         }
     }
-
     
     //PUBLIC METHODS
 
@@ -147,7 +145,7 @@ public class Map{
         boolean noErrorsInMethod;
 
         st.whitespaceChars(' ', ' ');
-        st.wordChars('-','-'); //TODO: doesn't really work
+        //st.wordChars('-','-');
 
         //Read file
         tokenCounter = 0; //counts which token it is currently at
@@ -204,7 +202,6 @@ public class Map{
 
             tokenCounter++;
         }
-        //TODO: check weather map was imported correctly
         return true;
     }
 
@@ -748,7 +745,7 @@ public class Map{
             char greater = '>';
             char less = '<';
             char minus = '-';
-            if (st.ttype != greater && st.ttype != less && st.ttype != minus) { //TODO: check if that's ok
+            if (st.ttype != greater && st.ttype != less && st.ttype != minus) {
                 System.err.println("No characters allowed in the transition section except <, - ,>");
                 return false;
             }
