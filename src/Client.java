@@ -55,6 +55,7 @@ public class Client{
 		//variables for the server
 		String ip = "127.0.0.1";
 		int port = 7777;
+		int groupNumberAddition = -1;
 		//variables for the heuristic
 		final int countOfMultipliers = Heuristic.countOfMultipliers;
 		double[] multipliers = null;
@@ -85,7 +86,22 @@ public class Client{
 
 				case "--no-sorting":
 				case "-n": useMS = false; break;
-				//needs to be the last one before help
+
+				case "--group-number-addition":
+				case "-gna":
+					if (i < args.length -1) i++;
+					try {
+						groupNumberAddition = Integer.parseInt(args[i]);
+						break;
+					}
+					catch (NumberFormatException nfe){
+						System.err.println("Number for group number addition couln't be parsed");
+						nfe.printStackTrace();
+						printHelp();
+						return;
+					}
+
+
 				case "--multiplier":
 				case "-m":
 					multipliers = new double[countOfMultipliers];
@@ -101,27 +117,36 @@ public class Client{
 					}
 					catch (NumberFormatException nfe){
 						nfe.printStackTrace();
+						printHelp();
+						return;
 					}
-
 
 				default: System.out.print(args[i] + " is not an option\n");
 				case "--help":
-				case "-h": System.out.println("java -jar client05.jar accepts the following optional options:\n" +
-						"-i or --ip <IP Address>\t\t\t Applies this IP\n" +
-						"-p or --port <Port Number>\t\t Applies this Port Number\n" +
-						"-q or --quiet \t\t\t\t\t Disables Console Output\n" +
-						"-c or --colour\t\t\t\t\t Disables Coloured Output for the IntelliJ-IDE\n" +
-						"-s or --server\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
-						"-h or --help\t\t\t\t\t show this blob\n" +
-						"-n or --no-sorting \t\t\t\t Disables Move-sorting\n"+
-						"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n" +
-						"-ab or --alpha-beta Disables Alpha-BetaPruning");
+				case "-h":
+					printHelp();
 					return;
 			}
 		}
 
 		//run client
-		new Client(ip, port, multipliers, useAB, printOn, useColors, compare_to_Server,extendedPrint,useMS);
+		new Client(ip, port, multipliers, useAB, printOn, useColors, compare_to_Server,extendedPrint,useMS, groupNumberAddition);
+	}
+
+	private static void printHelp(){
+		System.out.println(
+				"java -jar client05.jar accepts the following optional options:\n" +
+				"-i or --ip <IP Address>\t\t\t\t Applies this IP\n" +
+				"-p or --port <Port Number>\t\t\t Applies this Port Number\n" +
+				"-q or --quiet \t\t\t\t\t\t Disables Console Output\n" +
+				"-c or --colour\t\t\t\t\t\t Disables Coloured Output for the IntelliJ-IDE\n" +
+				"-s or --server\t\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
+				"-h or --help\t\t\t\t\t\t show this blob\n" +
+				"-n or --no-sorting \t\t\t\t\t Disables Move-sorting\n"+
+				"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n" +
+				"-ab or --alpha-beta \t\t\t\t Disables Alpha-BetaPruning\n" +
+				"-gna or --group-number-addition \t changes the group number to 50 + the given number \n"
+		);
 	}
 
 	//functions that let the client play
@@ -132,7 +157,17 @@ public class Client{
 	 * @param ip ip of the server
 	 * @param port port of the server
 	 */
-	public Client(String ip, int port, double[] multipliers, boolean useAB, boolean printOn, boolean useColors, boolean compare_to_Server,boolean extendedPrint,boolean useMS){
+	public Client(String ip,
+				  int port,
+				  double[] multipliers,
+				  boolean useAB,
+				  boolean printOn,
+				  boolean useColors,
+				  boolean compare_to_Server,
+				  boolean extendedPrint,
+				  boolean useMS,
+				  int groupNumberAddition)
+	{
 		this.printOn = printOn;
 		this.useColors = useColors;
 		this.compare_to_Server = compare_to_Server;
@@ -141,7 +176,7 @@ public class Client{
 		this.useMS = useMS;
 		//try to connect with server
 		try {
-			serverM = new ServerMessenger(ip,port);
+			serverM = new ServerMessenger(ip,port, groupNumberAddition);
 			if (printOn) System.out.println("Client Successfully connected to server");
 		} catch (IOException e) {
 			System.err.println("Couldn't connect to server");

@@ -39,7 +39,7 @@ extendedPrint=false
 #get all Maps	
 cd ..
 cd Maps
-maps=($(ls | grep "Map.*\.map"))
+maps=($(ls | grep ".*.map"))
 echo "maps: "
 echo "${maps[@]}"
 
@@ -156,7 +156,7 @@ do
 		if $extendedPrint; then echo "skript: all AIs ended"; fi
 		
 		#get result of game
-		resultOfGame=$(awk -f ../skripts/getOwnResults.awk $outFile)
+		resultOfGame=$(awk -v groupID=5 -f ../skripts/getOwnResults.awk $outFile)
 		resultOfGame=$( echo "$resultOfGame" | tr ',' '.')
 		echo "skript: result: $resultOfGame"
 		

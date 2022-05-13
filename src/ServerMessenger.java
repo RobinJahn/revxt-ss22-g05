@@ -9,12 +9,15 @@ public class ServerMessenger {
     Socket server;
     OutputStream out;
     InputStream in;
+    int groupNumberAddition;
 
-    public ServerMessenger(String ip, int port) throws IOException {
+    public ServerMessenger(String ip, int port, int groupNumberAddition) throws IOException {
         server = new Socket( ip, port ); //builds up a connection to the server socket
         // Get input and output stream:
         out = server.getOutputStream();
         in = server.getInputStream();
+
+        this.groupNumberAddition = groupNumberAddition;
 
         out.write(assembleMassage(1,null));
     }
@@ -188,7 +191,10 @@ public class ServerMessenger {
                 messageBuffer = ByteBuffer.allocate(6);
                 messageBuffer.put((byte)1); //nachrichtentyp
                 messageBuffer.putInt(1); //length of message
-                messageBuffer.put((byte)5); //gruppennummer
+                //gruppennummer
+                if (groupNumberAddition == -1) messageBuffer.put((byte) 5 );
+                else messageBuffer.put((byte)(50+groupNumberAddition));
+
                 message = messageBuffer.array();
                 break;
             case 5:
