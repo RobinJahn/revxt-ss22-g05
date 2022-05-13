@@ -1,18 +1,30 @@
 #!/bin/bash
 
+helpMsg() {
+  echo "Parameters for $0"
+  echo "-d <depth> sets the depth"
+  echo "-t <time> sets the time"
+  echo "-p enables print of game"
+  echo "-e endables extended print"
+  exit 1
+  }
+
 #default values
 depth=4
 time=0
-print=0
+print=false
+extendedPrint=false
 
 #read in parameters
-while getopts "d:t:p:" opt
+while getopts "d:t:peh" opt
 do
    case "$opt" in
       d ) depth="$OPTARG" ;;
       t ) time="$OPTARG" ;;
-      p ) print="$OPTARG" ;;
-      ? ) echo "parameter wrong" ;;
+      p ) print=true ;;
+      e ) extendedPrint=true ;;
+      h ) helpMsg ;;
+      ? ) helpMsg ;;
    esac
 done
 
@@ -20,7 +32,8 @@ clear
 
 echo "depth: $depth"
 echo "time: $time"
-echo "print: $print"
+echo "print on: $print"
+echo "extended print on: $extendedPrint"
 
 i=1
 max=100 #how many games should be played
@@ -33,8 +46,6 @@ bestM1=1
 bestM2=1
 bestM3=1
 bestM4=1
-
-extendedPrint=false
 
 #get all Maps	
 cd ..
@@ -75,7 +86,7 @@ do
 		# start own client
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
 		sleep 3 && 
-			if true; then echo "script: started client"; fi &&
+			echo "script: started client" &&
 			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 -ab -c &> "clientOut.txt" &
 		pid1=$!
 
@@ -92,7 +103,7 @@ do
 		do
 			if $extendedPrint; then echo "script: start ai $ii"; fi
 			sleep 3 && 
-				if true; then echo "script: started ai"; fi &&
+				echo "script: started ai" &&
 				./ai_trivial -q &
 			pidAIs+=(ii)
 			ii=$((ii+1))
@@ -104,7 +115,7 @@ do
 		if [ $time -eq 0 ]
     	then
     		if [ $depth -eq 0 ]; then
-    		  if [ $print -eq 0 ]; then
+    		  if $print; then
     		    echo "script: with output"
     			  ./server_nogl -C -m ../Maps/$mapName | tee $outFile #with output of server
     			else
@@ -112,7 +123,7 @@ do
             ./server_nogl -C -m ../Maps/$mapName &> $outFile #without
           fi
     		else
-    		  if [ $print -eq 0 ]; then
+    		  if $print; then
     		    echo "script: with output -d"
     			  ./server_nogl -C -m ../Maps/$mapName -d $depth | tee $outFile #with output of server
     			else
@@ -122,7 +133,7 @@ do
     		fi
     	else
     		if [ $depth -eq 0 ]; then
-    		  if [ $print -eq 0 ]; then
+    		  if $print; then
     		    echo "script: with output -t"
     			  ./server_nogl -C -m ../Maps/$mapName -t $time | tee $outFile #with output of server
           else
@@ -130,7 +141,7 @@ do
             ./server_nogl -C -m ../Maps/$mapName -t $time &> $outFile #without
           fi
     		else
-    		  if [ $print -eq 0 ]; then
+    		  if $print; then
     		    echo "script: with output -d -t"
     		    ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth | tee $outFile #with output of server
     		  else
