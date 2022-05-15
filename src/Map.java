@@ -646,6 +646,16 @@ public class Map{
         disqualifiedPlayers[playerNr-1] = false;
     }
 
+    //Returns the Disqualified Players
+    public boolean[] getDisqualifiedPlayers()
+    {
+        return disqualifiedPlayers;
+    }
+    public boolean getDisqualifiedPlayer(int PlayerNum)
+    {
+        return disqualifiedPlayers[PlayerNum-1];
+    }
+
     //PRIVATE METHODS
 
     private void initStonesPerPlayerSet(){

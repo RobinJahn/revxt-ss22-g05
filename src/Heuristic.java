@@ -101,7 +101,10 @@ public class Heuristic {
         }
 
         //update relevant infos
-        if (countStones) countOfStonesEvaluation = countStones();
+        if (countStones&&phaseOne) countOfStonesEvaluation = countStones();
+        else {
+            countOfStonesEvaluation = countStonesBombPhase();
+        }
 
         if (countMoves) countOfMovesEvaluation = countMoves();
 
@@ -299,6 +302,76 @@ public class Heuristic {
         //else countOfStonesEvaluation = 500; //if enemy has no stones you have 100% stones
 
         return countOfStonesEvaluation;
+    }
+
+    private double countStonesBombPhase() {
+        //Variables
+        int ownstonecount = map.getStonesOfPlayer(myColorI).size();
+
+        int nearestEnemiesLower = 0;
+        int nearestEnemiesUpper = 2500;
+
+        int ownBombCount = map.getBombsForPlayer(myColorI);
+        int enemyBombCount = 0;
+        int enemiesWithLessStones = 0;
+
+        int erg;
+        //gets count of enemy stones
+        if(printOn)
+        {
+            for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
+                System.out.println("Player: "+ playerNr +" has " +map.getStonesOfPlayer(playerNr).size());
+            }
+        }
+        for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
+
+            if(myColorI!= playerNr && !map.getDisqualifiedPlayer(playerNr))
+            {
+                int countofenemy = map.getStonesOfPlayer(playerNr).size();
+                if(countofenemy >= ownstonecount && countofenemy < nearestEnemiesUpper)
+                {
+                    nearestEnemiesUpper = countofenemy;
+                }
+                else if(countofenemy<= ownstonecount && countofenemy > nearestEnemiesLower)
+                {
+                    nearestEnemiesLower = countofenemy;
+                }
+                if(countofenemy< ownstonecount)
+                {
+                    enemiesWithLessStones++;
+                }
+                enemyBombCount += map.getBombsForPlayer(playerNr);
+
+            }
+        }
+        //We have the most stones => target the person with the second most stones
+        if(nearestEnemiesUpper == 2500)
+        {
+            erg = 2500+(ownstonecount - nearestEnemiesLower) +enemiesWithLessStones * 10000;
+        }
+        //We have the lowest amount of stones => target the second to last player
+        else if( nearestEnemiesLower == 0 )
+        {
+            erg = ownstonecount - nearestEnemiesUpper + enemiesWithLessStones * 10000;
+        }
+        //We have more or equal bombs than all the other players combined => Aggressive Bombing for better Position
+        //=> Minimize Distance
+        // IF we can overtake someone we will do so
+        else if(ownBombCount>=enemyBombCount)
+        {
+            erg = -3*(nearestEnemiesUpper - ownstonecount) + enemiesWithLessStones * 10000;
+        }
+        //We are somewhere between => minimize distance to Upper and Maximize Distance to Lower
+        // Here we could add Parameters if we want to encourage a behavior
+        // Playing it Safe => Maximize Distance *3
+        // IF we can overtake someone we will do so
+        else
+        {
+            erg = -(nearestEnemiesUpper - ownstonecount) + 3*(ownstonecount - nearestEnemiesLower) + enemiesWithLessStones * 10000;
+        }
+        if(printOn) System.out.println("ERG: " + erg);
+
+        return erg;
     }
 
 

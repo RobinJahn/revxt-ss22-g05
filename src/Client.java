@@ -200,8 +200,8 @@ public class Client{
 		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
 
 		//set variables after map was imported
-		heuristic = new Heuristic(map, myPlayerNr,false,multipliers); // mark
-		heuristicForSimulation = new Heuristic(map, myPlayerNr,false,multipliers);
+		heuristic = new Heuristic(map, myPlayerNr,true,multipliers); // mark
+		heuristicForSimulation = new Heuristic(map, myPlayerNr,true,multipliers);
 
 		//start playing
 		if (printOn) System.out.println();
