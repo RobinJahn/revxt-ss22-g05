@@ -1334,6 +1334,7 @@ public class Client{
     private static ArrayList<int[]> getEveryPossibleMove(Map map, ArrayList<Position> validMoves){
         ArrayList<int[]> everyPossibleMove = new ArrayList<>(validMoves.size());
         char charAtPos;
+		boolean useBonusFieldEvaluation = true;
 
         for (Position pos : validMoves) {
             charAtPos = map.getCharAt(pos);
@@ -1347,8 +1348,15 @@ public class Client{
             else {
                 //bonus
                 if (charAtPos == 'b'){
-                    everyPossibleMove.add(new int[]{pos.x, pos.y, 20});
-                    everyPossibleMove.add(new int[]{pos.x, pos.y, 21});
+					if (useBonusFieldEvaluation)
+					{
+						everyPossibleMove.add(new int[]{pos.x, pos.y, evaluateBonusField(map)});
+					}
+					else
+					{
+						everyPossibleMove.add(new int[]{pos.x, pos.y, 20});
+						everyPossibleMove.add(new int[]{pos.x, pos.y, 21});
+					}
                 }
                 //normal
                 else {
@@ -1656,5 +1664,10 @@ public class Client{
 		pos.x = newPos.x;
 		pos.y = newPos.y;
 		return newR;
+	}
+
+	public static int evaluateBonusField(Map map){
+		if (map.getExplosionRadius() > 1) return 20;
+		else return 21;
 	}
 }
