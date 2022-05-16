@@ -7,7 +7,7 @@ helpMsg() {
   echo "-p enables print of game"
   echo "-e endables extended print"
   exit 1
-  }
+}
 
 #default values
 depth=4

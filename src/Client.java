@@ -187,7 +187,7 @@ public class Client{
 		map = serverM.getMap();
 
 		//check if it imported correctly
-		if(map == null || !map.importedCorrectly) {
+		if(map == null || !map.wasImportedCorrectly()) {
 			System.err.println("Map couldn't be loaded correctly");
 			return;
 		}
@@ -290,6 +290,7 @@ public class Client{
 
 					if (printOn) {
 						System.out.println(map.toString(null, false, useColors));
+
 						//calculate value of map and print it
 						double valueOfMap = (double) Math.round(heuristic.evaluate(firstPhase) * 100) / 100;
 						System.out.println("Value of Map is " + valueOfMap);
@@ -382,6 +383,9 @@ public class Client{
 		//calculate possible moves and print map with these
 		validMoves = getValidMoves(map);
 		if (printOn) System.out.println(map.toString(validMoves, false, useColors));
+
+		System.out.println("With move carry along");
+		System.out.println(map.toString(map.getValidMoves(),false,useColors));
 
 		//calculate value of map and print it
 		valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne)*100)/100;
@@ -723,7 +727,7 @@ public class Client{
 						//go one step back because we need to come from where the transition points
 						posAfterStep = Position.goInR(posAfterStep, (r + 4) % 8);
 						//tries to go through transition
-						newR = doAStep(posAfterStep, r, map); //takes Position it came from. Because from there it needs to go through
+						newR = map.doAStep(posAfterStep, r); //takes Position it came from. Because from there it needs to go through
 						if (newR != null) {
 							/* should be uneccessary
 							//removes transition pair from the hash List - if it's here it wen through the transition
@@ -1304,7 +1308,7 @@ public class Client{
 			currPos = startPos.clone(); //resets currPos to startPos
 
 			//change x and y according to direction
-			newR = doAStep(currPos,r,map); //is only executed once per for loop so change of r doesn't affect it
+			newR = map.doAStep(currPos,r); //is only executed once per for loop so change of r doesn't affect it
 			if (newR == null) continue;
 
 			//get char at position
@@ -1409,7 +1413,7 @@ public class Client{
 			//go in one direction until there is something relevant
 			while (true) {
 				//does one step
-				newR = doAStep(currPos, newR, map); //currPos is changed here
+				newR = map.doAStep(currPos, newR); //currPos is changed here
 				if (newR == null) break; //if the step wasn't possible
 
 				//check what's there
@@ -1460,13 +1464,13 @@ public class Client{
                 currPos = pos.clone();
 
                 //do the first step
-                newR = doAStep(currPos, newR, map);
+                newR = map.doAStep(currPos, newR);
                 if (newR == null) continue; //if the step wasn't possible
                 currChar = map.getCharAt(currPos); //check what's there
                 if (currChar == 'c' || currChar == 'b' || currChar == 'i' || currChar == '0' || currChar == map.getCurrentlyPlayingC()) continue; //if it's c, b, i, 0, myColor
 
                 while (true){
-                    newR = doAStep(currPos, newR, map);
+                    newR = map.doAStep(currPos, newR);
                     if (newR == null) break; //if the step wasn't possible
 
                     //check what's there
@@ -1557,7 +1561,7 @@ public class Client{
 			//go in one direction until there is something relevant
 			while (true) {
 				//does one step
-				newR = doAStep(currPos, newR, map); //currPos is changed here
+				newR = map.doAStep(currPos, newR); //currPos is changed here
 				if (newR == null) break; //if the step wasn't possible
 
 				if(currPos.equals(StartingPos)) break;
@@ -1597,64 +1601,5 @@ public class Client{
 
 	//function to simplify making a step
 
-	/**
-	 * goes one step in the specified direction. If there's a wall or the end of the map it returns null if there's a transition it goes through it
-	 * @param pos start position
-	 * @param r direction to do the step in
-	 * @param mapToDoTheStepOn mapToDoTheStepOn where you are
-	 * @return returns null if move isn't possible and the direction after the move if it is possible. If a transition changes the direction this is where to get the new one
-	 */
-	public static Integer doAStep(Position pos, int r, Map mapToDoTheStepOn){
-		char transitionLookup;
-		char charAtPos;
-		Character transitionEnd;
-		int newR = r;
-		Position newPos;
 
-		//check if step is valid in x direction
-		if (pos.x == 0){
-			if (r == 7 || r == 6 || r == 5) return null;
-		}
-		if (pos.x == mapToDoTheStepOn.getWidth()-1){
-			if (r == 1 || r == 2 || r == 3) return null;
-		}
-		//check if step is valid in y direction
-		if (pos.y == 0) {
-			if (r == 7 || r == 0 || r == 1) return null;
-		}
-		if (pos.y == mapToDoTheStepOn.getHeight()-1){
-			if (r == 3 || r == 4 || r == 5) return null;
-		}
-
-		//do the step
-		newPos = Position.goInR(pos, r);
-
-		charAtPos = mapToDoTheStepOn.getCharAt(newPos);
-
-		//check if there's a wall
-		if (charAtPos == '-') return null;
-
-		//check if there is a transition
-		if (charAtPos == 't') {
-			//check if the direction matches the current one
-			transitionLookup = Transitions.saveInChar(pos.x,pos.y,r); //pos is the old position
-			transitionEnd = mapToDoTheStepOn.getTransitions().get(transitionLookup);
-			if (transitionEnd == null) return null; //if there isn't an entry
-
-			//go through the transition
-			newPos.x = Transitions.getX(transitionEnd);
-			newPos.y= Transitions.getY(transitionEnd);
-			newR = Transitions.getR(transitionEnd);
-			newR = (newR+4)%8; //flips direction because transition came out of that direction, so you go through the other way
-
-			if (mapToDoTheStepOn.getCharAt(newPos) == '-') return null; //only relevant in bomb phase
-		}
-
-
-
-		//sets the position to the new One (call by reference)
-		pos.x = newPos.x;
-		pos.y = newPos.y;
-		return newR;
-	}
 }

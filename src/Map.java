@@ -10,7 +10,7 @@ public class Map{
     //Data Structure and needed Variables to store Transitions
     private HashMap<Character,Character> transitions = new HashMap<>();
     private int[] transitionsBuffer = new int[9];
-    private int posInTransitionBuffer=0;
+    private int posInTransitionBuffer = 0;
     
     //General Map Infos
     private int anzPlayers;
@@ -20,14 +20,22 @@ public class Map{
     private int height;
     private int width;
 
-    public boolean importedCorrectly = false;
+    private boolean importedCorrectly = false;
 
     //Extended Map Info
     private int currentlyPlaying = 1;
-    private boolean[] disqualifiedPlayers = new boolean[]{false, false, false, false, false, false, false, false}; //maybe it's not needed
+    private boolean[] disqualifiedPlayers = new boolean[]{false, false, false, false, false, false, false, false}; //TODO: maybe it's not needed
 
     private ArrayList<HashSet<Position>> stonesPerPlayer = new ArrayList<>(8);
     private HashSet<Position> expansionFields = new HashSet<>();
+
+    //Valid Moves Varables
+    private ArrayList<LinkedHashSet<Position>> ValidMoves = new ArrayList<>(8);
+    private ArrayList<LinkedHashSet<Position>> OverwriteMoves = new ArrayList<>(8);
+
+    private Arrow[][][][] AffectedArrows;
+    private Arrow[][][] StartingArrows;
+
 
 
     /**
@@ -82,9 +90,46 @@ public class Map{
         transitionsBuffer = new int[9];
         posInTransitionBuffer = 0;
 
+        //Stones per player
         initStonesPerPlayerSet();
         for (int playerNr = 1; playerNr <= anzPlayers; playerNr++){
             stonesPerPlayer.set(playerNr-1, (HashSet<Position>) mapToCopy.getStonesOfPlayer(playerNr).clone());
+        }
+        expansionFields = (HashSet<Position>) mapToCopy.expansionFields.clone();
+
+        //Move carry along //TODO: do better
+
+        for (int playerNr = 0; playerNr < anzPlayers; playerNr++) {
+            ValidMoves.add(new LinkedHashSet<>());
+            ValidMoves.get(playerNr).addAll(mapToCopy.ValidMoves.get(playerNr));
+            OverwriteMoves.add(new LinkedHashSet<>());
+            OverwriteMoves.get(playerNr).addAll(mapToCopy.OverwriteMoves.get(playerNr));
+        }
+
+        AffectedArrows = new Arrow[height][width][anzPlayers][8];
+        for (int y = 0; y < height; y++){
+            for (int x = 0; x < width; x++){
+                for (int playerNr = 0; playerNr < anzPlayers; playerNr++){
+                    for (int i = 0; i < 8; i++){
+                        if (mapToCopy.AffectedArrows[y][x][playerNr][i] != null)
+                            AffectedArrows[y][x][playerNr][i] = mapToCopy.AffectedArrows[y][x][playerNr][i].clone();
+                        else
+                            AffectedArrows[y][x][playerNr][i] = null;
+                    }
+                }
+            }
+        }
+
+        StartingArrows = new Arrow[height][width][8];
+        for (int y = 0; y < height; y++){
+            for (int x = 0; x < width; x++){
+                for (int i = 0; i < 8; i++){
+                    if (mapToCopy.StartingArrows[y][x][i] != null)
+                        StartingArrows[y][x][i] = mapToCopy.StartingArrows[y][x][i].clone();
+                    else
+                        StartingArrows[y][x][i] = null;
+                }
+            }
         }
     }
     
@@ -202,6 +247,15 @@ public class Map{
 
             tokenCounter++;
         }
+
+        //after import create first few arrows
+        for (int playerNr = 1; playerNr <= anzPlayers; playerNr++) {
+            for (Position pos : getStonesOfPlayer(playerNr)){
+                fieldChange(pos.x, pos.y, 0, playerNr);
+            }
+        }
+
+
         return true;
     }
 
@@ -277,9 +331,7 @@ public class Map{
         return mapString;
     }
 
-
     //Kopieren und umbauen zur toString_Server Methode
-
     public String toString_Server(ArrayList<int[]> everyPossibleMove)
     {
         String mapString = "";
@@ -322,7 +374,7 @@ public class Map{
     }
 
     //not very clean code - just for testing purposes
-    public String toString(ArrayList<int[]> everyPossibleMove, boolean showTransitions, boolean useColors){
+    public String toString(List<int[]> everyPossibleMove, boolean showTransitions, boolean useColors){
         final String ANSI_RESET = "\u001B[0m";
         final String ANSI_BLACK = "\u001B[30m";
         final String ANSI_RED = "\u001B[31m";
@@ -437,6 +489,7 @@ public class Map{
         return mapString;
     }
 
+
     /**
      * Swaps Stones of the currently playing player with the specified player
      * @param playerId ID of the player with whom to swap stones
@@ -489,7 +542,66 @@ public class Map{
         }
     }
 
-    //GETTER
+    /**
+     * goes one step in the specified direction. If there's a wall or the end of the map it returns null if there's a transition it goes through it
+     * @param pos start position
+     * @param r direction to do the step in
+     * @return returns null if move isn't possible and the direction after the move if it is possible. If a transition changes the direction this is where to get the new one
+     */
+    public Integer doAStep(Position pos, int r){
+        char transitionLookup;
+        char charAtPos;
+        Character transitionEnd;
+        int newR = r;
+        Position newPos;
+
+        //check if step is valid in x direction
+        if (pos.x == 0){
+            if (r == 7 || r == 6 || r == 5) return null;
+        }
+        if (pos.x == this.getWidth()-1){
+            if (r == 1 || r == 2 || r == 3) return null;
+        }
+        //check if step is valid in y direction
+        if (pos.y == 0) {
+            if (r == 7 || r == 0 || r == 1) return null;
+        }
+        if (pos.y == this.getHeight()-1){
+            if (r == 3 || r == 4 || r == 5) return null;
+        }
+
+        //do the step
+        newPos = Position.goInR(pos, r);
+
+        charAtPos = this.getCharAt(newPos);
+
+        //check if there's a wall
+        if (charAtPos == '-') return null;
+
+        //check if there is a transition
+        if (charAtPos == 't') {
+            //check if the direction matches the current one
+            transitionLookup = Transitions.saveInChar(pos.x,pos.y,r); //pos is the old position
+            transitionEnd = this.getTransitions().get(transitionLookup);
+            if (transitionEnd == null) return null; //if there isn't an entry
+
+            //go through the transition
+            newPos.x = Transitions.getX(transitionEnd);
+            newPos.y= Transitions.getY(transitionEnd);
+            newR = Transitions.getR(transitionEnd);
+            newR = (newR+4)%8; //flips direction because transition came out of that direction, so you go through the other way
+
+            if (this.getCharAt(newPos) == '-') return null; //only relevant in bomb phase
+        }
+
+        //sets the position to the new One (call by reference)
+        pos.x = newPos.x;
+        pos.y = newPos.y;
+        return newR;
+    }
+
+
+    /* GETTER */
     /**
      * @param x x coordinate
      * @param y y coordinate
@@ -558,6 +670,43 @@ public class Map{
         return transitions;
     }
 
+    public boolean wasImportedCorrectly() {
+        return importedCorrectly;
+    }
+
+    public ArrayList<int[]> getValidMoves(){
+        ArrayList<int[]> resultList = new ArrayList<>();
+        char currChar;
+
+        for (Position pos : ValidMoves.get(currentlyPlaying-1)){
+            currChar = getCharAt(pos);
+            switch (currChar){
+                case '0':
+                case 'i':
+                    resultList.add(new int[]{pos.x, pos.y, 0});
+                    break;
+                case 'b':
+                    resultList.add(new int[]{pos.x, pos.y, 20});
+                    resultList.add(new int[]{pos.x, pos.y, 21});
+                    break;
+                case 'c':
+                    for (int playerNr = 1; playerNr <= anzPlayers; playerNr++) {
+                        if (playerNr == currentlyPlaying) continue;
+                        resultList.add(new int[]{pos.x, pos.y, playerNr});
+                    }
+                    break;
+                default:
+                    System.err.println("Valid Move was on another field: " + currChar);
+                    break;
+            }
+        }
+        for (Position pos : OverwriteMoves.get(currentlyPlaying-1)){
+            resultList.add(new int[]{pos.x, pos.y, 0});
+        }
+
+        return resultList;
+    }
+
     //SETTER
 
     /**
@@ -577,16 +726,19 @@ public class Map{
             System.err.println("The Map wasn't yet initialized");
             return false;
         }
+
         //check boundaries
         if (x >= width || y >= height || x < 0 || y < 0) {
             System.err.println("Position out of Map");
             return false;
         }
+
         //get what is there
         charAtPos = getCharAt(x,y);
+
         //if there was a player remove stone from his stone set
         if (charAtPos != '0' && Character.isDigit(charAtPos)) {
-            stonesPerPlayer.get(charAtPos-'0'-1).remove(posToSetChar); //-'0' to convert to int
+            stonesPerPlayer.get(charAtPos-'0'-1).remove(posToSetChar); //-'0' to convert to int; -1 because of index shift
         }
         if (charAtPos == 'x') expansionFields.remove(posToSetChar);
 
@@ -595,8 +747,12 @@ public class Map{
 
         //add char to set of player
         if (charToChangeTo != '0' && Character.isDigit(charToChangeTo)) {
-            stonesPerPlayer.get(charToChangeTo-'0'-1).add(posToSetChar); //-'0' to convert to int
+            stonesPerPlayer.get(charToChangeTo-'0'-1).add(posToSetChar); //-'0' to convert to int; -1 because of index shift
         }
+
+        //update valid moves
+        if (charAtPos != '0' && charAtPos != '-' && charAtPos != '+' && charAtPos != 't' && charToChangeTo != '0' && charToChangeTo != '-' && charToChangeTo != '+' && charToChangeTo != 't')
+            fieldChange(x,y,charAtPos-'0',charToChangeTo-'0');
 
         return true;
     }
@@ -648,6 +804,209 @@ public class Map{
 
     //PRIVATE METHODS
 
+    //Methodes for Move carry along
+
+    private void fieldChange(int x, int y, int oldPlayer, int newPlayer){
+        Arrow currArrow;
+
+        //delete arrows that start on this position
+        //and add new ones for the new player
+        for (int r = 0; r <= 7; r++){
+            currArrow = StartingArrows[y][x][r];
+            if (currArrow != null && oldPlayer != 0) {
+                deleteArrowFrom(currArrow, oldPlayer, 0);
+            }
+            addNewArrow(x, y, r, newPlayer);
+        }
+
+        //update every arrow for every player that is affected by this field
+        for (int playerNr = 1; playerNr <= anzPlayers; playerNr++){
+            for (int r = 0; r <= 7; r++){
+                currArrow = AffectedArrows[y][x][playerNr-1][r];
+                if (currArrow != null) {
+                    updateArrow(currArrow, playerNr, x, y, r);
+                }
+            }
+        }
+    }
+
+    private void deleteArrowFrom(Arrow oldArrow, int arrowOfPlayer, int from){
+        int[] posAndR;
+        Position currPos;
+
+        //delete valid move created by this arrow
+        if (oldArrow.createsValidMove){
+            //get last element
+            posAndR = oldArrow.positionsWithDirection.get(oldArrow.positionsWithDirection.size()-1);
+            currPos = new Position(posAndR[0],posAndR[1]);
+            ValidMoves.get(arrowOfPlayer-1).remove(currPos);
+        }
+
+        //starts from the end
+        for (int counter =  oldArrow.positionsWithDirection.size()-1; counter >= from; counter--){
+            //get position and direction
+            posAndR = oldArrow.positionsWithDirection.get(counter);
+            //delete references out of affected arrows or starting arrows
+            if (counter == 0){
+                StartingArrows[posAndR[1]][posAndR[0]][posAndR[2]] = null;
+            }
+            else {
+                AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer-1][posAndR[2]] = null;
+            }
+            //delete overwrite moves created by this arrow
+            if (counter >= 2){
+                currPos = new Position(posAndR[0],posAndR[1]);
+                OverwriteMoves.get(arrowOfPlayer-1).remove(currPos); //should only not find the element when arrow is creating a valid move
+            }
+            //delete last position out of list
+            oldArrow.positionsWithDirection.remove(counter);
+        }
+    }
+
+    private void addNewArrow(int x, int y, int direction, int arrowOfPlayer){
+        Arrow newArrow = new Arrow();
+        int[] posAndR;
+
+        //add starting position
+        newArrow.positionsWithDirection.add(new int[]{x,y,direction});
+
+        //create Arrow on map
+        createArrowFrom(newArrow, x, y, direction, arrowOfPlayer);
+
+        //add references
+        //  start position
+        posAndR = newArrow.positionsWithDirection.get(0);
+        StartingArrows[posAndR[1]][posAndR[0]][posAndR[2]] = newArrow;
+
+        //  middle and end positions
+        for (int i = 1; i < newArrow.positionsWithDirection.size(); i++){
+            posAndR = newArrow.positionsWithDirection.get(i);
+            //save reference in affected arrow list
+            AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer-1][posAndR[2]] = newArrow;
+        }
+    }
+
+    private void updateArrow(Arrow currArrow, int arrowOfPlayer, int x, int y, int direction){
+        //TODO: use binary search
+        int i = 0;
+        int[] posAndR;
+        for (; i < currArrow.positionsWithDirection.size(); i++){
+            posAndR = currArrow.positionsWithDirection.get(i);
+            if (posAndR[0] == x && posAndR[1] == y && posAndR[2] == direction) break;
+        }
+        //deletes all positions after the one we got
+        deleteArrowFrom(currArrow, arrowOfPlayer, i);
+
+        //check further
+        //  get last position
+        if (currArrow.positionsWithDirection.size()-1 > 0) {
+            posAndR = currArrow.positionsWithDirection.get(currArrow.positionsWithDirection.size() - 1);
+            //  create Arrow from last position on foreward
+            createArrowFrom(currArrow, posAndR[0], posAndR[1], posAndR[2], arrowOfPlayer);
+        }
+        else {
+            //  create Arrow from last position on foreward
+            createArrowFrom(currArrow, x, y, direction, arrowOfPlayer);
+        }
+
+    }
+
+    private void createArrowFrom(Arrow arrow, int x, int y, int direction, int arrowOfPlayer){
+        Position currPos = new Position(x,y);
+        Position StartingPos = currPos.clone();
+        Integer newR = direction;
+        Integer nextR;
+        char currChar;
+        boolean firstStep = true;
+
+        //go in one direction
+        while (true) {
+            //does one step
+            nextR = doAStep(currPos, newR); //currPos is changed here
+
+            //check for walls
+            if (nextR == null) {
+                //set end to position it can't go to
+                currPos = Position.goInR(currPos, direction);
+                break; //if the step wasn't possible
+            }
+            newR = nextR; //TODO: test if it's just the reference
+
+            //check for cykles
+            if(currPos.equals(StartingPos)) { //
+                //let arrow end one field ahead of the start
+                //go one step back
+                newR = doAStep(currPos, (direction+4)%8);
+                //direction is the opposite of the one we have after going back
+                newR = (newR+4)%8;
+                break;
+            }
+
+            //check what's there
+            currChar = getCharAt(currPos);
+
+            //if it's a blank
+            if (currChar == '0' || currChar == 'i' || currChar == 'c' ||currChar == 'b'){
+                if (!firstStep) {
+                    ValidMoves.get(arrowOfPlayer - 1).add(currPos.clone());
+                    arrow.createsValidMove = true;
+                }
+                break;
+            }
+
+            //if it's me
+            if (currChar == '0'+arrowOfPlayer) {
+                //overwrite stone can be place on top of first own stone
+                if (!firstStep) OverwriteMoves.get(arrowOfPlayer-1).add(currPos.clone());
+                break;
+            }
+
+
+            //if it's another player or 'x'
+            arrow.positionsWithDirection.add(new int[]{currPos.x, currPos.y, newR});
+
+            //if it's not the first step an overwrite move can be made
+            if (!firstStep) OverwriteMoves.get(arrowOfPlayer-1).add(currPos.clone());
+
+            firstStep = false;
+        }
+
+        //add last position after break
+        arrow.positionsWithDirection.add(new int[]{currPos.x, currPos.y, newR});
+    }
+
+    //other
+
+    private void initValidMoveArrays(){
+        for (int playerNr = 0; playerNr < anzPlayers; playerNr++) {
+            ValidMoves.add(new LinkedHashSet<>());
+            OverwriteMoves.add(new LinkedHashSet<>());
+        }
+
+        AffectedArrows = new Arrow[height][width][anzPlayers][8];
+
+        /*for (int y = 0; y < height; y++){
+            AffectedArrows[y] = new Arrow[width][anzPlayers][8];
+            for (int x = 0; x < width; x++){
+                AffectedArrows[y][x] = new Arrow[anzPlayers][8];
+                for (int playerNr = 0; playerNr < anzPlayers; playerNr++){
+                    AffectedArrows[y][x][playerNr] = new Arrow[8];
+                }
+            }
+        }*/
+
+        StartingArrows = new Arrow[height][width][8];
+
+        /*for (int y = 0; y < height; y++){
+            StartingArrows[y] = new Arrow[width][8];
+            for (int x = 0; x < width; x++){
+                StartingArrows[y][x] = new Arrow[8];
+            }
+        }
+
+         */
+    }
+
     private void initStonesPerPlayerSet(){
         for (int playerNr = 0; playerNr < anzPlayers; playerNr++) {
             stonesPerPlayer.add(new HashSet<Position>());
@@ -663,7 +1022,6 @@ public class Map{
                     return false;
                 }
                 anzPlayers = currentNumber;
-                initStonesPerPlayerSet();
                 break;
             case 1:
                 for (int i = 0; i < anzPlayers; i++)
@@ -692,6 +1050,9 @@ public class Map{
                 //create map
                 map = new char[height][width];
                 initializeMap();
+                //init
+                initStonesPerPlayerSet();
+                initValidMoveArrays();
                 break;
         }
         return true;

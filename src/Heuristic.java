@@ -373,7 +373,7 @@ public class Heuristic {
             pos = savedPos.clone();
             newR = r;
             while (true) {
-                newR = Client.doAStep(pos, newR, map);
+                newR = map.doAStep(pos, newR);
 
                 if (newR == null || ( pos.equals(savedPos) && newR == r )){
                     break;
