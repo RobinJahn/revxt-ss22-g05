@@ -638,6 +638,13 @@ public class Map{
         if (currentlyPlaying == anzPlayers+1) currentlyPlaying = 1;
     }
 
+    public  int getNextPlayer(){
+        int nextPlayer = currentlyPlaying + 1;
+        if (nextPlayer == anzPlayers+1) nextPlayer = 1;
+        return nextPlayer;
+
+    }
+
     public void setPlayer(int PlayerID) {
         currentlyPlaying = PlayerID;
     }

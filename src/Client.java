@@ -34,6 +34,7 @@ public class Client{
 	final private boolean useAB;
 	final private boolean useMS;
 	private boolean timed = true;
+	final private boolean useBRS = false;
 
 	//global variables
 	private Map map;
@@ -872,7 +873,7 @@ public class Client{
         }
 
 		//simulate all moves and return best value
-		valueAndIndex = getBestValueAndIndexFromMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, UpperTimeLimit);
+		valueAndIndex = getBestValueAndIndexFromMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, UpperTimeLimit,0);
 
 		//end of timing
 		totalTime = System.nanoTime() - startTime;
@@ -881,7 +882,7 @@ public class Client{
 		return valueAndIndex;
 	}
 
-	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long UpperTimeLimit) throws TimeoutException{
+	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long UpperTimeLimit, int brsCount) throws TimeoutException{
 		//Out of Time ?
 		if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
 			System.out.println("Out of Time (DFSVisit - start of Method)");
@@ -923,7 +924,7 @@ public class Client{
 		}
 
 		//simulate all moves and return best value
-		valueAndIndex = getBestValueAndIndexFromMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit);
+		valueAndIndex = getBestValueAndIndexFromMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit,brsCount);
 		currBestValue = valueAndIndex[0];
 
 		return currBestValue;
@@ -987,7 +988,8 @@ public class Client{
 												   double currAlpha,
 												   double currBeta,
 												   Statistic statistic,
-												   long UpperTimeLimit) throws TimeoutException
+												   long UpperTimeLimit,
+												   int brsCount) throws TimeoutException
 	{
 		//declarations
 		Map nextMap;
@@ -1000,6 +1002,9 @@ public class Client{
 		ArrayList<Integer> indexList = new ArrayList<>(everyPossibleMove.size());
 		boolean firstCall = (statistic.timesNodesGotAdded == 0);
 
+		//BRS+
+		int[] PhiZug = {-1,-1};
+
 		//fill index List
 		for (int i = 0; i < everyPossibleMove.size(); i++){
 			indexList.add(i);
@@ -1010,11 +1015,25 @@ public class Client{
 		if (map.getCurrentlyPlayingI() == myPlayerNr) {
 			isMax = true;
 			currBestValue = Double.NEGATIVE_INFINITY;
+			//BRS+Algorithmus
+			brsCount = 0;
 		}
 		//	Minimizer
 		else {
 			isMax = false;
 			currBestValue = Double.POSITIVE_INFINITY;
+			//PhiZug Random Choice
+			PhiZug = everyPossibleMove.get((int)(Math.random()*(everyPossibleMove.size()-1)));
+
+			if(brsCount == 2 && useBRS)
+			{
+				everyPossibleMove = new ArrayList<int[]>();
+				everyPossibleMove.add(PhiZug);
+			}
+			else if(brsCount < 2 && map.getNextPlayer() != myPlayerNr && useBRS)
+			{
+				everyPossibleMove.add(PhiZug);
+			}
 		}
 
 		//add values to statistic
@@ -1117,7 +1136,12 @@ public class Client{
 
 			//Call DFS to start building part-tree of children
 			if (depth > 1) {
-				evaluation = DFSVisit(nextMap, depth -1, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit);
+				//BrsCount hier ?
+				if (PhiZug[0] == -1)
+				{
+					brsCount++;
+				}
+				evaluation = DFSVisit(nextMap, depth -1, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit,brsCount);
 			}
 			//get evaluation of map when it's a leaf
 			else {
