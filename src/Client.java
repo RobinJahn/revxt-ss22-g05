@@ -1003,7 +1003,7 @@ public class Client{
 		boolean firstCall = (statistic.timesNodesGotAdded == 0);
 
 		//BRS+
-		int[] PhiZug = {-1,-1};
+		int PhiZugIndex = -1;
 
 		//fill index List
 		for (int i = 0; i < everyPossibleMove.size(); i++){
@@ -1022,18 +1022,23 @@ public class Client{
 		else {
 			isMax = false;
 			currBestValue = Double.POSITIVE_INFINITY;
-			//PhiZug Random Choice
-			PhiZug = everyPossibleMove.get((int)(Math.random()*(everyPossibleMove.size()-1)));
+			//PhiZugIndex Random Choice Hier merken wir uns den Index unseres PhiZuges
+			PhiZugIndex = (int)(Math.random()*(everyPossibleMove.size()-1));
 
 			if(brsCount == 2 && useBRS)
 			{
+				int[] PhiZug = everyPossibleMove.get(PhiZugIndex);
 				everyPossibleMove = new ArrayList<int[]>();
 				everyPossibleMove.add(PhiZug);
+
 			}
+			/* //Nicht mehr Noetig weil wir ueber den Index gehen ???
 			else if(brsCount < 2 && map.getNextPlayer() != myPlayerNr && useBRS)
 			{
-				everyPossibleMove.add(PhiZug);
+				everyPossibleMove.add(PhiZugIndex);
 			}
+			*/
+
 		}
 
 		//add values to statistic
@@ -1137,7 +1142,7 @@ public class Client{
 			//Call DFS to start building part-tree of children
 			if (depth > 1) {
 				//BrsCount hier ?
-				if (PhiZug[0] == -1)
+				if (PhiZugIndex != i && PhiZugIndex != -1)
 				{
 					brsCount++;
 				}
