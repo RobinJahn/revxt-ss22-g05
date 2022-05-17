@@ -1,7 +1,6 @@
 package src;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 
 public class Heuristic {
@@ -49,10 +48,10 @@ public class Heuristic {
 
         //set multiplier
         //default multiplier
-        stoneCountMultiplier = 4;
-        moveCountMultiplier = 8;
+        stoneCountMultiplier = 5;
+        moveCountMultiplier = 4;
         fieldValueMultiplier = 1;
-        edgeMultiplier = 6;
+        edgeMultiplier = 2;
         //corresponding default enables
         countMoves = true;
         countStones = true;
