@@ -761,7 +761,7 @@ public class Client{
 		int[] validPosition;
 		//Timing
 		long startTime = System.nanoTime();
-		long timeOffset = 40_000_000; //ns -> xx ms
+		long timeOffset = 80_000_000; //ns -> xx ms
 		long timeNextDepth = 0;
 		long upperTimeLimit = startTime + (long)time * 1_000_000 - timeOffset;
 		double leavesNextDepth;
