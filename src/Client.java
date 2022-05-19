@@ -46,6 +46,8 @@ public class Client{
 	private int moveCounter;
 	double approximation = 1;
 
+	Random random = new Random(1);
+
 
 	public static void main(String[] args) {
 		boolean printOn = true;
@@ -290,6 +292,8 @@ public class Client{
 
 					if (printOn) {
 						System.out.println(map.toString(null, false, useColors));
+						//System.out.println("With move carry along");
+						//System.out.println(map.toString(map.getValidMoves(), false, useColors));
 
 						//calculate value of map and print it
 						double valueOfMap = (double) Math.round(heuristic.evaluate(firstPhase) * 100) / 100;
@@ -387,6 +391,18 @@ public class Client{
 		System.out.println("With move carry along");
 		System.out.println(map.toString(map.getValidMoves(),false,useColors));
 
+		boolean contains;
+		boolean containsAll = true;
+		for (int[] posAndR1 : validMoves){
+			contains = false;
+			for (int[] posAndR2 : map.getValidMoves()){
+				if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1] && posAndR1[2] == posAndR2[2]) contains = true;
+			}
+			if (!contains) {
+				containsAll = false;
+			}
+		}
+
 		//calculate value of map and print it
 		valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne)*100)/100;
 		if (printOn) System.out.println("Value of Map is " + valueOfMap);
@@ -398,7 +414,8 @@ public class Client{
 
 		//make a calculated move
 		if (calculateMove) {
-			validPosition = getMoveTimeDepth(phaseOne, validMoves);
+			//validPosition = getMoveTimeDepth(phaseOne, validMoves);
+			validPosition = validMoves.get( random.nextInt(validMoves.size()) );
 		}
 		//let player enter a move
 		else {

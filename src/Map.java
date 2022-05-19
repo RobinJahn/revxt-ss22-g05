@@ -20,6 +20,7 @@ public class Map{
     private int height;
     private int width;
 
+    public boolean phaseOne;
     private boolean importedCorrectly = false;
 
     //Extended Map Info
@@ -711,8 +712,15 @@ public class Map{
                     break;
             }
         }
-        for (Position pos : OverwriteMoves.get(currentlyPlaying-1).keySet()){
-            resultList.add(new int[]{pos.x, pos.y, 0});
+
+        if (getOverwriteStonesForPlayer(currentlyPlaying) > 0) {
+            for (Position pos : OverwriteMoves.get(currentlyPlaying - 1).keySet()) {
+                resultList.add(new int[]{pos.x, pos.y, 0});
+            }
+
+            for (Position pos : expansionFields){
+                resultList.add(new int[]{pos.x, pos.y, 0});
+            }
         }
 
         return resultList;
@@ -845,6 +853,9 @@ public class Map{
             }
             addNewArrow(x, y, r, newPlayer);
         }
+
+        System.out.println("List is correkt: " + checkForBugs());
+        //return;
     }
 
     private void deleteArrowFrom(Arrow oldArrow, int arrowOfPlayer, int from){
@@ -870,7 +881,9 @@ public class Map{
                 StartingArrows[posAndR[1]][posAndR[0]][posAndR[2]] = null;
             }
             else {
-                AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer-1][posAndR[2]] = null;
+                if (AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer-1][posAndR[2]] == oldArrow) {
+                    AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer - 1][posAndR[2]] = null;
+                }
             }
             //delete overwrite moves created by this arrow
             if (counter >= 2){
@@ -910,10 +923,12 @@ public class Map{
         //TODO: use binary search
         int i = 0;
         int[] posAndR;
+
         for (; i < currArrow.positionsWithDirection.size(); i++){
             posAndR = currArrow.positionsWithDirection.get(i);
             if (posAndR[0] == x && posAndR[1] == y && posAndR[2] == direction) break;
         }
+        if (i >= currArrow.positionsWithDirection.size()) System.err.println("Something went wrong - Position not found");
         //deletes all positions after the one we got
         deleteArrowFrom(currArrow, arrowOfPlayer, i);
 
@@ -933,6 +948,7 @@ public class Map{
         for (int j = i; j < currArrow.positionsWithDirection.size(); j++) {
             //  start position
             if (j == 0) {
+                System.err.println("Something went wrong - While Updating Arrow it got deleted");
                 posAndR = currArrow.positionsWithDirection.get(0);
                 StartingArrows[posAndR[1]][posAndR[0]][posAndR[2]] = currArrow;
             }
@@ -1091,6 +1107,56 @@ public class Map{
                 OverwriteMoves.get(arrowOfPlayer - 1).replace(currPos, arrowsPointingToPos);
             }
         }
+    }
+
+    private ArrayList<Arrow> getAllArrows(){
+        ArrayList<Arrow> arrowsInMap = new ArrayList<>();
+        Arrow arrow;
+
+        for (int y = 0; y < height; y++){
+            for (int x = 0; x < width; x++){
+                for (int i = 0; i < 8; i++){
+                    if (StartingArrows[y][x][i] != null) {
+                        arrow = StartingArrows[y][x][i];
+                        arrowsInMap.add(arrow);
+                    }
+                }
+            }
+        }
+        return arrowsInMap;
+    }
+
+    private ArrayList<Arrow> getAllValidArrows(){
+        ArrayList<Arrow> arrowsInMap = getAllArrows();
+        ArrayList<Arrow> validArrowsInMap = new ArrayList<>();
+
+        for (Arrow arrow : arrowsInMap){
+            if (arrow.createsValidMove) validArrowsInMap.add(arrow);
+        }
+        return  validArrowsInMap;
+    }
+
+    private boolean checkForBugs(){
+        ArrayList<Arrow> allArrows = getAllArrows();
+        boolean correct = true;
+        boolean isOneOfThem = false;
+        int[] posAndR;
+
+        for (Arrow arrow : allArrows){
+            for (int i = 1; i < arrow.positionsWithDirection.size(); i++){
+                posAndR = arrow.positionsWithDirection.get(i);
+                isOneOfThem = false;
+                for (int playerNr = 0; playerNr < anzPlayers; playerNr++) {
+                    if (AffectedArrows[posAndR[1]][posAndR[0]][playerNr][posAndR[2]] == arrow) isOneOfThem = true;
+                }
+                if (!isOneOfThem) {
+                    correct = false;
+                }
+                break;
+            }
+            if (!correct) break;
+        }
+        return correct;
     }
 
     //other
