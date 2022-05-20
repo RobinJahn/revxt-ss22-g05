@@ -221,7 +221,7 @@ public class Client{
 		String map_For_Comparison = "";
 		moveCounter = 0;
 
-		if (printOn) System.out.println(map.toString(null,false,useColors));
+		if (printOn) System.out.println(map.toString(null,true,useColors));
 
 		while (gameOngoing) {
 
@@ -387,7 +387,7 @@ public class Client{
 		//calculate possible moves and print map with these
 		validMoves = getValidMoves(map);
 		if (printOn) System.out.println(map.toString(validMoves, false, useColors));
-
+		/*
 		System.out.println("With move carry along");
 		System.out.println(map.toString(map.getValidMoves(),false,useColors));
 
@@ -402,6 +402,8 @@ public class Client{
 				containsAll = false;
 			}
 		}
+
+		 */
 
 		//calculate value of map and print it
 		valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne)*100)/100;
