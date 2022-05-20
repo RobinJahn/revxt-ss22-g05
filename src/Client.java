@@ -33,6 +33,7 @@ public class Client{
 	final private boolean compare_to_Server;
 	final private boolean useAB;
 	final private boolean useMS;
+	final private boolean ServerLog = true;
 	private boolean timed = true;
 	final private boolean useBRS = false;
 
@@ -49,7 +50,7 @@ public class Client{
 
 
 	public static void main(String[] args) {
-		boolean printOn = true;
+		boolean printOn = false;
 		boolean useColors = true;
 		boolean compare_to_Server = false;
 		boolean extendedPrint = false;
@@ -201,8 +202,8 @@ public class Client{
 		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
 
 		//set variables after map was imported
-		heuristic = new Heuristic(map, myPlayerNr,true,multipliers); // mark
-		heuristicForSimulation = new Heuristic(map, myPlayerNr,true,multipliers);
+		heuristic = new Heuristic(map, myPlayerNr,printOn,multipliers); // mark
+		heuristicForSimulation = new Heuristic(map, myPlayerNr,printOn,multipliers);
 
 		//start playing
 		if (printOn) System.out.println();
@@ -265,8 +266,10 @@ public class Client{
 				{
 					if (printOn) {
 						System.out.println("received Move");
-						System.out.println("Move: " + moveCounter++);
+						System.out.println("Move: " + moveCounter);
 					}
+
+					moveCounter++;
 
 					//read rest of Message
 					int[] moveInfos = serverM.readRestOfMove();
@@ -416,7 +419,10 @@ public class Client{
 			}
 			catch (TimeoutException te){
 				valueAndIndex  = new double[]{0, -1};
-				if (printOn) System.out.println("Timeout Exception thrown");
+				if (printOn) {
+					System.out.println("Timeout Exception thrown");
+					te.printStackTrace();
+				}
 			}
 			if (valueAndIndex[1] != -1) {
 				positionAndInfo = validMoves.get( (int)valueAndIndex[1] );
@@ -767,13 +773,16 @@ public class Client{
 		double leavesNextDepth;
 		double totalNodesToGoOver;
 
+		int currDepth;
+
 		//get a random valid position to allways have a valid return value
 		validPosition = everyPossibleMove.get( (int)Math.round( Math.random() * (everyPossibleMove.size()-1) ) );
 
 		//if there is a time limit
 		if (timed) {
 			//iterative deepening
-			for (int currDepth = 1; (upperTimeLimit - System.nanoTime() - timeNextDepth > 0); currDepth++) { //check if we can calculate next layer
+
+			for (currDepth = 1; (upperTimeLimit - System.nanoTime() - timeNextDepth > 0); currDepth++) { //check if we can calculate next layer
 
 				//reset statistic
 				statistic = new Statistic();
@@ -787,9 +796,10 @@ public class Client{
 				}
 				//if it noticed we have no more time
 				catch (TimeoutException te){
-					if (printOn) {
+					if (printOn||ServerLog) {
 						System.out.println("Time out Exception thrown");
 						System.out.println("Time Remaining: " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
+						te.printStackTrace();
 					}
 					return validPosition;
 				}
@@ -801,7 +811,7 @@ public class Client{
 				leavesNextDepth = statistic.leafNodes * statistic.branchFactor();
 				totalNodesToGoOver = statistic.totalNodesSeen + leavesNextDepth;
 
-				//time camparison prints
+				//time comparison prints
 				if (printOn){
 					System.out.println("Expected Time needed for this depth: " + timeNextDepth/ 1_000_000 + "ms");
 					System.out.println("Actual time needed: " + (double)statistic.totalComputationTime/ 1_000_000 + "ms");
@@ -838,7 +848,15 @@ public class Client{
 					System.out.println();
 				}
 			}
+
+			if(ServerLog)
+			{
+				System.out.println("For Move: " + moveCounter + ", Depth: " + currDepth + ", Move: " + Arrays.toString(validPosition));
+			}
+
+
 		}
+
 
 		//if we have no time limit
 		else {
@@ -885,7 +903,7 @@ public class Client{
 	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long UpperTimeLimit, int brsCount) throws TimeoutException{
 		//Out of Time ?
 		if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-			System.out.println("Out of Time (DFSVisit - start of Method)");
+			if (printOn||ServerLog) System.out.println("Out of Time (DFSVisit - start of Method)");
 			throw new TimeoutException();
 		}
 
@@ -1056,7 +1074,7 @@ public class Client{
 			for (int[] positionAndInfo : everyPossibleMove) {
 				//Out of Time ?
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
-					if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - start of for)");
+					if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - start of for)");
 					throw new TimeoutException();
 				}
 
@@ -1065,7 +1083,7 @@ public class Client{
 
 				//Out of Time ?
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
-					if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after clone)");
+					if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after clone)");
 					throw new TimeoutException();
 				}
 
@@ -1095,7 +1113,7 @@ public class Client{
 
 			//Out of Time ?
 			if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
-				if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after sort)");
+				if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after sort)");
 				throw new TimeoutException();
 			}
 
@@ -1106,7 +1124,7 @@ public class Client{
 
 			//Out of Time ?
 			if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-				if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - in go over moves)");
+				if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - in go over moves)");
 				throw new TimeoutException();
 			}
 
