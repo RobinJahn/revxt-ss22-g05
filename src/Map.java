@@ -20,7 +20,8 @@ public class Map{
     private int height;
     private int width;
 
-    public boolean phaseOne;
+    public boolean phaseOne = true;
+    public boolean terminalState = false;
     private boolean importedCorrectly = false;
 
     //Extended Map Info
@@ -35,7 +36,7 @@ public class Map{
     private ArrayList<HashMap<Position, Integer>> OverwriteMoves = new ArrayList<>(8);
 
     private Arrow[][][][] AffectedArrows;
-    private Arrow[][][] StartingArrows;
+    private Arrow[][][] StartingArrows; //TODO: could be 2 elements shorter on each side
 
 
 
@@ -98,7 +99,7 @@ public class Map{
         }
         expansionFields = (HashSet<Position>) mapToCopy.expansionFields.clone();
 
-        //Move carry along //TODO: do better
+        //Move carry along
 
         for (int playerNr = 0; playerNr < anzPlayers; playerNr++) {
             ValidMoves.add(new HashMap<>());
@@ -113,34 +114,38 @@ public class Map{
             }
         }
 
-        ArrayList<Arrow> arrowsToUpdate = new ArrayList<>();
-        ArrayList<Integer> playerOfArrow = new ArrayList<>();
-        Arrow newArrow = null;
-        int[] posAndR;
-        int currPlayer;
-        Arrow arrow;
+        if (mapToCopy.phaseOne) {
+            ArrayList<Arrow> arrowsToUpdate = new ArrayList<>();
+            ArrayList<Integer> playerOfArrow = new ArrayList<>();
+            Arrow newArrow = null;
+            int[] posAndR;
+            int currPlayer;
+            Arrow arrow;
 
-        StartingArrows = new Arrow[height][width][8];
-        for (int y = 0; y < height; y++){
-            for (int x = 0; x < width; x++){
-                for (int i = 0; i < 8; i++){
-                    if (mapToCopy.StartingArrows[y][x][i] != null) {
-                        newArrow = mapToCopy.StartingArrows[y][x][i].clone();
-                        StartingArrows[y][x][i] = newArrow;
-                        arrowsToUpdate.add(newArrow);
-                        playerOfArrow.add(map[y][x] - '0');
+            //Copy starting Arrows
+            StartingArrows = new Arrow[height][width][8];
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    for (int i = 0; i < 8; i++) {
+                        if (mapToCopy.StartingArrows[y][x][i] != null) {
+                            newArrow = mapToCopy.StartingArrows[y][x][i].clone();
+                            StartingArrows[y][x][i] = newArrow;
+                            arrowsToUpdate.add(newArrow);
+                            playerOfArrow.add(map[y][x] - '0');
+                        }
                     }
                 }
             }
-        }
 
-        AffectedArrows = new Arrow[height][width][anzPlayers][8];
-        for (int i = 0; i < arrowsToUpdate.size(); i++){
-            arrow = arrowsToUpdate.get(i);
-            currPlayer = playerOfArrow.get(i);
-            for ( int j = 1; j < arrow.positionsWithDirection.size(); j++){ //start from the first position that needs to be in the affected list
-                posAndR = arrow.positionsWithDirection.get(j);
-                AffectedArrows[posAndR[1]][posAndR[0]][currPlayer-1][posAndR[2]] = arrow;
+            //Copy Affected Arrows
+            AffectedArrows = new Arrow[height][width][anzPlayers][8];
+            for (int i = 0; i < arrowsToUpdate.size(); i++) {
+                arrow = arrowsToUpdate.get(i);
+                currPlayer = playerOfArrow.get(i);
+                for (int j = 1; j < arrow.positionsWithDirection.size(); j++) { //start from the first position that needs to be in the affected list
+                    posAndR = arrow.positionsWithDirection.get(j);
+                    AffectedArrows[posAndR[1]][posAndR[0]][currPlayer-1][posAndR[2]] = arrow;
+                }
             }
         }
     }
@@ -267,6 +272,8 @@ public class Map{
             }
         }
 
+        //after import check the phase
+        updatePhase();
 
         return true;
     }
@@ -520,12 +527,33 @@ public class Map{
         //index shift
         playerId -= 1;
         int currentlyPlaying = this.currentlyPlaying-1;
+        HashSet<Position> posBuffer;
+        HashMap<Position, Integer> validPosBuffer;
+        Arrow[] buffer;
 
         //swap stones with player
-        HashSet<Position> buffer;
-        buffer = stonesPerPlayer.get(currentlyPlaying);
+        posBuffer = stonesPerPlayer.get(currentlyPlaying);
         stonesPerPlayer.set(currentlyPlaying, stonesPerPlayer.get(playerId));
-        stonesPerPlayer.set(playerId, buffer);
+        stonesPerPlayer.set(playerId, posBuffer);
+
+        //swaps valid positions
+        validPosBuffer = ValidMoves.get(currentlyPlaying);
+        ValidMoves.set(currentlyPlaying, ValidMoves.get(playerId));
+        ValidMoves.set(playerId, validPosBuffer);
+
+        //swaps overwrite positions
+        validPosBuffer = OverwriteMoves.get(currentlyPlaying);
+        OverwriteMoves.set(currentlyPlaying, OverwriteMoves.get(playerId));
+        OverwriteMoves.set(playerId, validPosBuffer);
+
+        //swap arrows
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                buffer = AffectedArrows[y][x][currentlyPlaying];
+                AffectedArrows[y][x][currentlyPlaying] = AffectedArrows[y][x][playerId];
+                AffectedArrows[y][x][playerId] = buffer;
+            }
+        }
 
         //color the new stones of the player in its color
         for (int playerNr : new int[]{playerId, currentlyPlaying}){
@@ -539,12 +567,35 @@ public class Map{
      * Die Farben aller Spieler werden um eins verschoben
      */
     public void Inversion() {
-        HashSet<Position> buffer;
+        HashSet<Position> posBuffer;
+        HashMap<Position, Integer> validPosBuffer;
+        Arrow[] buffer;
 
         //adds the last element at the front, so it shifts all the other elements one further and deletes the last element
-        buffer = stonesPerPlayer.remove(stonesPerPlayer.size()-1);
-        stonesPerPlayer.add(0,buffer);
+        posBuffer = stonesPerPlayer.remove(stonesPerPlayer.size()-1);
+        stonesPerPlayer.add(0,posBuffer);
 
+        //swap Valid Moves
+        validPosBuffer = ValidMoves.remove( stonesPerPlayer.size()-1 );
+        ValidMoves.add(0, validPosBuffer);
+
+        //swap overwrite Moves
+        validPosBuffer = OverwriteMoves.remove( stonesPerPlayer.size()-1 );
+        OverwriteMoves.add(0, validPosBuffer);
+
+        //swap arrows
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                //get last element
+                buffer = AffectedArrows[y][x][anzPlayers-1];
+                //shift all arrow lists one further
+                for (int playerNr = anzPlayers-1; playerNr >= 1; playerNr--) {
+                    AffectedArrows[y][x][playerNr] = AffectedArrows[y][x][playerNr-1];
+                }
+                //set elements of first player to the ones from the last one
+                AffectedArrows[y][x][0] = buffer;
+            }
+        }
 
         //colors the new stones of the player in its color
         for (int playerNr = 1; playerNr <= anzPlayers; playerNr++){
@@ -687,39 +738,72 @@ public class Map{
     }
 
     public ArrayList<int[]> getValidMoves(){
+        return getValidMoves(currentlyPlaying);
+    }
+
+    public ArrayList<int[]> getValidMoves(int playerId){
         ArrayList<int[]> resultList = new ArrayList<>();
         char currChar;
 
-        for (Position pos : ValidMoves.get(currentlyPlaying-1).keySet()){
-            currChar = getCharAt(pos);
-            switch (currChar){
-                case '0':
-                case 'i':
+        if (phaseOne) {
+            //get Valid Moves
+            for (Position pos : ValidMoves.get(playerId - 1).keySet()) {
+                currChar = getCharAt(pos);
+                switch (currChar) {
+                    case '0':
+                    case 'i':
+                        resultList.add(new int[]{pos.x, pos.y, 0});
+                        break;
+                    case 'b':
+                        resultList.add(new int[]{pos.x, pos.y, 20});
+                        resultList.add(new int[]{pos.x, pos.y, 21});
+                        break;
+                    case 'c':
+                        for (int playerNr = 1; playerNr <= anzPlayers; playerNr++) {
+                            if (playerNr == playerId) continue;
+                            resultList.add(new int[]{pos.x, pos.y, playerNr});
+                        }
+                        break;
+                    default:
+                        System.err.println("Valid Move was on another field: " + pos + "=" + currChar);
+                        break;
+                }
+            }
+
+            //get Overwrite Moves
+            if (getOverwriteStonesForPlayer(playerId) > 0) {
+                for (Position pos : OverwriteMoves.get(playerId - 1).keySet()) {
                     resultList.add(new int[]{pos.x, pos.y, 0});
-                    break;
-                case 'b':
-                    resultList.add(new int[]{pos.x, pos.y, 20});
-                    resultList.add(new int[]{pos.x, pos.y, 21});
-                    break;
-                case 'c':
-                    for (int playerNr = 1; playerNr <= anzPlayers; playerNr++) {
-                        if (playerNr == currentlyPlaying) continue;
-                        resultList.add(new int[]{pos.x, pos.y, playerNr});
-                    }
-                    break;
-                default:
-                    System.err.println("Valid Move was on another field: " + pos + "=" + currChar);
-                    break;
+                }
+
+                for (Position pos : expansionFields) {
+                    resultList.add(new int[]{pos.x, pos.y, 0});
+                }
             }
         }
 
-        if (getOverwriteStonesForPlayer(currentlyPlaying) > 0) {
-            for (Position pos : OverwriteMoves.get(currentlyPlaying - 1).keySet()) {
-                resultList.add(new int[]{pos.x, pos.y, 0});
+        //if we are in the bomb Phase
+        else {
+            char fieldValue;
+            int accuracy = 2;
+
+            //if player has no bomb's return empty array
+            if (getBombsForPlayer(playerId) == 0) {
+                System.err.println("Something's wrong - Player has no Bombs but server wants player to place one");
+                return resultList; //returns empty array
             }
 
-            for (Position pos : expansionFields){
-                resultList.add(new int[]{pos.x, pos.y, 0});
+            while (resultList.isEmpty()) {
+                //gets the possible positions to set a bomb at
+                for (int y = 0; y < getHeight(); y += accuracy) {
+                    for (int x = 0; x < getWidth(); x += accuracy) {
+                        fieldValue = getCharAt(x, y);
+                        if (fieldValue != '-' && fieldValue != 't') {
+                            resultList.add(new int[]{x, y});
+                        }
+                    }
+                }
+                accuracy = 1; //could be changed to accuracy-- if it should have more proceduaral steps
             }
         }
 
@@ -770,8 +854,12 @@ public class Map{
         }
 
         //update valid moves
-        if (charAtPos != '-' && charAtPos != '+' && charAtPos != 't' && charToChangeTo != '0' && charToChangeTo != '-' && charToChangeTo != '+' && charToChangeTo != 't')
-            fieldChange(x,y,charAtPos-'0',charToChangeTo-'0');
+        if (charAtPos != '-' && charAtPos != '+' && charAtPos != 't' && charToChangeTo != '-' && charToChangeTo != '+' && charToChangeTo != 't' && charToChangeTo != '0') {
+            //update Arrows
+            fieldChange(x, y, charAtPos - '0', charToChangeTo - '0');
+            //update phase
+            updatePhase();
+        }
 
         return true;
     }
@@ -823,7 +911,7 @@ public class Map{
 
     //PRIVATE METHODS
 
-    //Methodes for Move carry along
+    //  Methodes for Move carry along
 
     private void firstCreation(int x, int y, int newPlayer){
         for (int r = 0; r <= 7; r++){
@@ -854,14 +942,15 @@ public class Map{
             addNewArrow(x, y, r, newPlayer);
         }
 
-        System.out.println("List is correkt: " + checkForBugs());
+        //System.out.println("List is correkt: " + checkForReferenceInAffectedArrows());
+        //System.out.println("Valid Moves are correkt: " + checkValidMoves());
+        //System.out.println("Overwrite Moves are correkt: " + checkOverwriteMoves());
         //return;
     }
 
     private void deleteArrowFrom(Arrow oldArrow, int arrowOfPlayer, int from){
         int[] posAndR;
         Position currPos;
-        Integer arrowsPointingToPos;
 
         //delete valid move created by this arrow
         if (oldArrow.createsValidMove){
@@ -885,12 +974,13 @@ public class Map{
                     AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer - 1][posAndR[2]] = null;
                 }
             }
-            //delete overwrite moves created by this arrow
-            if (counter >= 2){
-                currPos = new Position(posAndR[0],posAndR[1]);
 
+            //delete overwrite moves created by this arrow
+            if (counter >= 2 && counter != oldArrow.positionsWithDirection.size()-1){
+                currPos = new Position(posAndR[0],posAndR[1]);
                 removeOverwritePosition(arrowOfPlayer, currPos);
             }
+
             //delete last position out of list
             oldArrow.positionsWithDirection.remove(counter);
         }
@@ -1036,6 +1126,7 @@ public class Map{
         arrow.positionsWithDirection.add(new int[]{currPos.x, currPos.y, newR});
     }
 
+    //      Helping methods for Move Carry along
 
     private void addValidPosition(int arrowOfPlayer, Position currPos) {
         Integer arrowsPointingToPos;
@@ -1109,6 +1200,8 @@ public class Map{
         }
     }
 
+    //      Checking Methodes for Move Carry Along
+
     private ArrayList<Arrow> getAllArrows(){
         ArrayList<Arrow> arrowsInMap = new ArrayList<>();
         Arrow arrow;
@@ -1136,10 +1229,9 @@ public class Map{
         return  validArrowsInMap;
     }
 
-    private boolean checkForBugs(){
+    private boolean checkForReferenceInAffectedArrows(){
         ArrayList<Arrow> allArrows = getAllArrows();
-        boolean correct = true;
-        boolean isOneOfThem = false;
+        boolean isOneOfThem;
         int[] posAndR;
 
         for (Arrow arrow : allArrows){
@@ -1150,16 +1242,100 @@ public class Map{
                     if (AffectedArrows[posAndR[1]][posAndR[0]][playerNr][posAndR[2]] == arrow) isOneOfThem = true;
                 }
                 if (!isOneOfThem) {
-                    correct = false;
+                    return false;
                 }
-                break;
             }
-            if (!correct) break;
         }
-        return correct;
+
+        return true;
     }
 
-    //other
+    private boolean checkValidMoves(){
+        ArrayList<Arrow> validArows = getAllValidArrows();
+
+        int[] posAndR;
+        boolean correct = true;
+        boolean isOneOfThem;
+        int arrowOfPlayer;
+
+        for (Arrow arrow : validArows){
+            //get player
+            posAndR = arrow.positionsWithDirection.get(0);
+            arrowOfPlayer = map[posAndR[1]][posAndR[0]]-'0';
+            //get last position
+            posAndR = arrow.positionsWithDirection.get( arrow.positionsWithDirection.size()-1 );
+            //reset
+            isOneOfThem = false;
+
+            for (Position validPos : ValidMoves.get(arrowOfPlayer-1).keySet()){
+                if (validPos.x == posAndR[0] && validPos.y == posAndR[1]) isOneOfThem = true;
+            }
+
+            if (!isOneOfThem) {
+                return false;
+            }
+        }
+
+
+
+        return true;
+    }
+
+    private boolean checkOverwriteMoves(){
+        ArrayList<Arrow> allArrows = getAllValidArrows();
+        int[] posAndR;
+        boolean correct = true;
+        boolean isOneOfThem;
+        int arrowOfPlayer;
+
+        //for every arrow
+        for (Arrow arrow : allArrows){
+            //get player
+            posAndR = arrow.positionsWithDirection.get(0);
+            arrowOfPlayer = map[posAndR[1]][posAndR[0]]-'0';
+
+            //for every overwrite position
+            for (int i = 2; i < arrow.positionsWithDirection.size()-1; i++) {
+                //get position
+                posAndR = arrow.positionsWithDirection.get(i);
+                //reset
+                isOneOfThem = false;
+
+                for (Position overwritePos : OverwriteMoves.get(arrowOfPlayer - 1).keySet()) {
+                    if (overwritePos.x == posAndR[0] && overwritePos.y == posAndR[1]) isOneOfThem = true;
+                }
+
+                if (!isOneOfThem) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    //  Other
+
+    private void updatePhase(){
+        boolean nextPhase = true;
+
+        //if at least one player has still moves don't go in the next phase
+        for (int playerNr = 1; playerNr <= anzPlayers; playerNr++){
+            if (getValidMoves(playerNr).size() != 0) {
+                nextPhase = false;
+            }
+        }
+
+        //if no player has moves
+        if (nextPhase) {
+            //if is in phase 2
+            if (!phaseOne) {
+                terminalState = true;
+            }
+            //if it is in phase 1 (or 2)
+            phaseOne = false;
+        }
+    }
 
     private void initValidMoveArrays(){
         for (int playerNr = 0; playerNr < anzPlayers; playerNr++) {
