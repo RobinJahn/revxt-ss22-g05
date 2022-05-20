@@ -797,6 +797,7 @@ public class Client{
 				//if it noticed we have no more time
 				catch (TimeoutException te){
 					if (printOn||ServerLog) {
+						System.out.println("For Move: " + moveCounter + ", Depth: " + currDepth + ", Move: " + Arrays.toString(validPosition));
 						System.out.println("Time out Exception thrown");
 						System.out.println("Time Remaining: " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
 						te.printStackTrace();
