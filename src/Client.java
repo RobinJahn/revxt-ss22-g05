@@ -386,27 +386,14 @@ public class Client{
 
 		//calculate possible moves and print map with these
 		validMoves = getValidMoves(map);
-		if (printOn) System.out.println(map.toString(validMoves, false, useColors));
+		if (printOn) {
+			System.out.println(map.toString(validMoves, false, useColors));
 
-		System.out.println("With move carry along");
-		System.out.println(map.toString(map.getValidMoves(),false,useColors));
+			System.out.println("With move carry along");
+			System.out.println(map.toString(map.getValidMoves(phaseOne), false, useColors));
+		}
 
-		boolean contains;
-		boolean containsAll = true;
-		for (int[] posAndR1 : validMoves){
-			contains = false;
-			for (int[] posAndR2 : map.getValidMoves()){
-				if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1] && posAndR1[2] == posAndR2[2]) contains = true;
-			}
-			if (!contains) {
-				containsAll = false;
-				break;
-			}
-		}
-		if (!containsAll){
-			System.err.println("Valid Moves from Map and Client do not match");
-			return;
-		}
+		if (!compareValidMoves(phaseOne, validMoves)) return;
 
 		//calculate value of map and print it
 		valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne)*100)/100;
@@ -613,25 +600,10 @@ public class Client{
 			System.out.println("Value of Map is " + valueOfMap);
 
 			System.out.println("With move carry along");
-			System.out.println(map.toString(map.getValidMoves(),false,useColors));
-
-			boolean contains;
-			boolean containsAll = true;
-			for (int[] posAndR1 : validMoves){
-				contains = false;
-				for (int[] posAndR2 : map.getValidMoves()){
-					if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1]) contains = true;
-				}
-				if (!contains) {
-					containsAll = false;
-					break;
-				}
-			}
-			if (!containsAll){
-				System.err.println("Valid Moves from Map and Client do not match");
-				return;
-			}
+			System.out.println(map.toString(map.getValidMoves(phaseOne),false,useColors));
 		}
+
+		if (!compareValidMoves(phaseOne, validMoves)) return;
 
         //get a move
         if (calculateMove)
@@ -716,6 +688,38 @@ public class Client{
 			}
 		}
 		return validMoves;
+	}
+
+	private boolean compareValidMoves(boolean phaseOne, ArrayList<int[]> validMoves) {
+		boolean contains;
+		boolean containsAll = true;
+
+		for (int[] posAndR1 : validMoves){
+			contains = false;
+			for (int[] posAndR2 : map.getValidMoves(phaseOne)){
+				if (phaseOne) {
+					if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1] && posAndR1[2] == posAndR2[2]) {
+						contains = true;
+						break;
+					}
+				}
+				else {
+					if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1]) {
+						contains = true;
+						break;
+					}
+				}
+			}
+			if (!contains) {
+				containsAll = false;
+				break;
+			}
+		}
+		if (!containsAll){
+			System.err.println("Valid Moves from Map and Client do not match");
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -1083,7 +1087,7 @@ public class Client{
 				}
 
 				//clones Map
-				nextMap = new Map(map);
+				nextMap = new Map(map, phaseOne);
 
 				//Out of Time ?
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
@@ -1145,7 +1149,7 @@ public class Client{
 			//Without move sorting - simulate move
 			if (!useMS) {
 				//clones Map
-				nextMap = new Map(map);
+				nextMap = new Map(map, phaseOne);
 
 				//if it's the first phase
 				if (phaseOne) {

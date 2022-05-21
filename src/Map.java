@@ -20,8 +20,6 @@ public class Map{
     private int height;
     private int width;
 
-    public boolean phaseOne = true;
-    public boolean terminalState = false;
     private boolean importedCorrectly = false;
 
     //Extended Map Info
@@ -71,9 +69,9 @@ public class Map{
             System.err.println("Map didn't import correctly.");
             return;
         }
-    }
+    } //not needed anymore
 
-    public Map(Map mapToCopy){
+    public Map(Map mapToCopy, boolean phaseOne){
         map = new char[mapToCopy.map.length][mapToCopy.map[0].length];
         for (int y = 0; y < mapToCopy.map.length; y++){ //inner array can be copied this way
             System.arraycopy(mapToCopy.map[y], 0, map[y], 0, mapToCopy.map[0].length);
@@ -114,10 +112,10 @@ public class Map{
             }
         }
 
-        if (mapToCopy.phaseOne) {
+        if (phaseOne) {
             ArrayList<Arrow> arrowsToUpdate = new ArrayList<>();
             ArrayList<Integer> playerOfArrow = new ArrayList<>();
-            Arrow newArrow = null;
+            Arrow newArrow;
             int[] posAndR;
             int currPlayer;
             Arrow arrow;
@@ -273,7 +271,7 @@ public class Map{
         }
 
         //after import check the phase
-        updatePhase();
+        //updatePhase();
 
         return true;
     }
@@ -737,11 +735,11 @@ public class Map{
         return importedCorrectly;
     }
 
-    public ArrayList<int[]> getValidMoves(){
-        return getValidMoves(currentlyPlaying);
+    public ArrayList<int[]> getValidMoves(boolean phaseOne){
+        return getValidMoves(currentlyPlaying, phaseOne);
     }
 
-    public ArrayList<int[]> getValidMoves(int playerId){
+    public ArrayList<int[]> getValidMoves(int playerId, boolean phaseOne){
         ArrayList<int[]> resultList = new ArrayList<>();
         char currChar;
 
@@ -789,7 +787,6 @@ public class Map{
 
             //if player has no bomb's return empty array
             if (getBombsForPlayer(playerId) == 0) {
-                System.err.println("Something's wrong - Player has no Bombs but server wants player to place one");
                 return resultList; //returns empty array
             }
 
@@ -858,7 +855,7 @@ public class Map{
             //update Arrows
             fieldChange(x, y, charAtPos - '0', charToChangeTo - '0');
             //update phase
-            updatePhase();
+            //updatePhase();
         }
 
         return true;
@@ -1315,27 +1312,6 @@ public class Map{
     }
 
     //  Other
-
-    private void updatePhase(){
-        boolean nextPhase = true;
-
-        //if at least one player has still moves don't go in the next phase
-        for (int playerNr = 1; playerNr <= anzPlayers; playerNr++){
-            if (getValidMoves(playerNr).size() != 0) {
-                nextPhase = false;
-            }
-        }
-
-        //if no player has moves
-        if (nextPhase) {
-            //if is in phase 2
-            if (!phaseOne) {
-                terminalState = true;
-            }
-            //if it is in phase 1 (or 2)
-            phaseOne = false;
-        }
-    }
 
     private void initValidMoveArrays(){
         for (int playerNr = 0; playerNr < anzPlayers; playerNr++) {
