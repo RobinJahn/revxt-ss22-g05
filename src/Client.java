@@ -35,7 +35,6 @@ public class Client{
 	final private boolean useMS;
 	private boolean timed = true;
 
-	//global variables
 	private Map map;
 	private ServerMessenger serverM;
 	private Heuristic heuristic;
@@ -186,10 +185,12 @@ public class Client{
 		}
 
 		//get map from server
-		map = serverM.getMap();
+		//global variables
+		StaticMap sMap = serverM.getMap();
+		map = new Map(sMap);
 
 		//check if it imported correctly
-		if(map == null || !map.wasImportedCorrectly()) {
+		if(sMap == null || !sMap.wasImportedCorrectly()) {
 			System.err.println("Map couldn't be loaded correctly");
 			return;
 		}
@@ -384,16 +385,20 @@ public class Client{
 
 		map.setPlayer(myPlayerNr);
 
-		//calculate possible moves and print map with these
+		//calculate possible moves
 		validMoves = getValidMoves(map);
+
 		if (printOn) {
-			System.out.println(map.toString(validMoves, false, useColors));
-
-			System.out.println("With move carry along");
-			System.out.println(map.toString(map.getValidMoves(phaseOne), false, useColors));
+			if (!compareValidMoves(phaseOne, validMoves)) {
+				System.out.println(map.toString(validMoves, false, useColors));
+				System.out.println("With move carry along");
+				System.out.println(map.toString(map.getValidMoves(phaseOne), false, useColors));
+				return;
+			}
+			else {
+				System.out.println(map.toString(validMoves, false, useColors));
+			}
 		}
-
-		if (!compareValidMoves(phaseOne, validMoves)) return;
 
 		//calculate value of map and print it
 		valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne)*100)/100;
@@ -529,7 +534,7 @@ public class Client{
 		fieldValue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
 
 		//color the map
-		colorMap(posToSetKeystone, map);
+		Map.colorMap(posToSetKeystone, map);
 
 		//handle special moves
 		switch (additionalInfo){
@@ -592,15 +597,20 @@ public class Client{
 			return;
 		}
 
-		//print valid moves
 		if (printOn) {
-			System.out.println(map.toString(validMoves, false, useColors));
-			//calculate value of map and print it
-			double valueOfMap = (double) Math.round(heuristic.evaluate(phaseOne) * 100) / 100;
-			System.out.println("Value of Map is " + valueOfMap);
+			if (!compareValidMoves(phaseOne, validMoves)) {
+				System.out.println(map.toString(validMoves, false, useColors));
+				System.out.println("With move carry along");
+				System.out.println(map.toString(map.getValidMoves(phaseOne), false, useColors));
+				return;
+			}
+			else {
+				System.out.println(map.toString(validMoves, false, useColors));
+				//calculate value of map and print it
+				double valueOfMap = (double) Math.round(heuristic.evaluate(phaseOne) * 100) / 100;
+				System.out.println("Value of Map is " + valueOfMap);
+			}
 
-			System.out.println("With move carry along");
-			System.out.println(map.toString(map.getValidMoves(phaseOne),false,useColors));
 		}
 
 		if (!compareValidMoves(phaseOne, validMoves)) return;
@@ -1570,82 +1580,4 @@ public class Client{
 
         return resultPosAndInfo;
     }
-
-
-	//function to color the map
-
-	/**
-	 * colors the map when the keystone is placed in the specified position
-	 * @param pos position where the keystone is placed
-	 * @param map the map on wich it is placed
-	 */
-	private static void colorMap(Position pos, Map map){
-		Position StartingPos;
-		Position currPos;
-		Integer newR;
-		boolean wasFirstStep;
-		boolean foundEnd;
-		char currChar;
-		LinkedHashSet<Position> positionsToColor = new LinkedHashSet<>(); //doesn't store duplicates
-		ArrayList<Position> positionsAlongOneDirection;
-
-		if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-			map.setCharAt(pos.x, pos.y, map.getCurrentlyPlayingC());
-		}
-
-		//checks every direction for a connection and adds the positions in between to color them later
-		for (int r = 0; r <= 7; r++){
-			//reset values
-			StartingPos = pos.clone();
-			currPos = pos.clone();
-			wasFirstStep = true;
-			newR = r;
-			positionsAlongOneDirection = new ArrayList<>();
-			positionsAlongOneDirection.add(currPos.clone());
-			foundEnd = false;
-
-			//go in one direction until there is something relevant
-			while (true) {
-				//does one step
-				newR = map.doAStep(currPos, newR); //currPos is changed here
-				if (newR == null) break; //if the step wasn't possible
-
-				if(currPos.equals(StartingPos)) break;
-
-				//check what's there
-				currChar = map.getCharAt(currPos);
-				//check for blank
-				if (currChar == '0' || currChar == 'i' || currChar == 'c' ||currChar == 'b') break;
-				//check for players
-				//if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
-				if (wasFirstStep) {
-					//if there is a keystone of your own, and it's the first step
-					if (currChar == map.getCurrentlyPlayingC()) break;
-					wasFirstStep = false;
-				}
-				//if it's not the first move - finding an own keystone is a connection
-				else {
-					//if there is a keystone of your own, and it's not the first step
-					if (currChar == map.getCurrentlyPlayingC()) {
-						foundEnd = true;
-						break;
-					}
-				}
-				//when adding the position to the list HERE it doesn't add the ones that break the loop
-				positionsAlongOneDirection.add(currPos.clone());
-			}
-			//if it found a connection it adds all the moves along the way to the positions to color
-			if (foundEnd) positionsToColor.addAll(positionsAlongOneDirection); //doesn't add duplicates because of LinkedHashSet
-		}
-
-		//colors the positions
-		for (Position posToColor : positionsToColor) {
-			map.setCharAt(posToColor.x, posToColor.y, map.getCurrentlyPlayingC());
-		}
-	}
-
-
-	//function to simplify making a step
-
-
 }

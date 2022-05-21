@@ -99,12 +99,12 @@ public class ServerMessenger {
         }
     }
 
-    public Map getMap(){
+    public StaticMap getMap(){
         int readByte;
         byte[] readByteArray;
         StringBuilder lengthStr = new StringBuilder();
         int length;
-        Map map;
+        StaticMap sMap;
 
         try {
             //check if it's the right type of message
@@ -122,7 +122,7 @@ public class ServerMessenger {
             //read the whole map sting
             readByteArray = in.readNBytes(length);
             //create a map with it
-            map = new Map(readByteArray);
+            sMap = new StaticMap(readByteArray);
 
         }
         catch (SocketException e){
@@ -134,7 +134,7 @@ public class ServerMessenger {
             return null;
         }
 
-        return map;
+        return sMap;
     }
 
     public int getPlayerNumber() {
