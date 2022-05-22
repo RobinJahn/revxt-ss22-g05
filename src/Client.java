@@ -37,6 +37,8 @@ public class Client{
 	private boolean timed = true;
 	final private boolean useBRS = false;
 
+	final private boolean useKH = false;
+
 	//global variables
 	private Map map;
 	private ServerMessenger serverM;
@@ -449,10 +451,10 @@ public class Client{
 			Scanner sc = new Scanner(System.in);
 			ArrayList<Integer> directions;
 			char choiceChar;
-
+			KillerArray KillerArray = new KillerArray();
 			//print moves and evaluation
 			try {
-				valueAndIndex = getNextMoveDFS(validMoves, true, depth, statistic, -1);
+				valueAndIndex = getNextMoveDFS(validMoves, true, depth, statistic, -1,KillerArray);
 			}
 			catch (TimeoutException te){
 				valueAndIndex  = new double[]{0, -1};
@@ -820,6 +822,9 @@ public class Client{
 
 		int currDepth;
 
+		//Killer Heuristic
+		KillerArray KillerArray = new KillerArray();
+
 		//get a random valid position to always have a valid return value
 		validPosition = everyPossibleMove.get( (int)Math.round( Math.random() * (everyPossibleMove.size()-1) ) );
 
@@ -837,7 +842,7 @@ public class Client{
 
 				//get the best move for this depth
 				try {
-					valueAndIndex = getNextMoveDFS(everyPossibleMove, phaseOne, currDepth, statistic, upperTimeLimit); //takes time
+					valueAndIndex = getNextMoveDFS(everyPossibleMove, phaseOne, currDepth, statistic, upperTimeLimit,KillerArray); //takes time
 				}
 				//if it noticed we have no more time
 				catch (TimeoutException te){
@@ -908,7 +913,7 @@ public class Client{
 		else {
 			//catch will never happen
 			try {
-				valueAndIndex = getNextMoveDFS(everyPossibleMove, phaseOne, depth, statistic, 0);
+				valueAndIndex = getNextMoveDFS(everyPossibleMove, phaseOne, depth, statistic, 0,KillerArray);
 				validPosition = everyPossibleMove.get( (int)valueAndIndex[1] );
 			}
 			catch (TimeoutException ts){
@@ -919,7 +924,7 @@ public class Client{
 		return validPosition;
 	}
 
-	private double[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth, Statistic statistic, long UpperTimeLimit) throws TimeoutException {
+	private double[] getNextMoveDFS(ArrayList<int[]> everyPossibleMove, boolean phaseOne, int depth, Statistic statistic, long UpperTimeLimit, KillerArray KillerArray) throws TimeoutException {
 		//For DFS
 		double[] valueAndIndex;
 		//For alpha beta
@@ -937,7 +942,7 @@ public class Client{
         }
 
 		//simulate all moves and return best value
-		valueAndIndex = getBestValueAndIndexFromMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, UpperTimeLimit,0);
+		valueAndIndex = getBestValueAndIndexFromMoves(map, everyPossibleMove, depth, phaseOne, alpha, beta, statistic, UpperTimeLimit,0,KillerArray);
 
 		//end of timing
 		totalTime = System.nanoTime() - startTime;
@@ -946,7 +951,7 @@ public class Client{
 		return valueAndIndex;
 	}
 
-	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long UpperTimeLimit, int brsCount) throws TimeoutException{
+	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long UpperTimeLimit, int brsCount,KillerArray KillerArray) throws TimeoutException{
 		//Out of Time ?
 		if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
 			if (printOn||ServerLog) System.out.println("Out of Time (DFSVisit - start of Method)");
@@ -988,7 +993,7 @@ public class Client{
 		}
 
 		//simulate all moves and return best value
-		valueAndIndex = getBestValueAndIndexFromMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit,brsCount);
+		valueAndIndex = getBestValueAndIndexFromMoves(map, everyPossibleMove, depth, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit,brsCount,KillerArray);
 		currBestValue = valueAndIndex[0];
 
 		return currBestValue;
@@ -1053,7 +1058,8 @@ public class Client{
 												   double currBeta,
 												   Statistic statistic,
 												   long UpperTimeLimit,
-												   int brsCount) throws TimeoutException
+												   int brsCount,
+												   KillerArray KillerArray) throws TimeoutException
 	{
 		//declarations
 		Map nextMap;
@@ -1156,6 +1162,34 @@ public class Client{
 			}
 
 		}
+		//Resort Array to include Killer Heuristic
+		if(useKH){
+			ArrayList<Integer> newIndexList = new ArrayList<Integer>(indexList.size());
+			for(int i = 0;i< KillerArray.getLength();i++)
+			{
+				//Out of Time ?
+				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
+					if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Killer Heuristic)");
+					throw new TimeoutException();
+				}
+
+				for (int j = 0;j<everyPossibleMove.size();j++)
+				{
+					int[] positionAndInfo = everyPossibleMove.get(j);
+
+					//If We found a Move which cuts off we place it in front
+					if(Arrays.equals(KillerArray.getPositionAndInfo(i), positionAndInfo))
+					{
+						newIndexList.add(indexList.get(j));
+						indexList.remove(j);
+					}
+				}
+			}
+			//Append the remaining Moves
+			newIndexList.addAll(indexList);
+			//Overwrite Old IndexList
+			indexList = newIndexList;
+		}
 
 		//go over every possible move
 		for (int i = 0; i < everyPossibleMove.size(); i++){
@@ -1208,7 +1242,7 @@ public class Client{
 					throw new TimeoutException();
 				}
 
-				evaluation = DFSVisit(nextMap, depth -1, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit,brsCount);
+				evaluation = DFSVisit(nextMap, depth -1, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit,brsCount,KillerArray);
 			}
 			//get evaluation of map when it's a leaf
 			else {
@@ -1259,13 +1293,15 @@ public class Client{
 						currAlpha = currBestValue;
 						if (extendedPrint) System.out.println("Alpha Updated: " + currAlpha);
 					}
-
-
 					//Cuttoff ?
 					if (currBestValue >= currBeta) {
 						int countOfCutoffLeaves = everyPossibleMove.size() - everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
 						statistic.reduceNodes(countOfCutoffLeaves, depth);
+						//Killer Heuristic
+						if(useKH) {
+							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffLeaves);
+						}
 						//Print before return
 						if (extendedPrint) {
 							System.out.println("Cutoff: Current highest value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
@@ -1286,6 +1322,10 @@ public class Client{
 						int countOfCutoffLeaves = everyPossibleMove.size()- everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
 						statistic.reduceNodes(countOfCutoffLeaves, depth);
+						//Killer Heuristic
+						if(useKH) {
+							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffLeaves);
+						}
 						//Print before return
 						if (extendedPrint) {
 							System.out.println("Cutoff: Current lowest value (" + currBestValue + ") <= current Alpha (" + currAlpha + ") - " + countOfCutoffLeaves + " values skipped");
