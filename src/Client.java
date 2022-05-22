@@ -282,7 +282,7 @@ public class Client{
 					//Ausgabe fuer den Vergleich mit dem Server
 					map.setPlayer(moveOfPlayer);
 					if (compare_to_Server) {
-						map_For_Comparison += map.toString_Server(getValidMoves(map));
+						map_For_Comparison = StringForServerCompare(map_For_Comparison);
 					}
 
 					//Handle Move
@@ -294,8 +294,17 @@ public class Client{
 
 					if (printOn) {
 						System.out.println(map.toString(null, false, useColors));
+						double valueOfMap;
 						//calculate value of map and print it
-						double valueOfMap = (double) Math.round(heuristic.evaluate(firstPhase) * 100) / 100;
+						try
+						{
+							 valueOfMap = (double) Math.round(heuristic.evaluate(firstPhase,timed,ServerLog, Long.MAX_VALUE) * 100) / 100;
+						}
+						catch (TimeoutException TE)
+						{
+							System.out.println("TimeoutException in Handle Move");
+							return;
+						}
 						System.out.println("Value of Map is " + valueOfMap);
 					}
 					break;
@@ -328,7 +337,7 @@ public class Client{
 					if (printOn) System.out.println("received end of phase 2 - game ended");
 
 					if (compare_to_Server) {
-						map_For_Comparison += map.toString_Server(getValidMoves(map));
+						map_For_Comparison = StringForServerCompare(map_For_Comparison);
 					}
 
 					serverM.readRestOfNextPhase();
@@ -336,8 +345,7 @@ public class Client{
 					break;
 				}
 
-				case -1:
-				{
+				case -1: {
 					gameOngoing = false;
 					System.err.println("Server closed connection or a message was received that couldn't be handled");
 					break;
@@ -366,6 +374,19 @@ public class Client{
 		}
 	}
 
+	//Compare to Server
+	private String StringForServerCompare(String map_For_Comparison)
+	{
+		try {
+			map_For_Comparison += map.toString_Server(getValidMoves(map, timed, printOn, ServerLog, 0));
+		}
+		catch (TimeoutException te)
+		{
+			System.out.print("TimeoutException in Compare to server");
+		}
+		return map_For_Comparison;
+	}
+
 	//phase 1
 
 	/**
@@ -384,11 +405,27 @@ public class Client{
 		map.setPlayer(myPlayerNr);
 
 		//calculate possible moves and print map with these
-		validMoves = getValidMoves(map);
+		try{
+			validMoves = getValidMoves(map,timed,printOn,ServerLog,Long.MAX_VALUE);
+		}
+		catch (TimeoutException TE)
+		{
+			System.out.println("TimeOutException in MakeAMove");
+			return;
+		}
 		if (printOn) System.out.println(map.toString(validMoves, false, useColors));
 
 		//calculate value of map and print it
-		valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne)*100)/100;
+		try
+		{
+			valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne,timed,ServerLog, Long.MAX_VALUE)*100)/100;
+		}
+		catch (TimeoutException TE)
+		{
+			System.out.println("TimeOutException in MakeAMove");
+			return;
+		}
+
 		if (printOn) System.out.println("Value of Map is " + valueOfMap);
 
 		if (validMoves.isEmpty()) {
@@ -588,9 +625,17 @@ public class Client{
 
 		//print valid moves
 		if (printOn) {
+
+			double valueOfMap;
+
 			System.out.println(map.toString(validMoves, false, useColors));
 			//calculate value of map and print it
-			double valueOfMap = (double) Math.round(heuristic.evaluate(phaseOne) * 100) / 100;
+			try{
+			 valueOfMap = (double) Math.round(heuristic.evaluate(phaseOne,timed,ServerLog, Long.MAX_VALUE) * 100) / 100;}
+			catch (TimeoutException Te){
+				System.out.println("Timeoutexception in setABomb");
+				return;
+			}
 			System.out.println("Value of Map is " + valueOfMap);
 		}
 
@@ -775,7 +820,7 @@ public class Client{
 
 		int currDepth;
 
-		//get a random valid position to allways have a valid return value
+		//get a random valid position to always have a valid return value
 		validPosition = everyPossibleMove.get( (int)Math.round( Math.random() * (everyPossibleMove.size()-1) ) );
 
 		//if there is a time limit
@@ -934,12 +979,12 @@ public class Client{
 		}
 
 		//get moves for the next player
-		phaseOne = getMovesForNextPlayer(map, everyPossibleMove, phaseOne);
+		phaseOne = getMovesForNextPlayer(map, everyPossibleMove, phaseOne,timed,printOn,ServerLog,UpperTimeLimit);
 
 		//check if it reached the end of the game
 		if (everyPossibleMove.isEmpty()) {
 			heuristicForSimulation.updateMap(map); //computing-intensive
-			return heuristicForSimulation.evaluate(phaseOne); //computing-intensive
+			return heuristicForSimulation.evaluate(phaseOne,timed,ServerLog,UpperTimeLimit); //computing-intensive
 		}
 
 		//simulate all moves and return best value
@@ -949,7 +994,7 @@ public class Client{
 		return currBestValue;
 	}
 
-	private static boolean getMovesForNextPlayer(Map map, ArrayList<int[]> movesToReturn, boolean phaseOne){
+	private static boolean getMovesForNextPlayer(Map map, ArrayList<int[]> movesToReturn, boolean phaseOne,boolean timed,boolean printOn,boolean ServerLog,long UpperTimeLimit) throws TimeoutException{
 		ArrayList<int[]> everyPossibleMove;
 		int skippedPlayers = 0;
 
@@ -957,7 +1002,7 @@ public class Client{
 		while (true) {
 			//get valid moves depending on stage of game
 			if (phaseOne) { //phase one
-				everyPossibleMove = getValidMoves(map);
+				everyPossibleMove = getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit);
 			}
 			else { //bomb phase
 				//if we have bombs
@@ -1051,13 +1096,6 @@ public class Client{
 				everyPossibleMove.add(PhiZug);
 
 			}
-			/* //Nicht mehr Noetig weil wir ueber den Index gehen ???
-			else if(brsCount < 2 && map.getNextPlayer() != myPlayerNr && useBRS)
-			{
-				everyPossibleMove.add(PhiZugIndex);
-			}
-			*/
-
 		}
 
 		//add values to statistic
@@ -1078,7 +1116,6 @@ public class Client{
 					if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - start of for)");
 					throw new TimeoutException();
 				}
-
 				//clones Map
 				nextMap = new Map(map);
 
@@ -1165,17 +1202,27 @@ public class Client{
 				{
 					brsCount++;
 				}
+
+				if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
+					if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - Before DFS Visit call)");
+					throw new TimeoutException();
+				}
+
 				evaluation = DFSVisit(nextMap, depth -1, phaseOne, currAlpha, currBeta, statistic,UpperTimeLimit,brsCount);
 			}
 			//get evaluation of map when it's a leaf
 			else {
 				heuristicForSimulation.updateMap(nextMap); //computing-intensive
-				evaluation = heuristicForSimulation.evaluate(phaseOne); //computing-intensive
+				if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
+					if (printOn || ServerLog) System.out.println("Out of time (After UpdateMap Before Evaluate)");
+					throw new TimeoutException();
+				}
+				evaluation = heuristicForSimulation.evaluate(phaseOne,timed,ServerLog,UpperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
 			}
 
 			//Out of Time ?
 			if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-				if (printOn) System.out.println("Out of time (getBestValueAndIndexFromMoves - after DFS Visit call)");
+				if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - after DFS Visit call)");
 				throw new TimeoutException();
 			}
 
@@ -1266,20 +1313,20 @@ public class Client{
 	 * @param map map to check for possible moves
 	 * @return returns an Array List of Positions
 	 */
-	public static ArrayList<int[]> getValidMoves(Map map) {
+	public static ArrayList<int[]> getValidMoves(Map map,boolean timed,boolean printOn,boolean ServerLog, long UpperTimeLimit) throws TimeoutException {
 		Moves moves = new Moves();
-        ArrayList<int[]> everyPossibleMove;
-        final boolean useNeighbours = false;
+		ArrayList<int[]> everyPossibleMove;
+		final boolean useNeighbours = false;
 
 		if (useNeighbours) {
-            getCandidatesByNeighbour(map, moves);
-            deleteNotPossibleMoves(map, moves);
-            everyPossibleMove = getEveryPossibleMove(map, moves.possibleMoves);
-        }
-        else {
-            everyPossibleMove = getFieldsByOwnColor(map);
-        }
-		
+			getCandidatesByNeighbour(map, moves);
+			deleteNotPossibleMoves(map, moves);
+			everyPossibleMove = getEveryPossibleMove(map, moves.possibleMoves);
+		}
+		else {
+			everyPossibleMove = getFieldsByOwnColor(map,timed,printOn,ServerLog,UpperTimeLimit);
+		}
+
 		return everyPossibleMove;
 	}
 
@@ -1493,90 +1540,85 @@ public class Client{
 	}
 
     //  by own color
-    private static ArrayList<int[]> getFieldsByOwnColor(Map map){
-        HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
-        ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
+	private static ArrayList<int[]> getFieldsByOwnColor(Map map,boolean timed,boolean printOn,boolean ServerLog,long UpperTimeLimit) throws TimeoutException {
+		HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
+		ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
 		int r;
-        Integer newR;
-        Position currPos;
-        char currChar;
-
-
-        //add x fields
-        if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-            for (Position pos : map.getExpansionFields()) {
-                everyPossibleMove.add(new PositionAndInfo(pos.x, pos.y, 0));
-            }
-        }
-
-        //goes over every position of the current player and checks in all directions if a move is possible
-        for (Position pos : map.getStonesOfPlayer(map.getCurrentlyPlayingI())){
-            for (r = 0; r <= 7; r++){
-                newR = r;
-                currPos = pos.clone();
-
-                //do the first step
-                newR = doAStep(currPos, newR, map);
-                if (newR == null) continue; //if the step wasn't possible
-                currChar = map.getCharAt(currPos); //check what's there
-                if (currChar == 'c' || currChar == 'b' || currChar == 'i' || currChar == '0' || currChar == map.getCurrentlyPlayingC()) continue; //if it's c, b, i, 0, myColor
-
-                while (true){
-                    newR = doAStep(currPos, newR, map);
-                    if (newR == null) break; //if the step wasn't possible
-
-                    //check what's there
-                    currChar = map.getCharAt(currPos);
-
-                    //player or 0
-                    if (Character.isDigit(currChar)){
-                        // 0
-                        if (currChar == '0') {
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                            break;
-                        }
-                        //player
-                        else {
-                            //own or enemy stone -> overwrite move
-                            if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                                everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                            }
+		Integer newR;
+		Position currPos;
+		char currChar;
+		//add x fields
+		if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
+			for (Position pos : map.getExpansionFields()) {
+				everyPossibleMove.add(new PositionAndInfo(pos.x, pos.y, 0));
+			}
+		}
+		//goes over every position of the current player and checks in all directions if a move is possible
+		for (Position pos : map.getStonesOfPlayer(map.getCurrentlyPlayingI())){
+			//Out of Time?
+			if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
+				if (printOn || ServerLog) System.out.println("Out of time (Get Fields By Own Color)");		//Max Time Leak ~20 ms
+				throw new TimeoutException();
+			}
+			for (r = 0; r <= 7; r++){
+				newR = r;
+				currPos = pos.clone();
+				//do the first step
+				newR = doAStep(currPos, newR, map);
+				if (newR == null) continue; //if the step wasn't possible
+				currChar = map.getCharAt(currPos); //check what's there
+				if (currChar == 'c' || currChar == 'b' || currChar == 'i' || currChar == '0' || currChar == map.getCurrentlyPlayingC()) continue; //if it's c, b, i, 0, myColor
+				while (true){
+					newR = doAStep(currPos, newR, map);
+					if (newR == null) break; //if the step wasn't possible
+					//check what's there
+					currChar = map.getCharAt(currPos);
+					//player or 0
+					if (Character.isDigit(currChar)){
+						// 0
+						if (currChar == '0') {
+							everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+							break;
+						}
+						//player
+						else {
+							//own or enemy stone -> overwrite move
+							if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
+								everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+							}
 							//if it's an own stone don't go on
 							if (currChar == map.getCurrentlyPlayingC()) break;
-                        }
-                    }
-                    // c, b, i, x
-                    else {
-                        if (currChar == 'i') {
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                            break;
-                        }
-                        else if (currChar == 'c') {
-                            for (int playerNr = 1; playerNr < map.getAnzPlayers(); playerNr++){
-                                everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
-                            }
-                            break;
-                        }
-                        else if (currChar == 'b'){
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 20));
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 21));
-                            break;
-                        }
-                        else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                        }
-                    }
-                }
-            }
-        }
-
+						}
+					}
+					// c, b, i, x
+					else {
+						if (currChar == 'i') {
+							everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+							break;
+						}
+						else if (currChar == 'c') {
+							for (int playerNr = 1; playerNr < map.getAnzPlayers(); playerNr++){
+								everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
+							}
+							break;
+						}
+						else if (currChar == 'b'){
+							everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 20));
+							everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 21));
+							break;
+						}
+						else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
+							everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+						}
+					}
+				}
+			}
+		}
 		for (PositionAndInfo pai : everyPossibleMove){
 			resultPosAndInfo.add(pai.toIntArray());
 		}
-
-        return resultPosAndInfo;
-    }
-
+		return resultPosAndInfo;
+	}
 
 	//function to color the map
 

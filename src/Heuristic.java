@@ -2,12 +2,13 @@ package src;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.concurrent.TimeoutException;
 
 public class Heuristic {
     private final boolean printOn;
 
     private Map map; //is automatically updated because of the reference here
-    //the color of the player for wich the map is rated
+    //the color of the player for which the map is rated
     private final int myColorI;
     private final char myColorC;
     //the matrix that rates the different fields
@@ -35,7 +36,7 @@ public class Heuristic {
      * Constructor - initializes map and my color.
      * Calculates static infos about the map
      * @param map the map in any state. Only the static information are relevant
-     * @param myColor the number(color) of the player for wich the map is rated - doesn't change for the client
+     * @param myColor the number(color) of the player for which the map is rated - doesn't change for the client
      * @param printOn boolean that defines if the heuristic should print relevant infos
      * @param multiplier list of double values to define the multipliers for the different heuristically evaluations
      */
@@ -86,7 +87,7 @@ public class Heuristic {
      * Function to evaluate the map that was given the constructor (call by reference)
      * @return returns the value of the map
      */
-    public double evaluate(boolean phaseOne){
+    public double evaluate(boolean phaseOne,boolean timed, boolean ServerLog, long UpperTimeLimit) throws TimeoutException{
         double countOfStonesEvaluation = 0;
         double countOfMovesEvaluation = 0;
         double averageFieldValue = 0;
@@ -105,9 +106,24 @@ public class Heuristic {
             countOfStonesEvaluation = countStonesBombPhase();
         }
 
-        if (countMoves) countOfMovesEvaluation = countMoves();
+        if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
+            if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get countStones)");
+            throw new TimeoutException();
+        }
+
+        if (countMoves) countOfMovesEvaluation = countMoves(timed,ServerLog,UpperTimeLimit);
+
+        if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
+            if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get count Moves)");
+            throw new TimeoutException();
+        }
 
         if (useFieldValues) averageFieldValue = getFieldValues();
+
+        if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
+            if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get FieldValue)");
+            throw new TimeoutException();
+        }
 
 
         if (countStones) result += countOfStonesEvaluation * stoneCountMultiplier;
@@ -251,7 +267,7 @@ public class Heuristic {
         return averageFieldValue;
     }
 
-    private double countMoves() {
+    private double countMoves(boolean timed,boolean ServerLog, long UpperTimeLimit)throws TimeoutException {
         //Variables
         int myPossibleMoves = 0;
         int possibleMovesOfEnemys = 0;
@@ -260,10 +276,14 @@ public class Heuristic {
 
         //gets possible moves of all players and adds them to the corresponding move counter
         for (int i = 1; i <= map.getAnzPlayers(); i++) {
+            if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
+                if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get FieldValue)");
+                throw new TimeoutException();
+            }
             if (myColorI == map.getCurrentlyPlayingI()) {
-                myPossibleMoves = Client.getValidMoves(map).size();
+                myPossibleMoves = Client.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size();
             } else {
-                possibleMovesOfEnemys += Client.getValidMoves(map).size();
+                possibleMovesOfEnemys += Client.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size();
             }
             map.nextPlayer();
         } //resets to currently playing
@@ -276,6 +296,7 @@ public class Heuristic {
 
         return countOfMovesEvaluation;
     }
+
 
     private double countStones() {
         //Variables
