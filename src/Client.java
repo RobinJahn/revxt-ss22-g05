@@ -779,7 +779,7 @@ public class Client{
 						//tries to go through transition
 						newR = doAStep(posAfterStep, r, map); //takes Position it came from. Because from there it needs to go through
 						if (newR != null) {
-							/* should be uneccessary
+							/* should be unnecessary
 							//removes transition pair from the hash List - if it's here it wen through the transition
 							transitionEnd1 = Transitions.saveInChar(posAfterStep.x, posAfterStep.y, (newR + 4) % 8);
 							transitionEnd2 = map.getTransitions().get(transitionEnd1);
