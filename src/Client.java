@@ -35,9 +35,9 @@ public class Client{
 	final private boolean useMS;
 	final private boolean ServerLog = true;
 	private boolean timed = true;
-	final private boolean useBRS = false;
+	final private boolean useBRS = true;
 
-	final private boolean useKH = false;
+	final private boolean useKH = true;
 
 	//global variables
 	private Map map;
@@ -1180,8 +1180,11 @@ public class Client{
 					//If We found a Move which cuts off we place it in front
 					if(Arrays.equals(KillerArray.getPositionAndInfo(i), positionAndInfo))
 					{
-						newIndexList.add(indexList.get(j));
-						indexList.remove(j);
+						//@Todo Refine This
+						if(j < indexList.size()) {
+							newIndexList.add(indexList.get(j));
+							indexList.remove(j);
+						}
 					}
 				}
 			}

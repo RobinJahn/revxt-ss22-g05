@@ -36,19 +36,17 @@ public class KillerArray {
     {
         //If Space is available
         if(length < maxLength)
-        {
-            killerLineArray[length].setPositionAndInfo(PositionAndInfo);
-            killerLineArray[length].setNumberOfCutLeaves(NumberOfCutLeaves);
+        {   killerLineArray[length] = new KillerLine(PositionAndInfo,NumberOfCutLeaves);
             length++;
         }
         //If No Space left
         else
         {
-            // If last Space is worse, then current Cut
-            if(killerLineArray[length].getNumberOfCutLeaves()<NumberOfCutLeaves)
+            // If last Space is worse, then current Cut Swap in
+            if(killerLineArray[maxLength-1].getNumberOfCutLeaves()<NumberOfCutLeaves)
             {
-                killerLineArray[length].setPositionAndInfo(PositionAndInfo);
-                killerLineArray[length].setNumberOfCutLeaves(NumberOfCutLeaves);
+                killerLineArray[maxLength-1].setPositionAndInfo(PositionAndInfo);
+                killerLineArray[maxLength-1].setNumberOfCutLeaves(NumberOfCutLeaves);
             }
         }
         sort();
@@ -56,9 +54,9 @@ public class KillerArray {
 
     //Long live the BubbleSort
     private void sort(){
-        for(int i = 0;i<maxLength-1;i++)
+        for(int i = 0;i<length-1;i++)
         {
-            for(int j = i+1;j<maxLength;j++)
+            for(int j = i+1;j<length;j++)
             {
                 if(killerLineArray[i].getNumberOfCutLeaves()< killerLineArray[j].getNumberOfCutLeaves())
                 {
