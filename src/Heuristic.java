@@ -124,13 +124,13 @@ public class Heuristic {
 
     public static double fastEvaluate(Map map, int myPlayerNr){
 
-        int myStoneCout = map.getStonesOfPlayer(myPlayerNr).size();
+        int myStoneCout = map.getCountOfStonesOfPlayer(myPlayerNr);
         int enemyStoneCount = 0;
         double result;
 
         for (int playerNr = 1; playerNr < map.getAnzPlayers(); playerNr++){
             if (playerNr == myPlayerNr) continue;
-            enemyStoneCount += map.getStonesOfPlayer(playerNr).size();
+            enemyStoneCount += map.getCountOfStonesOfPlayer(playerNr);
         }
 
         result = (double)myStoneCout / ((double)enemyStoneCount/ (map.getAnzPlayers() - 1));
@@ -177,11 +177,11 @@ public class Heuristic {
      */
     public double placePlayers(){
         int placement = 1;
-        int myScore = map.getStonesOfPlayer(myColorI).size();
+        int myScore = map.getCountOfStonesOfPlayer(myColorI);
 
         for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
             if (playerNr == myColorI) continue;
-            if (map.getStonesOfPlayer(playerNr).size() > myScore){
+            if (map.getCountOfStonesOfPlayer(playerNr) > myScore){
                 placement++;
             }
         }
@@ -240,12 +240,13 @@ public class Heuristic {
     //methods to return dynamic infos
     private double getFieldValues() {
         double averageFieldValue = 0;
-        HashSet<Position> myPositions = map.getStonesOfPlayer(myColorI);
-        if (myPositions.size() != 0) {
-            for (Position pos : myPositions) {
-                averageFieldValue += matrix[pos.y][pos.x];
-            }
+
+        if (map.getCountOfStonesOfPlayer(myColorI) == 0) return averageFieldValue;
+
+        for (Position pos :  map.getStonesOfPlayer(myColorI)) {
+            averageFieldValue += matrix[pos.y][pos.x];
         }
+
         return averageFieldValue;
     }
 
@@ -283,11 +284,11 @@ public class Heuristic {
         double countOfStonesEvaluation;
 
         //gets count of own stones
-        countOfOwnStones = map.getStonesOfPlayer(myColorI).size();
+        countOfOwnStones = map.getCountOfStonesOfPlayer(myColorI);
         //gets count of enemy stones
         for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
             if (playerNr == myColorI) continue;
-            countOfEnemyStones += map.getStonesOfPlayer(playerNr).size();
+            countOfEnemyStones += map.getCountOfStonesOfPlayer(playerNr);
         }
 
         //get percentages out of it
@@ -346,7 +347,7 @@ public class Heuristic {
             }
             //check if there's a transition and if it's relevant
             else if(charAtPos == 't'){
-                if (map.getTransitions().get(Transitions.saveInChar(savedPos.x,savedPos.y,r)) == null) outgoingDirections[r] = false;
+                if (!map.checkForTransition(savedPos,r)) outgoingDirections[r] = false;
             }
         }
         return outgoingDirections;

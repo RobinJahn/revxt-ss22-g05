@@ -227,6 +227,16 @@ public class StaticMap {
         return result;
     }
 
+    public boolean checkForTransition(Position pos, int rotation){
+        Character transitionStart = Transitions.saveInChar(pos.x, pos.y, rotation);
+        Character transitionEnd;
+
+        transitionEnd = transitions.get(transitionStart);
+
+        if (transitionEnd == null) return false;
+        else return true;
+    }
+
     //IMPORT FUNCTIONS
 
     private boolean handleFirst5(StreamTokenizer st, int tokenCounter) {

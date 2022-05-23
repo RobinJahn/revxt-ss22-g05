@@ -277,6 +277,8 @@ public class Client{
 					posToSetKeystone.y = moveInfos[1] + 1; //index shift
 					int additionalInfo = moveInfos[2];
 					int moveOfPlayer = moveInfos[3];
+					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
+
 
 					//Ausgabe fuer den Vergleich mit dem Server
 					map.setPlayer(moveOfPlayer);
@@ -285,9 +287,6 @@ public class Client{
 					}
 
 					//Handle Move
-					if (printOn)
-						System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
-
 					if (firstPhase) updateMapWithMove(posToSetKeystone, additionalInfo, moveOfPlayer, map, printOn);
 					else updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, moveOfPlayer, map);
 
@@ -820,7 +819,7 @@ public class Client{
 		int[] validPosition;
 		//Timing
 		long startTime = System.nanoTime();
-		long timeOffset = 40_000_000; //ns -> xx ms
+		long timeOffset = 80_000_000; //ns -> xx ms
 		long timeNextDepth = 0;
 		long upperTimeLimit = startTime + (long)time * 1_000_000 - timeOffset;
 		double leavesNextDepth;
@@ -957,7 +956,7 @@ public class Client{
 		int enemyStoneAndOverwriteCount = 0;
 
 		//If we have no stones and no overwrite stones -> LOSS
-		if (map.getStonesOfPlayer(myPlayerNr).isEmpty() && map.getOverwriteStonesForPlayer(myPlayerNr) == 0){
+		if (map.getCountOfStonesOfPlayer(myPlayerNr) == 0 && map.getOverwriteStonesForPlayer(myPlayerNr) == 0){
 			if (printOn && extendedPrint) System.out.println("DFSVisit found situation where we got eliminated");
 			return Double.NEGATIVE_INFINITY;
 		}
@@ -965,7 +964,7 @@ public class Client{
 		//If we have all stones and no enemy has an overwrite stone -> WINN
 		for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
 			if (playerNr == myPlayerNr) continue;
-			enemyStoneAndOverwriteCount += map.getStonesOfPlayer(playerNr).size();
+			enemyStoneAndOverwriteCount += map.getCountOfStonesOfPlayer(playerNr);
 			enemyStoneAndOverwriteCount += map.getOverwriteStonesForPlayer(playerNr);
 		}
 		if (enemyStoneAndOverwriteCount == 0) {
