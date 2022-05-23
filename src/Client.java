@@ -612,8 +612,6 @@ public class Client{
 
 		}
 
-		if (!compareValidMoves(phaseOne, validMoves)) return;
-
         //get a move
         if (calculateMove)
 		{

@@ -707,6 +707,7 @@ public class Map{
 
     private void fieldChange(int x, int y, int oldPlayer, int newPlayer){
         Arrow currArrow;
+        boolean check = false;
 
         //update every arrow for every player that is affected by this field
         for (int playerNr = 1; playerNr <= staticMap.anzPlayers; playerNr++){
@@ -729,8 +730,10 @@ public class Map{
             addNewArrow(x, y, r, newPlayer);
         }
 
-        System.out.println("Check if right: [List: " + checkForReferenceInAffectedArrows() + ", Valid Moves: " + checkValidMoves() + ", Overwrite Moves " + checkOverwriteMoves() + "] ");
-        return;
+        if (check) {
+            System.out.println("Check if right: [List: " + checkForReferenceInAffectedArrows() + ", Valid Moves: " + checkValidMoves() + ", Overwrite Moves " + checkOverwriteMoves() + "] ");
+            return;
+        }
     }
 
     private Arrow deleteArrowFrom(Arrow oldArrow, int arrowOfPlayer, int from, int arrowPointedOnPlayer){
@@ -869,7 +872,8 @@ public class Map{
         int[] posAndR = arrow.positionsWithDirection.get( arrow.positionsWithDirection.size()-1 );
         int direction = posAndR[2];
         Position currPos = new Position(posAndR[0], posAndR[1]);
-        Position StartingPos = currPos.clone();
+        posAndR = arrow.positionsWithDirection.get(0);
+        Position StartingPos = new Position(posAndR[0], posAndR[1]);
         Integer newR = direction;
         Integer nextR;
         char currChar;
@@ -895,12 +899,8 @@ public class Map{
 
             //check for cykles
             if(currPos.equals(StartingPos)) { //
-                //let arrow end one field ahead of the start
-                //go one step back
-                newR = staticMap.doAStep(currPos, (direction+4)%8);
-                //direction is the opposite of the one we have after going back
-                newR = (newR+4)%8;
-                break;
+                //let arrow end one field ahead of the start - and because position one before was already added return
+                return;
             }
 
             //check what's there
