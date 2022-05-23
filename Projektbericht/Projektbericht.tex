@@ -72,7 +72,23 @@ Das Spiel ReversiXT basiert auf dem Brettspiel Reversi aus den 1880er Jahren und
 \\
 
 Jedem Spieler wird zu Beginn eine Farbe und die dazugehörigen Spielsteine zugewiesen. Das Spielprinzip ist es dann von den eigenen Steinen aus über die der Gegner auf ein freies Feld zu legen, wodurch die eingeschlossenen gegnerischen Steine eingefärbt werden und den Besitzer wechseln. Das bedeutet, dass zwischen dem eigenen Stein und dem freien Feld immer mindestens ein gegnerischer liegen muss. Es kann generell in jede Richtung, horizontal, vertikal und diagonal gezogen werden.
-% Bsp. einfärben
+
+\vspace{1em}
+\begin{figure}[h]
+\centering
+\begin{minipage}[c]{0.4\textwidth}
+	\centering
+	\includegraphics[width=\textwidth]{pics/reversi_original_map_capture_1.png}
+	\captionof{figure}[Bsp. 3 Einfärbern vorher]{Einfärben vor dem Zug}
+	\label{fig:capture_pre}
+\end{minipage}
+\begin{minipage}[c]{0.4\textwidth}
+	\centering
+	\includegraphics[width=\textwidth]{pics/reversi_original_map_capture_2.png}
+	\captionof{figure}[Bsp. 4 Einfärbern nachher]{Einfärben nach dem Zug}
+	\label{fig:capture_post}
+\end{minipage}
+\end{figure}
 
 Die abgewandelte Variante bietet eine weitere Besonderheit bei der Möglichkeit einen gültigen Zug durchzuführen in Form von sogenannten Überschreibsteine. Diese erlauben es nicht nur auf freie Felder zu legen, sondern auch auf eigene oder gegnerische Steine, um diese einzunehmen, sofern es sich um einen ansonsten regelkonformen Spielzug handelt. Wie viele dieser Steine jeder Spieler zu Beginn zur Verfügung hat, wird vom Ersteller der Karte vorgeschrieben. Es ist jedoch möglich (abhängig vom Spielfeld) zusätzliche dieser Steine im Laufe der Runde zu erhalten, worauf im Weiteren noch genauer eingegangen wird. 
 %Bsp. Überschreibsteine
@@ -110,19 +126,31 @@ Wichtiges Vorwissen wurde vor allem aus den Fächern Programmieren 2 und Algorit
 
 Neben der wöchentlichen Vorlesung und Übung der Veranstaltung, wurde jede Woche eine Besprechung mit allen Mitgliedern abgehalten. In dieser wurden die Themen der vergangenen Woche diskutiert, das Team auf dem laufenden gehalten wie die Aufgaben umgesetzt wurden und Arbeit aufgeteilt. Zusätzlich wurde über eine gemeinsame WhatsApp Gruppe kommuniziert, in der Fragen gestellt werden konnten und organisatorisches vereinbart wurde.
 
-
+\newpage
 \vspace{1em}
-\begin{table}[!h]
-	\centering
-	\begin{tabular}{|l|l|l|l|}
+\begin{table}[h]
+\centering
+	\begin{tabular} {| m{1.7cm} | m{3.1cm} | m{3.1cm} | m{3.1cm} | m{3.1cm}|}
 		\hline
-		\textbf{Simon Melcher} & \textbf{Robin Jahn} & \textbf{Alexander Wess} & \textbf{als Gruppe}\\
+		\textbf{} &\textbf{Simon Melcher} & \textbf{Robin Jahn} & \textbf{Alexander Wess} & \textbf{als Gruppe}\\
 		\hline
-		1 & 2 & 3\\
+		Woche 1 & Erstellen von eigenen Spielfeldern & Erstellen von eigenen Spielfeldern; Implementierung der Datenstruktur, Einlesen und Ausgabe & Erstellen von eigenen Spielfeldern & Besprechung der Spielspezifikationen und Datenstruktur\\
 		\hline
-		4 & 5 & 6\\
+		Woche 2 & Programmierung der gültigen Züge für Spezialfelder & Programmierung der gültigen Züge & Beschreibung der Zugheuristiken im Projektbericht & Diskussion der Zugheuristiken\\
 		\hline
-		7 & 8 & 9\\
+		Woche 3 & Umsetzung der verbesserte Heuristik & Umsetzung der verbesserte Heuristik & Projektbericht Kapitel 1 - 3 & Verbesserung der Heuristik\\
+		\hline
+		Woche 4 & \textit{Krank} & Programmierung der Netzwerkfunktionalität & Erstellung des Build-File &\\
+		\hline
+		Woche 5 & Implementierung Client-Parameter & Implementierung Paranoidsuche & &\\
+		\hline
+		Woche 6 & Skripte erstellt um Tests durchzuführen & Skripte erstellt um Tests durchzuführen; Statistik implementiert; Bombenphase programmiert & Implementierung Alpha-Beta-Pruning &\\
+		\hline
+		Woche 7 & Implementierung Iterative-Deepening & Implementierung Zugsortierung & Erweiterung des Projektberichts durch Tabelle mit wöchentlichen Aufgabenverteilung und weiteren Beispielen &\\
+		\hline
+		Woche 8 & Programmierung einer neuer Funktion für die Bombenphase zum zählen der Steine & Änderung des Skripts zur Ermittlung der besten Multiplikatoren für die Heuristik & Implementierung einer neuen Funktion zur Bewertung von Bonusfeldern & Bearbeitung der ToDos\\
+		\hline
+		Woche 9 & Implementierung Killer Heuristik und BRS+ & Programmierung einer neuen Funktion zur Zugermittlung & Implementierung BRS+; Weiterführung des Projektberichts & \\
 		\hline
 	\end{tabular}
 	\caption{Aufgabenverteilung}
@@ -133,6 +161,8 @@ Neben der wöchentlichen Vorlesung und Übung der Veranstaltung, wurde jede Woch
 In diesem Abschnitt soll auf die verwendeten technischen Mittel eingegangen werden. Das Projekt wurde in der Programmiersprache Java in der 11ten Version umgesetzt, da zum einen darin bereits die meiste Erfahrung gesammelt werden konnte. Zum anderen konnten die gängigen Vorteile dieser Programmiersprache genutzt werden, wie z. B. die automatische Speicher- und Heap-Verwaltung oder die Möglichkeit mit \glqq Call by Reference\grqq{} zu arbeiten.
 Zu Beginn legte sich die Gruppe fest einheitlich die Entwicklungsumgebung IntelliJ IDEA der Version 2021.3.3 von JetBrains zu nutzen. Der Vorteil davon war u. a., dass diese bereits eine gute Anbindung an Git besitzte und somit das Arbeiten in einem gemeinsam Repository signifikant erleichterte.
 Als Betriebssystem wurde hauptsächlich Windows 10 der Version 21H2 verwendet. Außerdem wurde von Robin Jahn eine virtuelle Maschine eingerichtet, die das Unix Betriebssystem Ubuntu simulierte, um Tests mit dem Server zu machen, über den im späteren Verlauf der Veranstaltung die Spiele ausgetragen wurden. Dadurch sollte sichergestellt werden, dass der entwickelte Client fehlerlos über ein Linux Betriebssystem ausgeführt werden konnte und die Kommunikation mit dem Server reibungslos funktionierte.
+
+Robin Jahn entwickelte zu Beginn auf seinem Laptop mit einem AMD Ryzen 5 3500U Prozessor, der eine Taktfrequenz von 2,1 bis 3,7 GHz aufweist, und 8 GB Arbeitsspeicher. Jedoch wechselte er, vor allem zum Testen, auf seinen Tower PC, der mit einem Intel Core i5-7600 (3,5 GHz), 16GB RAM und einer Nvidia GeForce GTX 1070 Grafikkarte ausgestattet war, da dieser die virtuelle Maschine aufgrund seiner höheren Leistung besser bewältigen konnte. Simon Melcher wechselte ebenfalls zwischen einem Desktop Computer und einem Laptop für die Vorlesungen, Übungen und Gruppenmeetings. Beide Geräte besaßen 16 GB RAM sowie einen AMD Ryzen 5 2600X (3,6 GHz), der in seinem PC enthalten war und einen AMD Ryzen 3500U (2,1 GHz) in seinem Laptop. Alexander Wess arbeitet durchgehend mit einem Laptop, der einen AMD Ryzen 5 5500U (2.10 GHz) Prozessor und 16 GB Arbeitsspeicher verbaut hatte.
 
 \newpage
 % ----------------------------------------------------------------------------------
@@ -215,7 +245,17 @@ Zur Umsetzung der Spielfeldbewertung hinsichtlich der Mobilität wurde die Anzah
 
 %%Bsp einfügen. Wird das aktuell richtig dargestellt?
 
-Die Analyse zur Sicherheit der Felder bzw. deren Wert wurde anhand eines Punktesystems realisiert. Hierbei sollte jedem Feld eine Zahl zugeordnet werden, die auf Basis von einigen Kriterien errechnet wurde und somit darstellte, wie bedeutend dieses ist. Wie bereits in Kapitel \ref{kap:Heuristik_Beschreibung} erwähnt sind zum einen die Möglichkeiten der Gegner zur Eroberung des Feldes als auch die daraus ausgehenden Wege maßgebend. Das Endergebnis einer solchen Berechnung ist in Abbildung \ref{fig:example_heuristics_implementation_field_values_matrix} zu sehen. Hier ist deutlich zu erkennen, dass Felder in den Ecken oder am Rand höher beziffert wurden als welche in der Mitte der Karte. Darüber hinaus wurde darauf geachtet, dass die wertvollen Felder auch erreicht werden können, indem die angrenzenden Bereiche mit negativen Zahlen gewichtet wurden. Dadurch soll signalisiert werden, dass diese Felder gemieden werden sollten, da sie dem Spieler die Chance verwehrt auf eines der vorteilhaften Felder zu ziehen und nur dem Gegner die Gelegenheit dafür geben würde. 
+Die Analyse zur Sicherheit der Felder bzw. deren Wert wurde anhand eines Punktesystems realisiert. Hierbei sollte jedem Feld eine Zahl zugeordnet werden, die auf Basis von einigen Kriterien errechnet wurde und somit darstellte, wie bedeutend dieses ist. Wie bereits in Kapitel \ref{kap:Heuristik_Beschreibung} erwähnt sind zum einen die Möglichkeiten der Gegner zur Eroberung des Feldes als auch die daraus ausgehenden Wege maßgebend. Zusätzlich wurde berücksichtigt wie weit von den jeweiligen Positionen aus gezogen werden kann. Dadurch sollte sichergestellt werden, dass z.B. Felder, die zwar nicht mehr eingenommen werden können, aber sich bspw. in schmäleren Bereichen der Karte befinden und somit weniger Zugmöglichkeiten bieten, nicht so gut bewertet werden, wie welche von denen aus weit ins Spielfeld hinein gezogen werden kann. Der Stein, der in Abbildung \ref{fig:example_heuristics_reachable_fields} zu sehen ist, ist ein Beispiel für ein solches Feld. Ein gegnerischer Spieler kann diesen Stein zwar nicht mehr erobern, aber gezogen werden kann von hier aus nur nach oben, da links und diagonal nur ein Feld bis zum Ende der Karte ist.
+
+\vspace{1em}
+\begin{minipage}{\linewidth}
+	\centering
+	\includegraphics[width=0.5\linewidth]{pics/heuristics_reachable_fields.png}
+	\captionof{figure}[Bsp. 1 Heuristik erreichbare Felder]{Feld mit beschränkten Zugmöglichkeiten}
+	\label{fig:example_heuristics_reachable_fields}
+\end{minipage} 
+
+Das Endergebnis einer solchen Berechnung ist in Abbildung \ref{fig:example_heuristics_implementation_field_values_matrix} zu sehen. Hier ist deutlich zu erkennen, dass Felder in den Ecken oder am Rand höher beziffert wurden als welche in der Mitte der Karte. Darüber hinaus wurde darauf geachtet, dass die wertvollen Felder auch erreicht werden können, indem die angrenzenden Bereiche mit negativen Zahlen gewichtet wurden. Dadurch soll signalisiert werden, dass diese Felder gemieden werden sollten, da sie dem Spieler die Chance verwehrt auf eines der vorteilhaften Felder zu ziehen und nur dem Gegner die Gelegenheit dafür geben würde. 
 
 \vspace{1em}
 \begin{minipage}{\linewidth}
