@@ -35,7 +35,7 @@ public class Client{
 
 
 	public static void main(String[] args) {
-		boolean printOn = true;
+		boolean printOn = false;
 		boolean useColors = true;
 		boolean compare_to_Server = false;
 		boolean extendedPrint = false;
@@ -204,7 +204,8 @@ public class Client{
 	/**
 	 * Plays the Game. Get Messages from server and calls methods to handle the different kinds
 	 */
-	private void play(){
+	private void play()
+	{
 		int messageType;
 		boolean gameOngoing = true;
 		boolean firstPhase = true;
@@ -394,12 +395,15 @@ public class Client{
 		//general
 		double valueOfMap;
 		ArrayList<int[]> validMoves;
+		ArrayList<int[]> validMovesByOwnColor;
 
 		map.setPlayer(myPlayerNr);
 
 		//calculate possible moves and print map with these
 		try{
 			validMoves = Map.getValidMoves(map,timed,printOn,ServerLog,Long.MAX_VALUE);
+			validMovesByOwnColor = Map.getFieldsByOwnColor(map,timed,printOn,ServerLog,Long.MAX_VALUE);
+
 		}
 		catch (TimeoutException TE)
 		{
@@ -407,8 +411,8 @@ public class Client{
 			return;
 		}
 		if (printOn) {
-			if (!compareValidMoves(phaseOne, validMoves)) {
-				System.out.println(map.toString(validMoves, false, useColors));
+			if (!compareValidMoves(phaseOne, validMovesByOwnColor)) {
+				System.out.println(map.toString(validMovesByOwnColor, false, useColors));
 				System.out.println("With move carry along");
 				System.out.println(map.toString(map.getValidMoves(phaseOne), false, useColors));
 				return;
@@ -755,14 +759,14 @@ public class Client{
 		for (int[] posAndR1 : validMoves){
 			contains = false;
 			for (int[] posAndR2 : map.getValidMoves(phaseOne)){
-				if (phaseOne) {
-					if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1] && posAndR1[2] == posAndR2[2]) {
-						contains = true;
-						break;
+				if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1]) {
+					if (phaseOne)  {
+						if (posAndR1[2] == posAndR2[2]) {
+							contains = true;
+							break;
+						}
 					}
-				}
-				else {
-					if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1]) {
+					else {
 						contains = true;
 						break;
 					}
@@ -773,6 +777,30 @@ public class Client{
 				break;
 			}
 		}
+
+		for (int[] posAndR1 : map.getValidMoves(phaseOne)){
+			contains = false;
+			for (int[] posAndR2 : validMoves){
+				if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1]) {
+					if (phaseOne)  {
+						if (posAndR1[2] == posAndR2[2]) {
+							contains = true;
+							break;
+						}
+					}
+					else {
+						contains = true;
+						break;
+					}
+				}
+			}
+			if (!contains) {
+				containsAll = false;
+				break;
+			}
+		}
+
+
 		if (!containsAll){
 			System.err.println("Valid Moves from Map and Client do not match");
 			return false;

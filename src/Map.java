@@ -5,7 +5,8 @@ import java.util.concurrent.TimeoutException;
 
 public class Map{
 
-    final static boolean useArrows = false;
+    final static boolean useArrows = true;
+    final static boolean checkIfAllArrowsAreCorrect = false;
 
     //static Map
     private final StaticMap staticMap;
@@ -731,7 +732,6 @@ public class Map{
 
     private void fieldChange(int x, int y, int oldPlayer, int newPlayer){
         Arrow currArrow;
-        boolean check = false;
 
         //update every arrow for every player that is affected by this field
         for (int playerNr = 1; playerNr <= staticMap.anzPlayers; playerNr++){
@@ -754,13 +754,13 @@ public class Map{
             addNewArrow(x, y, r, newPlayer);
         }
 
-        if (check) {
+        if (checkIfAllArrowsAreCorrect) {
             System.out.println("Check if right: [List: " + checkForReferenceInAffectedArrows() + ", Valid Moves: " + checkValidMoves() + ", Overwrite Moves " + checkOverwriteMoves() + "] ");
             return;
         }
     }
 
-    private Arrow deleteArrowFrom(Arrow oldArrow, int arrowOfPlayer, int from, int arrowPointedOnPlayer){
+    private Arrow deleteArrowFrom(Arrow oldArrow, int arrowOfPlayer, int from, int newPlayerOnField){
         int[] posAndR;
         Position currPos;
 
@@ -794,7 +794,12 @@ public class Map{
                 currPos = new Position(posAndR[0],posAndR[1]);
                 //checks if the position the arrow points to is one of the players stones -> if so delete overwrite move
                 if (counter == oldArrow.positionsWithDirection.size()-1){
-                    if (arrowPointedOnPlayer == arrowOfPlayer+'0'){
+                    // if the position isn't the one we colored in this call get the player from the map
+                    if (from != counter) {
+                        newPlayerOnField = map[currPos.y][currPos.x]-'0';
+                    }
+                    //if the arrow points to a position where we are delete the position
+                    if (newPlayerOnField == arrowOfPlayer){
                         removeOverwritePosition(arrowOfPlayer, currPos);
                     }
                 }
@@ -1327,7 +1332,7 @@ public class Map{
     }
 
     //  by own color
-    private static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws TimeoutException{
+    public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws TimeoutException{
         HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
         ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
         int r;
