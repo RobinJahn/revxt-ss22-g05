@@ -1253,166 +1253,17 @@ public class Map{
      * @return returns an Array List of Positions
      */
     public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws TimeoutException {
-        Moves moves = new Moves();
         ArrayList<int[]> everyPossibleMove;
-        final boolean useNeighbours = false;
+        final boolean useArrows = false;
 
-        if (useNeighbours) {
-            getCandidatesByNeighbour(map, moves);
-            deleteNotPossibleMoves(map, moves);
-            everyPossibleMove = getEveryPossibleMove(map, moves.possibleMoves);
+        if (useArrows){
+            map.getValidMoves(map.getCurrentlyPlayingI(), true);
         }
         else {
             everyPossibleMove = getFieldsByOwnColor(map, timed, printOn, serverLog, upperTimeLimit);
         }
 
         return everyPossibleMove;
-    }
-
-    //  by Neighbour
-    /**
-     * Checks the whole map for enemy players and adds blank fields around it (by Neighbour) to candidates in moves
-     * @param map the map to check for candidates
-     * @param moves the data structure to store the possible moves and the candidates in
-     */
-    private static void getCandidatesByNeighbour(Map map, Moves moves){
-        int currentlyPlaying = map.getCurrentlyPlayingI();
-        char currChar;
-
-        //goes over every field
-        for (int y = 0; y < map.getHeight(); y++){
-            for (int x = 0; x < map.getWidth(); x++){
-
-                //gets char of current position
-                currChar = map.getCharAt(x,y);
-
-                //if there's an expansions field and the player has overwrite-stones
-                if (Character.isAlphabetic(currChar) && currChar == 'x' && map.getOverwriteStonesForPlayer(currentlyPlaying) > 0){
-                    //Add finally - mo need to check
-                    moves.possibleMoves.add(new Position(x,y));
-                }
-
-                //if a player is there
-                if (Character.isDigit(currChar) && currChar != '0'){
-
-                    //If the spot is taken, and you own an OverrideStone you have to check this spot
-                    if (map.getOverwriteStonesForPlayer(currentlyPlaying) > 0)
-                    {
-                        moves.addPositionInAllDirections(x, y);
-                    }
-                    //check all neighbours and add it if the field is 0
-                    checkAllNeighbors(map, moves, x, y);
-                }
-
-                if(currChar == 'i') {
-                    moves.addPositionInAllDirections(x, y);
-                }
-                if(currChar == 'c') {
-                    moves.addPositionInAllDirections(x, y);
-                }
-                if(currChar == 'b') {
-                    moves.addPositionInAllDirections(x, y);
-                }
-            }
-        }
-    }
-
-    /**
-     * Used for getCandidatesByNeighbour. Does the checking around an enemy keystone
-     * @param map map the check takes place on
-     * @param moves Data structure where all the moves to check are stored
-     * @param x x position of enemy keystone to check
-     * @param y y position of enemy keystone to check
-     */
-    private static void checkAllNeighbors(Map map, Moves moves, int x, int y){
-        Position startPos = new Position(x,y);
-        Position currPos;
-        Integer newR;
-        int oppositeDirection;
-        char blankField = '0';
-        char fieldInDirectionR;
-
-        // go in every direction and check if there's a free field where you could place a keystone
-        for (int r = 0; r <= 7; r++){
-            //resets position
-            currPos = startPos.clone(); //resets currPos to startPos
-
-            //change x and y according to direction
-            newR = map.doAStep(currPos,r); //is only executed once per for loop so change of r doesn't affect it
-            if (newR == null) continue;
-
-            //get char at position
-            fieldInDirectionR = map.getCharAt(currPos);
-
-            //for a blank field add a possible move
-            if (fieldInDirectionR == blankField){
-                //get opposite direction/ the direction it needs to go to check the possibility of the move
-
-                oppositeDirection = (newR+4)%8;
-                //get the directions that ware already added to this field
-                ArrayList<Integer> directions = moves.movesToCheck.get(currPos);
-                //if position didn't exist yet
-                if (directions == null) {
-                    directions = new ArrayList<>();
-                    directions.add(oppositeDirection);
-                    moves.movesToCheck.put(currPos,directions);
-                }
-                //if position already existed
-                else {
-                    directions.add(oppositeDirection);
-                }
-            }
-        }
-    }
-
-    private static ArrayList<int[]> getEveryPossibleMove(Map map, ArrayList<Position> validMoves){
-        ArrayList<int[]> everyPossibleMove = new ArrayList<>(validMoves.size());
-        char charAtPos;
-
-        for (Position pos : validMoves) {
-            charAtPos = map.getCharAt(pos);
-
-            //choice
-            if (charAtPos == 'c') {
-                for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
-                    everyPossibleMove.add(new int[]{pos.x, pos.y, playerNr});
-                }
-            }
-            else {
-                //bonus
-                if (charAtPos == 'b'){
-                    everyPossibleMove.add(new int[]{pos.x, pos.y, 20});
-                    everyPossibleMove.add(new int[]{pos.x, pos.y, 21});
-                }
-                //normal
-                else {
-                    everyPossibleMove.add(new int[]{pos.x, pos.y, 0});
-                }
-            }
-        }
-        return everyPossibleMove;
-    }
-
-    /**
-     * Goes over every move to check in the Moves-data-structure and calls checkIfMovePossible for it to test if it's a valid move
-     * @param map the map the check takes place
-     * @param moves the moves to check
-     */
-    private static void deleteNotPossibleMoves(Map map, Moves moves){
-        boolean connectionFound;
-
-        //check every move if it's possible
-        for (Position pos : moves.movesToCheck.keySet()){
-
-            //gets directions to check in
-            ArrayList<Integer> directions;
-            directions = moves.movesToCheck.get(pos);
-
-            //function that checks if move is possible
-            connectionFound = checkIfMoveIsPossible(pos, directions, map);
-            //if the move is possible
-            if (connectionFound) moves.possibleMoves.add(pos);
-        }
     }
 
     /**

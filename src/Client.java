@@ -35,9 +35,8 @@ public class Client{
 	final private boolean useMS;
 	final private boolean ServerLog = true;
 	private boolean timed = true;
-	final private boolean useBRS = true;
-
-	final private boolean useKH = true;
+	final private boolean useBRS = false;
+	final private boolean useKH = false;
 
 	//global variables
 	private Map map;
@@ -418,7 +417,7 @@ public class Client{
 		}
 		catch (TimeoutException TE)
 		{
-			System.out.println("TimeOutException in MakeAMove");
+			if (printOn||ServerLog) System.out.println("TimeOutException in MakeAMove");
 			return;
 		}
 		if (printOn) {
@@ -967,18 +966,12 @@ public class Client{
 					System.out.println();
 				}
 			}
-
-			if(ServerLog)
-			{
-				System.out.println("For Move: " + moveCounter + ", Depth: " + currDepth + ", Move: " + Arrays.toString(validPosition));
-			}
-
-
 		}
 
 
 		//if we have no time limit
 		else {
+			currDepth = depth;
 			//catch will never happen
 			try {
 				valueAndIndex = getNextMoveDFS(everyPossibleMove, phaseOne, depth, statistic, 0,KillerArray);
@@ -987,6 +980,10 @@ public class Client{
 			catch (TimeoutException ts){
 				if (printOn) System.out.println("Something went wrong - Time out Exception thrown but no time limit was set");
 			}
+		}
+
+		if(ServerLog) {
+			System.out.println("For Move: " + moveCounter + ", Depth: " + currDepth + ", Move: " + Arrays.toString(validPosition));
 		}
 
 		return validPosition;
