@@ -5,6 +5,8 @@ import java.util.concurrent.TimeoutException;
 
 public class Map{
 
+    final static boolean useArrows = false;
+
     //static Map
     private final StaticMap staticMap;
 
@@ -119,7 +121,7 @@ public class Map{
         }
 
         //  only needed in phase one because in phase two the arrows aren't needed
-        if (phaseOne) {
+        if (phaseOne && useArrows) {
             //Arrow Data structures
             AffectedArrows = new Arrow[staticMap.height][staticMap.width][staticMap.anzPlayers][8];
             StartingArrows = new Arrow[staticMap.height][staticMap.width][8];
@@ -383,11 +385,13 @@ public class Map{
         OverwriteMoves.set(playerId, validPosBuffer);
 
         //swap arrows
-        for (int y = 0; y < staticMap.height; y++) {
-            for (int x = 0; x < staticMap.width; x++) {
-                buffer = AffectedArrows[y][x][currentlyPlaying];
-                AffectedArrows[y][x][currentlyPlaying] = AffectedArrows[y][x][playerId];
-                AffectedArrows[y][x][playerId] = buffer;
+        if (useArrows){
+            for (int y = 0; y < staticMap.height; y++) {
+                for (int x = 0; x < staticMap.width; x++) {
+                    buffer = AffectedArrows[y][x][currentlyPlaying];
+                    AffectedArrows[y][x][currentlyPlaying] = AffectedArrows[y][x][playerId];
+                    AffectedArrows[y][x][playerId] = buffer;
+                }
             }
         }
 
@@ -420,16 +424,18 @@ public class Map{
         OverwriteMoves.add(0, validPosBuffer);
 
         //swap arrows
-        for (int y = 0; y < staticMap.height; y++) {
-            for (int x = 0; x < staticMap.width; x++) {
-                //get last element
-                buffer = AffectedArrows[y][x][staticMap.anzPlayers-1];
-                //shift all arrow lists one further
-                for (int playerNr = staticMap.anzPlayers-1; playerNr >= 1; playerNr--) {
-                    AffectedArrows[y][x][playerNr] = AffectedArrows[y][x][playerNr-1];
+        if (useArrows) {
+            for (int y = 0; y < staticMap.height; y++) {
+                for (int x = 0; x < staticMap.width; x++) {
+                    //get last element
+                    buffer = AffectedArrows[y][x][staticMap.anzPlayers - 1];
+                    //shift all arrow lists one further
+                    for (int playerNr = staticMap.anzPlayers - 1; playerNr >= 1; playerNr--) {
+                        AffectedArrows[y][x][playerNr] = AffectedArrows[y][x][playerNr - 1];
+                    }
+                    //set elements of first player to the ones from the last one
+                    AffectedArrows[y][x][0] = buffer;
                 }
-                //set elements of first player to the ones from the last one
-                AffectedArrows[y][x][0] = buffer;
             }
         }
 
@@ -642,7 +648,7 @@ public class Map{
         }
 
         //update valid moves
-        if (charAtPos != '-' && charAtPos != '+' && charAtPos != 't' && charToChangeTo != '-' && charToChangeTo != '+' && charToChangeTo != 't' && charToChangeTo != '0') {
+        if (useArrows && charAtPos != '-' && charAtPos != '+' && charAtPos != 't' && charToChangeTo != '-' && charToChangeTo != '+' && charToChangeTo != 't' && charToChangeTo != '0') {
             //update Arrows
             fieldChange(x, y, charAtPos - '0', charToChangeTo - '0');
         }
@@ -1254,7 +1260,6 @@ public class Map{
      */
     public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws TimeoutException {
         ArrayList<int[]> everyPossibleMove;
-        final boolean useArrows = false;
 
         if (useArrows){
             everyPossibleMove = map.getValidMoves(map.getCurrentlyPlayingI(), true);

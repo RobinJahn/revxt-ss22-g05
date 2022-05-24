@@ -35,7 +35,7 @@ public class Client{
 
 
 	public static void main(String[] args) {
-		boolean printOn = false;
+		boolean printOn = true;
 		boolean useColors = true;
 		boolean compare_to_Server = false;
 		boolean extendedPrint = false;
@@ -73,6 +73,9 @@ public class Client{
 
 				case "--no-sorting":
 				case "-n": useMS = false; break;
+
+				case "--output":
+				case "-o": printOn = true; break;
 
 				case "--group-number-addition":
 				case "-gna":
@@ -130,6 +133,7 @@ public class Client{
 				"-s or --server\t\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
 				"-h or --help\t\t\t\t\t\t show this blob\n" +
 				"-n or --no-sorting \t\t\t\t\t Disables Move-sorting\n"+
+				"-o or --output \t\t\t\t\t\t Activates output\n" +
 				"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n" +
 				"-ab or --alpha-beta \t\t\t\t Disables Alpha-BetaPruning\n" +
 				"-gna or --group-number-addition \t changes the group number to 50 + the given number \n"
@@ -190,7 +194,7 @@ public class Client{
 
 		//set variables after map was imported
 		heuristic = new Heuristic(map, myPlayerNr,printOn,multipliers); // mark
-		heuristicForSimulation = new Heuristic(map, myPlayerNr,printOn,multipliers);
+		heuristicForSimulation = new Heuristic(map, myPlayerNr,false,multipliers);
 
 		//start playing
 		if (printOn) System.out.println();
@@ -744,6 +748,7 @@ public class Client{
 	}
 
 	private boolean compareValidMoves(boolean phaseOne, ArrayList<int[]> validMoves) {
+		if (!Map.useArrows) return true;
 		boolean contains;
 		boolean containsAll = true;
 
