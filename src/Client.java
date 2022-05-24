@@ -6,24 +6,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
-class Moves {
-	public ArrayList<Position> possibleMoves;
-	public HashMap<Position, ArrayList<Integer>> movesToCheck;
-
-	public Moves() {
-		possibleMoves = new ArrayList<>();
-		movesToCheck = new HashMap<>();
-	}
-
-	public void addPositionInAllDirections(int x, int y){
-		ArrayList<Integer> directions = new ArrayList<>();
-		for (int r = 0; r <= 7; r++){
-			directions.add(r);
-		}
-		movesToCheck.put(new Position(x,y), directions);
-	}
-}
-
 public class Client{
 	//final variables
 	final private boolean calculateMove = true;

@@ -1257,7 +1257,7 @@ public class Map{
         final boolean useArrows = false;
 
         if (useArrows){
-            map.getValidMoves(map.getCurrentlyPlayingI(), true);
+            everyPossibleMove = map.getValidMoves(map.getCurrentlyPlayingI(), true);
         }
         else {
             everyPossibleMove = getFieldsByOwnColor(map, timed, printOn, serverLog, upperTimeLimit);
