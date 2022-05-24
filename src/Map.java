@@ -6,7 +6,7 @@ import java.util.concurrent.TimeoutException;
 public class Map{
 
     final static boolean useArrows = true;
-    final static boolean checkIfAllArrowsAreCorrect = false;
+    final static private boolean checkIfAllArrowsAreCorrect = false;
 
     //static Map
     private final StaticMap staticMap;
@@ -27,13 +27,15 @@ public class Map{
     private final HashSet<Position> expansionFields;
 
     //Valid Moves Varables
-    private final ArrayList<HashMap<Position, Integer>> ValidMoves;
-    private final ArrayList<HashMap<Position, Integer>> OverwriteMoves;
+    private ArrayList<HashMap<Position, Integer>> ValidMoves = null;
+    private ArrayList<HashMap<Position, Integer>> OverwriteMoves = null;
 
     //Arrow Data Structures
     private Arrow[][][][] AffectedArrows;
     private Arrow[][][] StartingArrows; //TODO: could be 2 elements shorter on each side
 
+
+    // CONSTRUCTOR
 
     public Map(StaticMap staticMap){
         //static Map
@@ -111,18 +113,19 @@ public class Map{
         }
         expansionFields = (HashSet<Position>) mapToCopy.expansionFields.clone();
 
-        //Valid Moves Varables
-        ValidMoves = new ArrayList<>(staticMap.anzPlayers);
-        OverwriteMoves = new ArrayList<>(staticMap.anzPlayers);
-        //initValidMoveArrays();
-
-        for (int playerNr = 0; playerNr < staticMap.anzPlayers; playerNr++) {
-            ValidMoves.add( (HashMap<Position, Integer>) mapToCopy.ValidMoves.get(playerNr).clone() );
-            OverwriteMoves.add( (HashMap<Position, Integer>) mapToCopy.OverwriteMoves.get(playerNr).clone() );
-        }
-
         //  only needed in phase one because in phase two the arrows aren't needed
         if (phaseOne && useArrows) {
+
+            //Valid Moves Varables
+            ValidMoves = new ArrayList<>(staticMap.anzPlayers);
+            OverwriteMoves = new ArrayList<>(staticMap.anzPlayers);
+            //initValidMoveArrays();
+
+            for (int playerNr = 0; playerNr < staticMap.anzPlayers; playerNr++) {
+                ValidMoves.add( (HashMap<Position, Integer>) mapToCopy.ValidMoves.get(playerNr).clone() );
+                OverwriteMoves.add( (HashMap<Position, Integer>) mapToCopy.OverwriteMoves.get(playerNr).clone() );
+            }
+
             //Arrow Data structures
             AffectedArrows = new Arrow[staticMap.height][staticMap.width][staticMap.anzPlayers][8];
             StartingArrows = new Arrow[staticMap.height][staticMap.width][8];
@@ -145,7 +148,7 @@ public class Map{
         }
     }
     
-    // PUBLIC METHODES
+    // TO STRING METHODES
 
     /**
      * Returns Infos, Map and Transitions in a formatted String
@@ -205,7 +208,6 @@ public class Map{
         return mapString;
     }
 
-    //not very clean code - just for testing purposes
     public String toString(List<int[]> everyPossibleMove, boolean showTransitions, boolean useColors){
         final String ANSI_RESET = "\u001B[0m";
         final String ANSI_BLACK = "\u001B[30m";
@@ -347,108 +349,8 @@ public class Map{
         mapString.append("\n");
     }
 
+    // GETTER
 
-    /**
-     * Swaps Stones of the currently playing player with the specified player
-     * @param playerId ID of the player with whom to swap stones
-     */
-    public void swapStonesWithOnePlayer(int playerId) {
-        //error handling
-        if (playerId < 1 || playerId > staticMap.anzPlayers) {
-            System.err.println("A Player with ID " + playerId + " doesn't exist");
-            return;
-        }
-        if (playerId == currentlyPlaying) {
-            // if the player chose himself do nothing
-            return;
-        }
-
-        //index shift
-        playerId -= 1;
-        int currentlyPlaying = this.currentlyPlaying-1;
-        HashSet<Position> posBuffer;
-        HashMap<Position, Integer> validPosBuffer;
-        Arrow[] buffer;
-
-        //swap stones with player
-        posBuffer = stonesPerPlayer.get(currentlyPlaying);
-        stonesPerPlayer.set(currentlyPlaying, stonesPerPlayer.get(playerId));
-        stonesPerPlayer.set(playerId, posBuffer);
-
-        //swaps valid positions
-        validPosBuffer = ValidMoves.get(currentlyPlaying);
-        ValidMoves.set(currentlyPlaying, ValidMoves.get(playerId));
-        ValidMoves.set(playerId, validPosBuffer);
-
-        //swaps overwrite positions
-        validPosBuffer = OverwriteMoves.get(currentlyPlaying);
-        OverwriteMoves.set(currentlyPlaying, OverwriteMoves.get(playerId));
-        OverwriteMoves.set(playerId, validPosBuffer);
-
-        //swap arrows
-        if (useArrows){
-            for (int y = 0; y < staticMap.height; y++) {
-                for (int x = 0; x < staticMap.width; x++) {
-                    buffer = AffectedArrows[y][x][currentlyPlaying];
-                    AffectedArrows[y][x][currentlyPlaying] = AffectedArrows[y][x][playerId];
-                    AffectedArrows[y][x][playerId] = buffer;
-                }
-            }
-        }
-
-        //color the new stones of the player in its color
-        for (int playerNr : new int[]{playerId, currentlyPlaying}){
-            for (Position pos : stonesPerPlayer.get(playerNr)) {
-                setCharAtWithoutSetUpdate(pos, (char)('0'+playerNr+1)); //reverse index shift
-            }
-        }
-    }
-
-    /**
-     * Die Farben aller Spieler werden um eins verschoben
-     */
-    public void Inversion() {
-        HashSet<Position> posBuffer;
-        HashMap<Position, Integer> validPosBuffer;
-        Arrow[] buffer;
-
-        //adds the last element at the front, so it shifts all the other elements one further and deletes the last element
-        posBuffer = stonesPerPlayer.remove(stonesPerPlayer.size()-1);
-        stonesPerPlayer.add(0,posBuffer);
-
-        //swap Valid Moves
-        validPosBuffer = ValidMoves.remove( stonesPerPlayer.size()-1 );
-        ValidMoves.add(0, validPosBuffer);
-
-        //swap overwrite Moves
-        validPosBuffer = OverwriteMoves.remove( stonesPerPlayer.size()-1 );
-        OverwriteMoves.add(0, validPosBuffer);
-
-        //swap arrows
-        if (useArrows) {
-            for (int y = 0; y < staticMap.height; y++) {
-                for (int x = 0; x < staticMap.width; x++) {
-                    //get last element
-                    buffer = AffectedArrows[y][x][staticMap.anzPlayers - 1];
-                    //shift all arrow lists one further
-                    for (int playerNr = staticMap.anzPlayers - 1; playerNr >= 1; playerNr--) {
-                        AffectedArrows[y][x][playerNr] = AffectedArrows[y][x][playerNr - 1];
-                    }
-                    //set elements of first player to the ones from the last one
-                    AffectedArrows[y][x][0] = buffer;
-                }
-            }
-        }
-
-        //colors the new stones of the player in its color
-        for (int playerNr = 1; playerNr <= staticMap.anzPlayers; playerNr++){
-            for (Position pos : stonesPerPlayer.get(playerNr-1)){
-                setCharAtWithoutSetUpdate(pos, (char)('0'+playerNr));
-            }
-        }
-    }
-
-    /* GETTER */
     /**
      * @param x x coordinate
      * @param y y coordinate
@@ -604,8 +506,18 @@ public class Map{
         return resultList;
     }
 
+    public boolean[] getDisqualifiedPlayers()
+    {
+        return disqualifiedPlayers;
+    }
 
-    //SETTER
+    public boolean getDisqualifiedPlayer(int PlayerNum)
+    {
+        return disqualifiedPlayers[PlayerNum-1];
+    }
+
+
+    // SETTER
 
     /**
      * Sets given Char at the given x and y position in the Map.
@@ -673,6 +585,108 @@ public class Map{
         map[posToSetKeystone.y][posToSetKeystone.x] = charToChangeTo;
     }
 
+    /**
+     * Swaps Stones of the currently playing player with the specified player
+     * @param playerId ID of the player with whom to swap stones
+     */
+    public void swapStonesWithOnePlayer(int playerId) {
+        //error handling
+        if (playerId < 1 || playerId > staticMap.anzPlayers) {
+            System.err.println("A Player with ID " + playerId + " doesn't exist");
+            return;
+        }
+        if (playerId == currentlyPlaying) {
+            // if the player chose himself do nothing
+            return;
+        }
+
+        //index shift
+        playerId -= 1;
+        int currentlyPlaying = this.currentlyPlaying-1;
+        HashSet<Position> posBuffer;
+        HashMap<Position, Integer> validPosBuffer;
+        Arrow[] buffer;
+
+        //swap stones with player
+        posBuffer = stonesPerPlayer.get(currentlyPlaying);
+        stonesPerPlayer.set(currentlyPlaying, stonesPerPlayer.get(playerId));
+        stonesPerPlayer.set(playerId, posBuffer);
+
+        if (useArrows){
+
+            //swaps valid positions
+            validPosBuffer = ValidMoves.get(currentlyPlaying);
+            ValidMoves.set(currentlyPlaying, ValidMoves.get(playerId));
+            ValidMoves.set(playerId, validPosBuffer);
+
+            //swaps overwrite positions
+            validPosBuffer = OverwriteMoves.get(currentlyPlaying);
+            OverwriteMoves.set(currentlyPlaying, OverwriteMoves.get(playerId));
+            OverwriteMoves.set(playerId, validPosBuffer);
+
+            //swap arrows
+            for (int y = 0; y < staticMap.height; y++) {
+                for (int x = 0; x < staticMap.width; x++) {
+                    buffer = AffectedArrows[y][x][currentlyPlaying];
+                    AffectedArrows[y][x][currentlyPlaying] = AffectedArrows[y][x][playerId];
+                    AffectedArrows[y][x][playerId] = buffer;
+                }
+            }
+        }
+
+        //color the new stones of the player in its color
+        for (int playerNr : new int[]{playerId, currentlyPlaying}){
+            for (Position pos : stonesPerPlayer.get(playerNr)) {
+                setCharAtWithoutSetUpdate(pos, (char)('0'+playerNr+1)); //reverse index shift
+            }
+        }
+    }
+
+    /**
+     * Die Farben aller Spieler werden um eins verschoben
+     */
+    public void Inversion() {
+        HashSet<Position> posBuffer;
+        HashMap<Position, Integer> validPosBuffer;
+        Arrow[] buffer;
+
+        //adds the last element at the front, so it shifts all the other elements one further and deletes the last element
+        posBuffer = stonesPerPlayer.remove(stonesPerPlayer.size()-1);
+        stonesPerPlayer.add(0,posBuffer);
+
+        if (useArrows) {
+
+            //swap Valid Moves
+            validPosBuffer = ValidMoves.remove( stonesPerPlayer.size()-1 );
+            ValidMoves.add(0, validPosBuffer);
+
+            //swap overwrite Moves
+            validPosBuffer = OverwriteMoves.remove( stonesPerPlayer.size()-1 );
+            OverwriteMoves.add(0, validPosBuffer);
+
+            //swap arrows
+            for (int y = 0; y < staticMap.height; y++) {
+                for (int x = 0; x < staticMap.width; x++) {
+                    //get last element
+                    buffer = AffectedArrows[y][x][staticMap.anzPlayers - 1];
+                    //shift all arrow lists one further
+                    for (int playerNr = staticMap.anzPlayers - 1; playerNr >= 1; playerNr--) {
+                        AffectedArrows[y][x][playerNr] = AffectedArrows[y][x][playerNr - 1];
+                    }
+                    //set elements of first player to the ones from the last one
+                    AffectedArrows[y][x][0] = buffer;
+                }
+            }
+        }
+
+        //colors the new stones of the player in its color
+        for (int playerNr = 1; playerNr <= staticMap.anzPlayers; playerNr++){
+            for (Position pos : stonesPerPlayer.get(playerNr-1)){
+                setCharAtWithoutSetUpdate(pos, (char)('0'+playerNr));
+            }
+        }
+    }
+
     public void increaseBombsOfPlayer(){
         bombsPerPlayer[currentlyPlaying-1]++;
     }
@@ -710,19 +724,8 @@ public class Map{
         disqualifiedPlayers[playerNr-1] = false;
     }
 
-    //Returns the Disqualified Players
-    public boolean[] getDisqualifiedPlayers()
-    {
-        return disqualifiedPlayers;
-    }
-    public boolean getDisqualifiedPlayer(int PlayerNum)
-    {
-        return disqualifiedPlayers[PlayerNum-1];
-    }
 
-    //PRIVATE METHODS
-
-    //  Methodes for Move carry along
+    //  METHODES FOR MOVE CARRY ALONG
 
     private void firstCreation(int x, int y, int newPlayer){
         for (int r = 0; r <= 7; r++){
@@ -1160,7 +1163,7 @@ public class Map{
         return true;
     }
 
-    //  Other
+    //  INIT METHODES
 
     private void initValidMoveArrays(){
         for (int playerNr = 0; playerNr < staticMap.anzPlayers; playerNr++) {
@@ -1175,8 +1178,16 @@ public class Map{
         }
     }
 
+    // OTHER
 
-    //function to color the map
+    //  function to do a step on the map
+    public Integer doAStep(Position pos, int r){
+        return staticMap.doAStep(pos,r);
+    }
+
+    //STATIC FUNCTIONS
+
+    //  function to color the map
 
     /**
      * colors the map when the keystone is placed in the specified position
@@ -1248,16 +1259,8 @@ public class Map{
         }
     }
 
-    //function to do a step on the map
+    //  functions to calculate all possible moves
 
-    public Integer doAStep(Position pos, int r){
-        return staticMap.doAStep(pos,r);
-    }
-
-
-    //functions to calculate all possible moves
-
-    //function to call
     /**
      * returns the possible moves on the current map
      * @param map map to check for possible moves
@@ -1331,7 +1334,6 @@ public class Map{
         return false;
     }
 
-    //  by own color
     public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws TimeoutException{
         HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
         ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
@@ -1420,6 +1422,60 @@ public class Map{
         }
 
         return resultPosAndInfo;
+    }
+
+
+    public static double getStoneCountAfterMove(Map map, int playerNr, int[] posToMoveTo){
+        int myStoneCount = 0; //start value are the current stones of the player and the one we're going to set to
+        int enemyStoneCount = 0;
+        Arrow[] arrows;
+        int[] posAndR;
+        char charAtPos = map.map[posToMoveTo[1]][posToMoveTo[0]];
+        boolean overwriteMove = false;
+        int i;
+
+        if (charAtPos != '0' && Character.isDigit(charAtPos)) overwriteMove = true;
+
+        if (!overwriteMove) myStoneCount++; //when it's no overwrite move the position gets colored
+        if (overwriteMove && charAtPos != playerNr+'0') myStoneCount++; //if it's an overwrite move and we overwrite an enemys stone
+
+        if (useArrows){
+            arrows = map.AffectedArrows[posToMoveTo[1]][posToMoveTo[0]][playerNr-1];
+
+            for (Arrow arrow : arrows){
+                if (arrow == null) continue;
+
+                if (overwriteMove){
+                    //get index at wich position in the arrow the position we set to is
+                    for (i = arrow.positionsWithDirection.size()-1; i > 0; i--){
+                        posAndR = arrow.positionsWithDirection.get(i);
+                        if (posToMoveTo[0] == posAndR[0] && posToMoveTo[1] == posAndR[1]) break;
+                    }
+
+                    myStoneCount += i - 1; //-1 because of the start position, -1 because we don't color the position we set to and +1 because it's an index
+                }
+                else if (arrow.createsValidMove){
+                    myStoneCount += arrow.positionsWithDirection.size()-2; //-2 because the end position was already counted and the start position woun't be counted
+                }
+            }
+        }
+
+        for (int enemyNr = 1; enemyNr < map.getAnzPlayers(); enemyNr++){
+            if (enemyNr == playerNr) continue;
+            enemyStoneCount += map.getCountOfStonesOfPlayer(enemyNr);
+        }
+
+        if (overwriteMove) {
+            if (charAtPos == playerNr+'0') enemyStoneCount -= myStoneCount-1; //the positions I color without the one I set to
+            else enemyStoneCount -= myStoneCount; //the positions I color with the position I set to
+        }
+        else {
+            enemyStoneCount -= myStoneCount-1; //the positions I color without the one I set to
+        }
+
+        myStoneCount += map.getCountOfStonesOfPlayer(playerNr);
+
+        return (double) myStoneCount / ((double)enemyStoneCount / (map.staticMap.anzPlayers - 1));
     }
 
 }

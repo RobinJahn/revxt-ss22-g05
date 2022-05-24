@@ -1155,8 +1155,6 @@ public class Client{
 		//BRS+
 		int PhiZugIndex = -1;
 
-
-
 		//Get if we 're a maximizer or a minimizer - set starting values for alpha-beta-pruning
 		//	Maximizer
 		if (map.getCurrentlyPlayingI() == myPlayerNr) {
@@ -1197,7 +1195,8 @@ public class Client{
 		}
 
 		//sort moves
-		if (useMS) {
+		//	without arrows
+		if (useMS && !Map.useArrows) {
 			for (int[] positionAndInfo : everyPossibleMove) {
 				//Out of Time ?
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
@@ -1245,14 +1244,31 @@ public class Client{
 					else return Double.compare(valueM1, valueM2);
 				}
 			});
-
-			//Out of Time ?
-			if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
-				if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after sort)");
-				throw new TimeoutException();
-			}
-
 		}
+		//	with arrows
+		if (useMS && Map.useArrows){
+			//don't know why but this is needed so we can access it inside the Coparator
+			ArrayList<int[]> finalEveryPossibleMove = everyPossibleMove;
+
+			indexList.sort(new Comparator<Integer>() {
+				@Override
+				public int compare(Integer i1, Integer i2) {
+					int[] positionAndInfo1 = finalEveryPossibleMove.get(i1);
+					int[] positionAndInfo2 = finalEveryPossibleMove.get(i2);
+					double valueM1 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo1);
+					double valueM2 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo2);
+					if (isMax) return Double.compare(valueM2, valueM1);
+					else return Double.compare(valueM1, valueM2);
+				}
+			});
+		}
+
+		//Out of Time ?
+		if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
+			if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after sort)");
+			throw new TimeoutException();
+		}
+
 		//Resort Array to include Killer Heuristic
 		if(useKH){
 			ArrayList<Integer> newIndexList = new ArrayList<Integer>(indexList.size());
@@ -1304,8 +1320,13 @@ public class Client{
 				else System.out.print(i + ", ");
 			}
 
+
+			//With move sorting - get simulated map
+			if (useMS && !Map.useArrows) {
+				nextMap = mapList.get( currIndex );
+			}
 			//Without move sorting - simulate move
-			if (!useMS) {
+			else {
 				//clones Map
 				nextMap = new Map(map, phaseOne);
 
@@ -1318,10 +1339,7 @@ public class Client{
 					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
 				}
 			}
-			//With move sorting - get simulated map
-			else{
-				nextMap = mapList.get( currIndex );
-			}
+
 
 			//Call DFS to start building part-tree of children
 			if (depth > 1) {
