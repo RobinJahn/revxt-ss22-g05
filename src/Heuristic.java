@@ -260,9 +260,9 @@ public class Heuristic {
         //gets possible moves of all players and adds them to the corresponding move counter
         for (int i = 1; i <= map.getAnzPlayers(); i++) {
             if (myColorI == map.getCurrentlyPlayingI()) {
-                myPossibleMoves = Client.getValidMoves(map).size();
+                myPossibleMoves = Map.getValidMoves(map).size();
             } else {
-                possibleMovesOfEnemys += Client.getValidMoves(map).size();
+                possibleMovesOfEnemys += Map.getValidMoves(map).size();
             }
             map.nextPlayer();
         } //resets to currently playing

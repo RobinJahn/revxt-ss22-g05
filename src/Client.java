@@ -283,7 +283,7 @@ public class Client{
 					//Ausgabe fuer den Vergleich mit dem Server
 					map.setPlayer(moveOfPlayer);
 					if (compare_to_Server) {
-						map_For_Comparison += map.toString_Server(getValidMoves(map));
+						map_For_Comparison += map.toString_Server(Map.getValidMoves(map));
 					}
 
 					//Handle Move
@@ -329,7 +329,7 @@ public class Client{
 					if (printOn) System.out.println("received end of phase 2 - game ended");
 
 					if (compare_to_Server) {
-						map_For_Comparison += map.toString_Server(getValidMoves(map));
+						map_For_Comparison += map.toString_Server(Map.getValidMoves(map));
 					}
 
 					serverM.readRestOfNextPhase();
@@ -385,7 +385,7 @@ public class Client{
 		map.setPlayer(myPlayerNr);
 
 		//calculate possible moves
-		validMoves = getValidMoves(map);
+		validMoves = Map.getValidMoves(map);
 
 		if (printOn) {
 			if (!compareValidMoves(phaseOne, validMoves)) {
@@ -463,7 +463,7 @@ public class Client{
 				//check if the move is valid
 				directions = new ArrayList<>();
 				for (int i = 0; i <= 7; i++) directions.add(i);
-				boolean movePossible = checkIfMoveIsPossible(posToSetKeystone, directions, map);
+				boolean movePossible = Map.checkIfMoveIsPossible(posToSetKeystone, directions, map);
 				if (!movePossible) {
 					System.err.println("Move isn't possible");
 				}
@@ -994,7 +994,7 @@ public class Client{
 		while (true) {
 			//get valid moves depending on stage of game
 			if (phaseOne) { //phase one
-				everyPossibleMove = getValidMoves(map);
+				everyPossibleMove = Map.getValidMoves(map);
 			}
 			else { //bomb phase
 				//if we have bombs
@@ -1267,314 +1267,4 @@ public class Client{
 	}
 
 
-	//functions to calculate all possible moves
-
-    //function to call
-	/**
-	 * returns the possible moves on the current map
-	 * @param map map to check for possible moves
-	 * @return returns an Array List of Positions
-	 */
-	public static ArrayList<int[]> getValidMoves(Map map) {
-		Moves moves = new Moves();
-        ArrayList<int[]> everyPossibleMove;
-        final boolean useNeighbours = false;
-
-		if (useNeighbours) {
-            getCandidatesByNeighbour(map, moves);
-            deleteNotPossibleMoves(map, moves);
-            everyPossibleMove = getEveryPossibleMove(map, moves.possibleMoves);
-        }
-        else {
-            everyPossibleMove = getFieldsByOwnColor(map);
-        }
-		
-		return everyPossibleMove;
-	}
-
-    //  by Neighbour
-	/**
-	 * Checks the whole map for enemy players and adds blank fields around it (by Neighbour) to candidates in moves
-	 * @param map the map to check for candidates
-	 * @param moves the data structure to store the possible moves and the candidates in
-	 */
-	private static void getCandidatesByNeighbour(Map map, Moves moves){
-		int currentlyPlaying = map.getCurrentlyPlayingI();
-		char currChar;
-
-		//goes over every field
-		for (int y = 0; y < map.getHeight(); y++){
-			for (int x = 0; x < map.getWidth(); x++){
-
-				//gets char of current position
-				currChar = map.getCharAt(x,y);
-
-				//if there's an expansions field and the player has overwrite-stones
-				if (Character.isAlphabetic(currChar) && currChar == 'x' && map.getOverwriteStonesForPlayer(currentlyPlaying) > 0){
-					//Add finally - mo need to check
-					moves.possibleMoves.add(new Position(x,y));
-				}
-
-				//if a player is there
-				if (Character.isDigit(currChar) && currChar != '0'){
-
-					//If the spot is taken, and you own an OverrideStone you have to check this spot
-					if (map.getOverwriteStonesForPlayer(currentlyPlaying) > 0)
-					{
-						moves.addPositionInAllDirections(x, y);
-					}
-					//check all neighbours and add it if the field is 0
-					checkAllNeighbors(map, moves, x, y);
-				}
-				
-				if(currChar == 'i') {
-					moves.addPositionInAllDirections(x, y);
-				}
-				if(currChar == 'c') {
-					moves.addPositionInAllDirections(x, y);
-				}
-				if(currChar == 'b') {
-					moves.addPositionInAllDirections(x, y);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Used for getCandidatesByNeighbour. Does the checking around an enemy keystone
-	 * @param map map the check takes place on
-	 * @param moves Data structure where all the moves to check are stored
-	 * @param x x position of enemy keystone to check
-	 * @param y y position of enemy keystone to check
-	 */
-	private static void checkAllNeighbors(Map map, Moves moves, int x, int y){
-		Position startPos = new Position(x,y);
-		Position currPos;
-		Integer newR;
-		int oppositeDirection;
-		char blankField = '0';
-		char fieldInDirectionR;
-
-		// go in every direction and check if there's a free field where you could place a keystone
-		for (int r = 0; r <= 7; r++){
-			//resets position
-			currPos = startPos.clone(); //resets currPos to startPos
-
-			//change x and y according to direction
-			newR = map.doAStep(currPos,r); //is only executed once per for loop so change of r doesn't affect it
-			if (newR == null) continue;
-
-			//get char at position
-			fieldInDirectionR = map.getCharAt(currPos);
-
-			//for a blank field add a possible move
-			if (fieldInDirectionR == blankField){
-				//get opposite direction/ the direction it needs to go to check the possibility of the move
-
-				oppositeDirection = (newR+4)%8;
-				//get the directions that ware already added to this field
-				ArrayList<Integer> directions = moves.movesToCheck.get(currPos);
-				//if position didn't exist yet
-				if (directions == null) {
-					directions = new ArrayList<>();
-					directions.add(oppositeDirection);
-					moves.movesToCheck.put(currPos,directions);
-				}
-				//if position already existed
-				else {
-					directions.add(oppositeDirection);
-				}
-			}
-		}
-	}
-
-    private static ArrayList<int[]> getEveryPossibleMove(Map map, ArrayList<Position> validMoves){
-        ArrayList<int[]> everyPossibleMove = new ArrayList<>(validMoves.size());
-        char charAtPos;
-
-        for (Position pos : validMoves) {
-            charAtPos = map.getCharAt(pos);
-
-            //choice
-            if (charAtPos == 'c') {
-                for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
-                    everyPossibleMove.add(new int[]{pos.x, pos.y, playerNr});
-                }
-            }
-            else {
-                //bonus
-                if (charAtPos == 'b'){
-                    everyPossibleMove.add(new int[]{pos.x, pos.y, 20});
-                    everyPossibleMove.add(new int[]{pos.x, pos.y, 21});
-                }
-                //normal
-                else {
-                    everyPossibleMove.add(new int[]{pos.x, pos.y, 0});
-                }
-            }
-        }
-        return everyPossibleMove;
-    }
-
-	/**
-	 * Goes over every move to check in the Moves-data-structure and calls checkIfMovePossible for it to test if it's a valid move
-	 * @param map the map the check takes place
-	 * @param moves the moves to check
-	 */
-	private static void deleteNotPossibleMoves(Map map, Moves moves){
-		boolean connectionFound;
-
-		//check every move if it's possible
-		for (Position pos : moves.movesToCheck.keySet()){
-
-			//gets directions to check in
-			ArrayList<Integer> directions;
-			directions = moves.movesToCheck.get(pos);
-
-			//function that checks if move is possible
-			connectionFound = checkIfMoveIsPossible(pos, directions, map);
-			//if the move is possible
-			if (connectionFound) moves.possibleMoves.add(pos);
-		}
-	}
-
-	/**
-	 * goes in every specified direction to check if it's possible to set a keystone at the specified position
-	 * @param pos pos the keystone would be placed
-	 * @param directions directions it needs to check
-	 * @param map the map the check takes place on
-	 * @return returns true if the move is possible and false otherwise
-	 */
-	private static boolean checkIfMoveIsPossible(Position pos, ArrayList<Integer> directions, Map map){
-		Position StartingPos;
-		Position currPos;
-		Integer newR;
-		boolean wasFirstStep;
-		char currChar;
-
-		//check if it's an expansions field
-		if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) return true;
-
-		//go over every direction that needs to be checked
-		for (Integer r : directions){
-			//reset values
-			StartingPos = pos.clone();
-			currPos = pos.clone();
-			wasFirstStep = true;
-			newR = r;
-
-			//go in one direction until there is something relevant
-			while (true) {
-				//does one step
-				newR = map.doAStep(currPos, newR); //currPos is changed here
-				if (newR == null) break; //if the step wasn't possible
-
-				//check what's there
-				currChar = map.getCharAt(currPos);
-				//check for blank
-				if (currChar == '0' || currChar == 'i' || currChar == 'c' ||currChar == 'b') break;
-
-				//check for players
-				//if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
-				if (wasFirstStep) {
-					if (currChar == map.getCurrentlyPlayingC()) break;
-					wasFirstStep = false;
-				}
-				//if it's not the first move - finding an own keystone is a connection
-				else {
-					if(currPos.equals(StartingPos)) break; //if we would color with the stone we started from
-
-					if (currChar == map.getCurrentlyPlayingC()) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-    //  by own color
-    private static ArrayList<int[]> getFieldsByOwnColor(Map map){
-        HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
-        ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
-		int r;
-        Integer newR;
-        Position currPos;
-        char currChar;
-
-
-        //add x fields
-        if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-            for (Position pos : map.getExpansionFields()) {
-                everyPossibleMove.add(new PositionAndInfo(pos.x, pos.y, 0));
-            }
-        }
-
-        //goes over every position of the current player and checks in all directions if a move is possible
-        for (Position pos : map.getStonesOfPlayer(map.getCurrentlyPlayingI())){
-            for (r = 0; r <= 7; r++){
-                newR = r;
-                currPos = pos.clone();
-
-                //do the first step
-                newR = map.doAStep(currPos, newR);
-                if (newR == null) continue; //if the step wasn't possible
-                currChar = map.getCharAt(currPos); //check what's there
-                if (currChar == 'c' || currChar == 'b' || currChar == 'i' || currChar == '0' || currChar == map.getCurrentlyPlayingC()) continue; //if it's c, b, i, 0, myColor
-
-                while (true){
-                    newR = map.doAStep(currPos, newR);
-                    if (newR == null) break; //if the step wasn't possible
-
-                    //check what's there
-                    currChar = map.getCharAt(currPos);
-
-                    //player or 0
-                    if (Character.isDigit(currChar)){
-                        // 0
-                        if (currChar == '0') {
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                            break;
-                        }
-                        //player
-                        else {
-                            //own or enemy stone -> overwrite move
-                            if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                                everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                            }
-							//if it's an own stone don't go on
-							if (currChar == map.getCurrentlyPlayingC()) break;
-                        }
-                    }
-                    // c, b, i, x
-                    else {
-                        if (currChar == 'i') {
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                            break;
-                        }
-                        else if (currChar == 'c') {
-                            for (int playerNr = 1; playerNr < map.getAnzPlayers(); playerNr++){
-                                everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
-                            }
-                            break;
-                        }
-                        else if (currChar == 'b'){
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 20));
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 21));
-                            break;
-                        }
-                        else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                        }
-                    }
-                }
-            }
-        }
-
-		for (PositionAndInfo pai : everyPossibleMove){
-			resultPosAndInfo.add(pai.toIntArray());
-		}
-
-        return resultPosAndInfo;
-    }
 }
