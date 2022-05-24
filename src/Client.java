@@ -17,8 +17,8 @@ public class Client{
 	final private boolean useMS;
 	final private boolean ServerLog = true;
 	private boolean timed = true;
-	final private boolean useBRS = false;
-	final private boolean useKH = false;
+	final private boolean useBRS = true;
+	final private boolean useKH = true;
 
 	//global variables
 	private Map map;
@@ -1122,10 +1122,7 @@ public class Client{
 		//BRS+
 		int PhiZugIndex = -1;
 
-		//fill index List
-		for (int i = 0; i < everyPossibleMove.size(); i++){
-			indexList.add(i);
-		}
+
 
 		//Get if we 're a maximizer or a minimizer - set starting values for alpha-beta-pruning
 		//	Maximizer
@@ -1161,6 +1158,11 @@ public class Client{
 		}
 		if (extendedPrint && depth == 1) System.out.print("DFS-V(1): ");
 
+		//fill index List
+		for (int i = 0; i < everyPossibleMove.size(); i++){
+			indexList.add(i);
+		}
+
 		//sort moves
 		if (useMS) {
 			for (int[] positionAndInfo : everyPossibleMove) {
@@ -1194,6 +1196,14 @@ public class Client{
 			indexList.sort(new Comparator<Integer>() {
 				@Override
 				public int compare(Integer i1, Integer i2) {
+					/*
+					if(i1>= mapList.size()|| i2>= mapList.size())
+					{
+						System.err.printf("IndexListsize: " + indexList.size() + "\nMapListsize: " + mapList.size());
+						System.err.println("\nI1: " + i1 +" \nI2" + i2);
+						return 0;
+					}
+					*/
 					Map m1 = mapList.get(i1);
 					Map m2 = mapList.get(i2);
 					double valueM1 = Heuristic.fastEvaluate(m1, myPlayerNr);
