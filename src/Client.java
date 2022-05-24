@@ -386,7 +386,7 @@ public class Client{
 	private String StringForServerCompare(String map_For_Comparison)
 	{
 		try {
-			map_For_Comparison += map.toString_Server(getValidMoves(map, timed, printOn, ServerLog, 0));
+			map_For_Comparison += map.toString_Server(Map.getValidMoves(map, timed, printOn, ServerLog, 0));
 		}
 		catch (TimeoutException te)
 		{
@@ -414,7 +414,7 @@ public class Client{
 
 		//calculate possible moves and print map with these
 		try{
-			validMoves = getValidMoves(map,timed,printOn,ServerLog,Long.MAX_VALUE);
+			validMoves = Map.getValidMoves(map,timed,printOn,ServerLog,Long.MAX_VALUE);
 		}
 		catch (TimeoutException TE)
 		{
@@ -433,12 +433,10 @@ public class Client{
 			}
 		}
 		//calculate value of map and print it
-		try
-		{
+		try {
 			valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne,timed,ServerLog, Long.MAX_VALUE)*100)/100;
 		}
-		catch (TimeoutException TE)
-		{
+		catch (TimeoutException TE) {
 			System.out.println("TimeOutException in MakeAMove");
 			return;
 		}
@@ -655,7 +653,14 @@ public class Client{
 			else {
 				System.out.println(map.toString(validMoves, false, useColors));
 				//calculate value of map and print it
-				double valueOfMap = (double) Math.round(heuristic.evaluate(phaseOne) * 100) / 100;
+				try {
+					valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne,timed,ServerLog, Long.MAX_VALUE)*100)/100;
+				}
+				catch (TimeoutException TE) {
+					System.out.println("TimeOutException in MakeAMove");
+					return;
+				}
+
 				System.out.println("Value of Map is " + valueOfMap);
 			}
 

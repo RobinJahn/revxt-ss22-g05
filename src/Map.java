@@ -1,6 +1,7 @@
 package src;
 
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 public class Map{
 
@@ -689,7 +690,7 @@ public class Map{
 
     public  int getNextPlayer(){
         int nextPlayer = currentlyPlaying + 1;
-        if (nextPlayer == anzPlayers+1) nextPlayer = 1;
+        if (nextPlayer == staticMap.anzPlayers+1) nextPlayer = 1;
         return nextPlayer;
 
     }
@@ -1251,7 +1252,7 @@ public class Map{
      * @param map map to check for possible moves
      * @return returns an Array List of Positions
      */
-    public static ArrayList<int[]> getValidMoves(Map map) {
+    public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws TimeoutException {
         Moves moves = new Moves();
         ArrayList<int[]> everyPossibleMove;
         final boolean useNeighbours = false;
@@ -1262,7 +1263,7 @@ public class Map{
             everyPossibleMove = getEveryPossibleMove(map, moves.possibleMoves);
         }
         else {
-            everyPossibleMove = getFieldsByOwnColor(map);
+            everyPossibleMove = getFieldsByOwnColor(map, timed, printOn, serverLog, upperTimeLimit);
         }
 
         return everyPossibleMove;
@@ -1470,7 +1471,7 @@ public class Map{
     }
 
     //  by own color
-    private static ArrayList<int[]> getFieldsByOwnColor(Map map){
+    private static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws TimeoutException{
         HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
         ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
         int r;
@@ -1488,6 +1489,12 @@ public class Map{
 
         //goes over every position of the current player and checks in all directions if a move is possible
         for (Position pos : map.getStonesOfPlayer(map.getCurrentlyPlayingI())){
+
+            if (timed && (upperTimeLimit-System.nanoTime() < 0)){
+                if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
+                throw new TimeoutException();
+            }
+
             for (r = 0; r <= 7; r++){
                 newR = r;
                 currPos = pos.clone();
