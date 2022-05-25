@@ -896,7 +896,7 @@ public class Client{
 		int[] validPosition;
 		//Timing
 		long startTime = System.nanoTime();
-		long timeOffset = 80_000_000; //ns -> xx ms
+		long timeOffset = 500_000_000; //ns -> xx ms
 		long timeNextDepth = 0;
 		long upperTimeLimit = startTime + (long)time * 1_000_000 - timeOffset;
 		double leavesNextDepth;
@@ -1271,6 +1271,7 @@ public class Client{
 
 		//Resort Array to include Killer Heuristic
 		if(useKH){
+
 			ArrayList<Integer> newIndexList = new ArrayList<Integer>(indexList.size());
 			for(int i = 0;i< KillerArray.getLength();i++)
 			{
@@ -1289,6 +1290,7 @@ public class Client{
 					{
 						//@Todo Refine This
 						if(j < indexList.size()) {
+							//Index verschiebung machen statt kopieren
 							newIndexList.add(indexList.get(j));
 							indexList.remove(j);
 						}
@@ -1409,16 +1411,18 @@ public class Client{
 
 					//Cuttoff ?
 					if (currBestValue >= currBeta) {
-						int countOfCutoffLeaves = everyPossibleMove.size() - everyPossibleMove.indexOf(positionAndInfo);
+						int countOfCutoffSiblings = everyPossibleMove.size() - everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
-						statistic.reduceNodes(countOfCutoffLeaves, depth);
+
+						//Rename into Siblings
+						statistic.reduceNodes(countOfCutoffSiblings, depth);
 						//Killer Heuristic
 						if(useKH) {
-							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffLeaves);
+							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffSiblings);
 						}
 						//Print before return
 						if (extendedPrint) {
-							System.out.println("Cutoff: Current highest value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
+							System.out.println("Cutoff: Current highest value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffSiblings + " values skipped");
 						}
 						return new double[]{currBestValue, indexOfBest};
 					}
