@@ -59,7 +59,7 @@ public class StaticMap {
     }
 
     /**
-     * imports Map after a stream tokenizer was created - wich changes if you have a file or a stream
+     * imports Map after a stream tokenizer was created - which changes if you have a file or a stream
      * @param st Stream Tokenizer that is set to read the map
      * @return Returns true if map was imported correctly and false otherwise.
      */
@@ -329,7 +329,7 @@ public class StaticMap {
             }
 
             default:
-                System.err.println("Read char that couln't be handled");
+                System.err.println("Read char that couldn't be handled");
                 return false;
         }
         return true;

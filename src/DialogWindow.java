@@ -4,11 +4,11 @@ import java.io.File;
 import java.nio.file.Paths;
 import javax.swing.JFileChooser;
 
-public class Dialogfenster {
+public class DialogWindow {
 
     static File savedPath = new File(Paths.get("./Maps").toAbsolutePath().normalize().toString());
 
-    public String oeffnen() {
+    public String open() {
         final JFileChooser chooser = new JFileChooser("Select Path");
         chooser.setDialogType(JFileChooser.OPEN_DIALOG);
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -27,11 +27,11 @@ public class Dialogfenster {
         {
             if(chooser.getSelectedFile() != null)
             {
-                 File inputVerzFile = chooser.getSelectedFile();
-                 String inputVerzStr = inputVerzFile.getPath();
-                 System.out.println(inputVerzStr);
+                 File inputFolderFile = chooser.getSelectedFile();
+                 String inputFolderStr = inputFolderFile.getPath();
+                 System.out.println(inputFolderStr);
                  savedPath = new File(chooser.getSelectedFile().toString());
-                 return inputVerzStr;
+                 return inputFolderStr;
             }
         }
         System.out.println("No file selected");
