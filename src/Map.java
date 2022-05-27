@@ -1187,6 +1187,144 @@ public class Map{
 
     //STATIC FUNCTIONS
 
+    //  functions to simulate a move
+
+    /**
+     * Method to update the Map according to the move that was sent to the client
+     */
+    public static void updateMapWithMove(Position posToSetKeystone, int additionalInfo, int moveOfPlayer, Map map, boolean printOn) {
+        char fieldValue;
+
+        map.setPlayer(moveOfPlayer); //set playing player because server could have skipped some
+
+        //get value of field where next keystone is set
+        fieldValue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
+
+        //color the map
+        Map.colorMap(posToSetKeystone, map);
+
+        //handle special moves
+        switch (additionalInfo){
+            case 0: //could be normal move, overwrite move, or inversion move
+                //for a normal move there are no further actions necessary
+                //overwrite move
+                if ((Character.isDigit(fieldValue) && fieldValue != '0') || fieldValue == 'x') {
+                    if (printOn) System.out.println("Overwrite Move");
+                    map.decreaseOverrideStonesOfPlayer();
+                }
+                //inversion move
+                else if (fieldValue == 'i') {
+                    if (printOn) System.out.println("Inversion Move");
+                    map.Inversion();
+                }
+                break;
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8: //choice
+                if (printOn) System.out.println("Choice Move");
+                map.swapStonesWithOnePlayer(additionalInfo);
+                break;
+            case 20: //bonus and want a bomb
+                if (printOn) System.out.println("Bonus Move - Bomb");
+                map.increaseBombsOfPlayer();
+                break;
+            case 21: //bonus and want an overwrite-stone
+                if (printOn) System.out.println("Bonus Move - Overwrite Stone");
+                map.increaseOverrideStonesOfPlayer();
+                break;
+            default:
+                System.err.println("Field value is invalid");
+                break;
+        }
+
+        map.nextPlayer();
+    }
+
+    /**
+     * Updates Map by breadth-first search
+     * @param x x coordinate where the bomb was set
+     * @param y y coordinate where the bomb was set
+     */
+    public static void updateMapAfterBombingBFS(int x, int y, int moveOfPlayer, Map map){
+        char charAtPos;
+        int explosionRadius = map.getExplosionRadius();
+
+        map.setPlayer(moveOfPlayer); //server may have skipped a player
+
+        if (map.getBombsForPlayer(moveOfPlayer) == 0){
+            System.err.println("Something's wrong - Server send a bomb move but Player has no bombs - updating Map anyway");
+        }
+
+        //for breadth-first search
+        Queue<int[]> posQ = new LinkedList<>(); //int array: [0] == x, [1] == y, [2] == distance from explosion
+        int[] currPosAndDist;
+        Position nextPos;
+        Position posAfterStep;
+        int counterForExpRad = 0;
+
+        //for transitions
+        Integer newR;
+        char transitionEnd1;
+        Character transitionEnd2;
+
+        //first element
+        map.setCharAt(x, y, '+');
+        posQ.add(new int[]{x,y, counterForExpRad});
+
+        while (!posQ.isEmpty()){
+            currPosAndDist = posQ.poll();
+            nextPos = new Position(currPosAndDist[0], currPosAndDist[1]);
+            counterForExpRad = currPosAndDist[2];
+
+            //if explosion radius allows it
+            if (counterForExpRad < explosionRadius) {
+
+                //go in every possible direction
+                for (int r = 0; r <= 7; r++) {
+                    //get position it will move to
+                    posAfterStep = Position.goInR(nextPos, r);
+                    //check what's there
+                    charAtPos = map.getCharAt(posAfterStep);
+
+                    //if there's a transition go through and delete it (not the char though)
+                    if (charAtPos == 't') {
+                        //go one step back because we need to come from where the transition points
+                        posAfterStep = Position.goInR(posAfterStep, (r + 4) % 8);
+                        //tries to go through transition
+                        newR = map.doAStep(posAfterStep, r); //takes Position it came from. Because from there it needs to go through
+                        if (newR != null) {
+							/* should be unnecessary
+							//removes transition pair from the hash List - if it's here it wen through the transition
+							transitionEnd1 = Transitions.saveInChar(posAfterStep.x, posAfterStep.y, (newR + 4) % 8);
+							transitionEnd2 = map.getTransitions().get(transitionEnd1);
+							map.getTransitions().remove(transitionEnd1);
+							map.getTransitions().remove(transitionEnd2);
+							 */
+                        }
+                    }
+
+                    if (charAtPos != '+' && charAtPos != '-') { // + is grey, - is black
+                        map.setCharAt(posAfterStep.x, posAfterStep.y, '+');
+                        posQ.add(new int[]{posAfterStep.x, posAfterStep.y, counterForExpRad + 1});
+                    }
+                }
+            }
+            map.setCharAt(nextPos.x, nextPos.y, '-'); //next position is still the position it came from
+        }
+
+        //Decreases the Bombs of the player
+        map.decreaseBombsOfPlayer();
+
+        //next player
+        map.nextPlayer();
+    }
+
+
     //  function to color the map
 
     /**
@@ -1266,7 +1404,7 @@ public class Map{
      * @param map map to check for possible moves
      * @return returns an Array List of Positions
      */
-    public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws TimeoutException {
+    public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit){
         ArrayList<int[]> everyPossibleMove;
 
         if (useArrows){
@@ -1274,6 +1412,10 @@ public class Map{
         }
         else {
             everyPossibleMove = getFieldsByOwnColor(map, timed, printOn, serverLog, upperTimeLimit);
+
+            if (everyPossibleMove.isEmpty()){
+                System.err.println("Found no moves in time");
+            }
         }
 
         return everyPossibleMove;
@@ -1334,31 +1476,42 @@ public class Map{
         return false;
     }
 
-    public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws TimeoutException{
+    public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit){
         HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
         ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
         int r;
         Integer newR;
         Position currPos;
         char currChar;
+        boolean wasAdded;
 
 
         //add x fields
         if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
             for (Position pos : map.getExpansionFields()) {
                 everyPossibleMove.add(new PositionAndInfo(pos.x, pos.y, 0));
+                resultPosAndInfo.add(new int[]{pos.x, pos.y, 0});
             }
+        }
+
+        //out of time ?
+        if (timed && (upperTimeLimit-System.nanoTime() < 0)){
+            if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
+
+            return resultPosAndInfo;
         }
 
         //goes over every position of the current player and checks in all directions if a move is possible
         for (Position pos : map.getStonesOfPlayer(map.getCurrentlyPlayingI())){
 
-            if (timed && (upperTimeLimit-System.nanoTime() < 0)){
-                if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
-                throw new TimeoutException();
-            }
-
             for (r = 0; r <= 7; r++){
+
+                //out of time ?
+                if (timed && (upperTimeLimit-System.nanoTime() < 0)){
+                    if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
+                    return resultPosAndInfo;
+                }
+
                 newR = r;
                 currPos = pos.clone();
 
@@ -1379,14 +1532,16 @@ public class Map{
                     if (Character.isDigit(currChar)){
                         // 0
                         if (currChar == '0') {
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                            wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
                             break;
                         }
                         //player
                         else {
                             //own or enemy stone -> overwrite move
                             if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                                everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                                wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                                if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
                             }
                             //if it's an own stone don't go on
                             if (currChar == map.getCurrentlyPlayingC()) break;
@@ -1395,30 +1550,31 @@ public class Map{
                     // c, b, i, x
                     else {
                         if (currChar == 'i') {
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                            wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
                             break;
                         }
                         else if (currChar == 'c') {
                             for (int playerNr = 1; playerNr < map.getAnzPlayers(); playerNr++){
-                                everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
+                                wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
+                                if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, playerNr});
                             }
                             break;
                         }
                         else if (currChar == 'b'){
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 20));
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 21));
+                            wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 20));
+                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 20});
+                            wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 21));
+                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 21});
                             break;
                         }
                         else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                            everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                            wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
                         }
                     }
                 }
             }
-        }
-
-        for (PositionAndInfo pai : everyPossibleMove){
-            resultPosAndInfo.add(pai.toIntArray());
         }
 
         return resultPosAndInfo;

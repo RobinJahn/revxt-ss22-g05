@@ -9,16 +9,20 @@ import java.util.concurrent.TimeoutException;
 public class Client{
 	//final variables
 	final private boolean calculateMove = true;
+
+
 	final private boolean printOn;
 	final private boolean extendedPrint;
 	final private boolean useColors;
+	final private boolean ServerLog = true;
 	final private boolean compare_to_Server;
+
 	final private boolean useAB;
 	final private boolean useMS;
-	final private boolean ServerLog = true;
+	final private boolean useBRS = false;
+	final private boolean useKH = false;
+
 	private boolean timed = true;
-	final private boolean useBRS = true;
-	final private boolean useKH = true;
 
 	//global variables
 	private Map map;
@@ -30,6 +34,7 @@ public class Client{
 	private int time;
 	private int moveCounter;
 	double approximation = 1;
+	SearchTree searchTree;
 
 	Random random = new Random(1);
 
@@ -195,6 +200,7 @@ public class Client{
 		//set variables after map was imported
 		heuristic = new Heuristic(map, myPlayerNr,printOn,multipliers); // mark
 		heuristicForSimulation = new Heuristic(map, myPlayerNr,false,multipliers);
+		searchTree = new SearchTree(map, printOn, ServerLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, multipliers);
 
 		//start playing
 		if (printOn) System.out.println();
@@ -230,7 +236,7 @@ public class Client{
 					}
 
 					//read rest of move request
-					timeAndDepth = serverM.readRestOfMoveRequest(); //ignore time at the moment
+					timeAndDepth = serverM.readRestOfMoveRequest();
 					time = timeAndDepth[0];
 					depth = timeAndDepth[1];
 
@@ -280,8 +286,8 @@ public class Client{
 					}
 
 					//Handle Move
-					if (firstPhase) updateMapWithMove(posToSetKeystone, additionalInfo, moveOfPlayer, map, printOn);
-					else updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, moveOfPlayer, map);
+					if (firstPhase) Map.updateMapWithMove(posToSetKeystone, additionalInfo, moveOfPlayer, map, printOn);
+					else Map.updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, moveOfPlayer, map);
 
 					if (printOn) {
 						System.out.println(map.toString(null, false, useColors));
@@ -371,25 +377,19 @@ public class Client{
 	//Compare to Server
 	private String StringForServerCompare(String map_For_Comparison)
 	{
-		try {
-			map_For_Comparison += map.toString_Server(Map.getValidMoves(map, timed, printOn, ServerLog, 0));
-		}
-		catch (TimeoutException te)
-		{
-			System.out.print("TimeoutException in Compare to server");
-		}
+		map_For_Comparison += map.toString_Server(Map.getValidMoves(map, timed, printOn, ServerLog, 0));
 		return map_For_Comparison;
 	}
 
 	//phase 1
-
 	/**
 	 * Method to make a move after a move request was sent to the Client
 	 */
 	private void makeAMove(){
 		//calculated Move
-		int[] positionAndInfo = new int[]{-1,-1,-1};
+		int[] positionAndInfo;
 		int[] validPosition = new int[]{-1,-1,-1};
+		int[] validPosition1;
 		final boolean phaseOne = true;
 
 		//general
@@ -399,17 +399,11 @@ public class Client{
 
 		map.setPlayer(myPlayerNr);
 
-		//calculate possible moves and print map with these
-		try{
-			validMoves = Map.getValidMoves(map,timed,printOn,ServerLog,Long.MAX_VALUE);
-			validMovesByOwnColor = Map.getFieldsByOwnColor(map,timed,printOn,ServerLog,Long.MAX_VALUE);
+		//calculate possible moves
+		validMoves = Map.getValidMoves(map,timed,printOn,ServerLog,Long.MAX_VALUE);
+		validMovesByOwnColor = Map.getFieldsByOwnColor(map,timed,printOn,ServerLog,Long.MAX_VALUE);
 
-		}
-		catch (TimeoutException TE)
-		{
-			if (printOn||ServerLog) System.out.println("TimeOutException in MakeAMove");
-			return;
-		}
+		//prints map
 		if (printOn) {
 			if (!compareValidMoves(phaseOne, validMovesByOwnColor)) {
 				System.out.println(map.toString(validMovesByOwnColor, false, useColors));
@@ -421,6 +415,7 @@ public class Client{
 				System.out.println(map.toString(validMoves, false, useColors));
 			}
 		}
+
 		//calculate value of map and print it
 		try {
 			valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne,timed,ServerLog, Long.MAX_VALUE)*100)/100;
@@ -429,9 +424,9 @@ public class Client{
 			System.out.println("TimeOutException in MakeAMove");
 			return;
 		}
-
 		if (printOn) System.out.println("Value of Map is " + valueOfMap);
 
+		//check for error
 		if (validMoves.isEmpty()) {
 			System.err.println("Something's wrong - Valid Moves are empty but server says they're not");
 			return;
@@ -439,7 +434,19 @@ public class Client{
 
 		//make a calculated move
 		if (calculateMove) {
+			validPosition1 = searchTree.getMove(map, timed, depth, phaseOne, validMoves, time, moveCounter);
+
+			if (printOn) {
+				System.out.println("Move from Search tree: " + Arrays.toString(validPosition1));
+			}
+
 			validPosition = getMoveTimeDepth(phaseOne, validMoves);
+
+			if (validPosition1[0] != validPosition[0] || validPosition1[1] != validPosition[1] || validPosition1[2] != validPosition[2]) {
+				System.err.println("Move from Search tree and client do not match");
+				return;
+			}
+
 			//validPosition = validMoves.get( random.nextInt(validMoves.size()) );
 		}
 		//let player enter a move
@@ -553,66 +560,10 @@ public class Client{
 		serverM.sendMove(validPosition[0], validPosition[1], validPosition[2], myPlayerNr);
 	}
 
-	/**
-	 * Method to update the Map according to the move that was sent to the client
-	 */
-	private static void updateMapWithMove(Position posToSetKeystone, int additionalInfo, int moveOfPlayer, Map map, boolean printOn) {
-		char fieldValue;
-
-		map.setPlayer(moveOfPlayer); //set playing player because server could have skipped some
-
-		//get value of field where next keystone is set
-		fieldValue = map.getCharAt(posToSetKeystone.x, posToSetKeystone.y);
-
-		//color the map
-		Map.colorMap(posToSetKeystone, map);
-
-		//handle special moves
-		switch (additionalInfo){
-			case 0: //could be normal move, overwrite move, or inversion move
-				//for a normal move there are no further actions necessary
-				//overwrite move
-				if ((Character.isDigit(fieldValue) && fieldValue != '0') || fieldValue == 'x') {
-                    if (printOn) System.out.println("Overwrite Move");
-					map.decreaseOverrideStonesOfPlayer();
-				}
-				//inversion move
-				else if (fieldValue == 'i') {
-                    if (printOn) System.out.println("Inversion Move");
-					map.Inversion();
-				}
-				break;
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 8: //choice
-                if (printOn) System.out.println("Choice Move");
-				map.swapStonesWithOnePlayer(additionalInfo);
-				break;
-			case 20: //bonus and want a bomb
-                if (printOn) System.out.println("Bonus Move - Bomb");
-				map.increaseBombsOfPlayer();
-				break;
-			case 21: //bonus and want an overwrite-stone
-                if (printOn) System.out.println("Bonus Move - Overwrite Stone");
-				map.increaseOverrideStonesOfPlayer();
-				break;
-			default:
-				System.err.println("Field value is invalid");
-				break;
-		}
-
-		map.nextPlayer();
-	}
-
 	//phase 2 - bomb phase
-
 	private void setABomb(){
 		int[] validPosition;
+		int[] validPosition1;
 		ArrayList<int[]> validMoves;
 		boolean moveIsPossible = false;
 		Position posToSetKeystone = new Position(0, 0);
@@ -671,7 +622,19 @@ public class Client{
 		{
             if (!pickARandom)
 			{
+				validPosition1 = searchTree.getMove(map, timed, depth, phaseOne, validMoves, time, moveCounter);
+
+				if (printOn) {
+					System.out.println("Move from Search tree: " + Arrays.toString(validPosition1));
+				}
+
 				validPosition = getMoveTimeDepth(phaseOne, validMoves);
+
+				if (validPosition1[0] != validPosition[0] || validPosition1[1] != validPosition[1]) {
+					System.err.println("Move from Search tree and client do not match");
+					return;
+				}
+
 				posToSetKeystone = new Position(validPosition[0], validPosition[1]);
             }
             else
@@ -713,7 +676,7 @@ public class Client{
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, 0, myPlayerNr);
 	}
 
-	private static ArrayList<int[]> getPositionsToSetABomb(Map map) {
+	public static ArrayList<int[]> getPositionsToSetABomb(Map map) {
 		ArrayList<int[]> validMoves = new ArrayList<>();
 		char fieldValue;
 		int accuracy = 2;
@@ -808,85 +771,6 @@ public class Client{
 		return true;
 	}
 
-	/**
-	 * Updates Map by breadth-first search
-	 * @param x x coordinate where the bomb was set
-	 * @param y y coordinate where the bomb was set
-	 */
-	private static void updateMapAfterBombingBFS(int x, int y, int moveOfPlayer, Map map){
-		char charAtPos;
-		int explosionRadius = map.getExplosionRadius();
-
-		map.setPlayer(moveOfPlayer); //server may have skipped a player
-
-		if (map.getBombsForPlayer(moveOfPlayer) == 0){
-			System.err.println("Something's wrong - Server send a bomb move but Player has no bombs - updating Map anyway");
-		}
-
-		//for breadth-first search
-		Queue<int[]> posQ = new LinkedList<>(); //int array: [0] == x, [1] == y, [2] == distance from explosion
-		int[] currPosAndDist;
-		Position nextPos;
-		Position posAfterStep;
-		int counterForExpRad = 0;
-
-		//for transitions
-		Integer newR;
-		char transitionEnd1;
-		Character transitionEnd2;
-
-		//first element
-		map.setCharAt(x, y, '+');
-		posQ.add(new int[]{x,y, counterForExpRad});
-
-		while (!posQ.isEmpty()){
-			currPosAndDist = posQ.poll();
-			nextPos = new Position(currPosAndDist[0], currPosAndDist[1]);
-			counterForExpRad = currPosAndDist[2];
-
-			//if explosion radius allows it
-			if (counterForExpRad < explosionRadius) {
-
-				//go in every possible direction
-				for (int r = 0; r <= 7; r++) {
-					//get position it will move to
-					posAfterStep = Position.goInR(nextPos, r);
-					//check what's there
-					charAtPos = map.getCharAt(posAfterStep);
-
-					//if there's a transition go through and delete it (not the char though)
-					if (charAtPos == 't') {
-						//go one step back because we need to come from where the transition points
-						posAfterStep = Position.goInR(posAfterStep, (r + 4) % 8);
-						//tries to go through transition
-						newR = map.doAStep(posAfterStep, r); //takes Position it came from. Because from there it needs to go through
-						if (newR != null) {
-							/* should be unnecessary
-							//removes transition pair from the hash List - if it's here it wen through the transition
-							transitionEnd1 = Transitions.saveInChar(posAfterStep.x, posAfterStep.y, (newR + 4) % 8);
-							transitionEnd2 = map.getTransitions().get(transitionEnd1);
-							map.getTransitions().remove(transitionEnd1);
-							map.getTransitions().remove(transitionEnd2);
-							 */
-						}
-					}
-
-					if (charAtPos != '+' && charAtPos != '-') { // + is grey, - is black
-						map.setCharAt(posAfterStep.x, posAfterStep.y, '+');
-						posQ.add(new int[]{posAfterStep.x, posAfterStep.y, counterForExpRad + 1});
-					}
-				}
-			}
-			map.setCharAt(nextPos.x, nextPos.y, '-'); //next position is still the position it came from
-		}
-
-		//Decreases the Bombs of the player
-		map.decreaseBombsOfPlayer();
-
-		//next player
-		map.nextPlayer();
-	}
-
 
 	//Functions to calculate the best next move
 	private int[] getMoveTimeDepth(boolean phaseOne, ArrayList<int[]> everyPossibleMove) {
@@ -908,7 +792,7 @@ public class Client{
 		KillerArray KillerArray = new KillerArray();
 
 		//get a random valid position to always have a valid return value
-		validPosition = everyPossibleMove.get( (int)Math.round( Math.random() * (everyPossibleMove.size()-1) ) );
+		validPosition = everyPossibleMove.get(0);
 
 		//if there is a time limit
 		if (timed) {
@@ -1187,7 +1071,6 @@ public class Client{
 			System.out.println("Calculating values for " + everyPossibleMove.size() + " Moves");
 			System.out.println("Currently at: ");
 		}
-		if (extendedPrint && depth == 1) System.out.print("DFS-V(1): ");
 
 		//fill index List
 		for (int i = 0; i < everyPossibleMove.size(); i++){
@@ -1215,11 +1098,11 @@ public class Client{
 
 				//if it's the first phase
 				if (phaseOne) {
-					updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
+					Map.updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
 				}
 				//if it's the bomb phase
 				else {
-					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
+					Map.updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
 				}
 
 				mapList.add(nextMap);
@@ -1316,8 +1199,8 @@ public class Client{
 
 			//prints
 			if (printOn && firstCall) {
-				if (depth > 1) System.out.println(i + ", ");
-				else System.out.print(i + ", ");
+				if (depth > 1) System.out.println((i+1) + ", ");
+				else System.out.print((i+1) + ", ");
 			}
 
 
@@ -1332,11 +1215,11 @@ public class Client{
 
 				//if it's the first phase
 				if (phaseOne) {
-					updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
+					Map.updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
 				}
 				//if it's the bomb phase
 				else {
-					updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
+					Map.updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
 				}
 			}
 
@@ -1374,10 +1257,10 @@ public class Client{
 
 			//print infos
 			if (extendedPrint){
-				if (depth > 1) System.out.print("DFS-V("+ depth +"): ");
+				System.out.print("DFS-V("+ depth +"): ");
 				if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %.2f], ",positionAndInfo[0],positionAndInfo[1],positionAndInfo[2],evaluation);
 				else System.out.printf("[(%2d,%2d)= %.2f], ",positionAndInfo[0],positionAndInfo[1],evaluation);
-				if (depth > 1) System.out.println();
+				System.out.println();
 			}
 
 			//Get highest or lowest value
@@ -1451,7 +1334,7 @@ public class Client{
 		}
 
 		if (printOn && (extendedPrint || firstCall)) {
-			if (depth > 1) System.out.print("DFS-V(" + depth + "): ");
+			System.out.print("DFS-V(" + depth + "): ");
 			System.out.println("returning: " + currBestValue);
 		}
 
