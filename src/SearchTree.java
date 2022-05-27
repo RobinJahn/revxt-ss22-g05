@@ -2,6 +2,7 @@ package src;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.concurrent.TimeoutException;
 
 public class SearchTree {
@@ -22,7 +23,6 @@ public class SearchTree {
     private  boolean timed;
     private int depth;
     private double approximation;
-    private int[] pos;
     int moveCounter;
     boolean cancelNextDepth = false;
     long upperTimeLimit;
@@ -91,9 +91,9 @@ public class SearchTree {
         }
 
         //sort index list
-        if (useMS) sortMove();
+        if (useMS && phaseOne) sortMove(indexList, validMoves, true, map);
         if (useBRS) useBRS();
-        if (useKH) useKillerheuristic();
+        if (useKH) useKillerheuristic(indexList, validMoves);
 
         //prints
         if (printOn) {
@@ -141,7 +141,7 @@ public class SearchTree {
             if (cuttof){
                 //Killer Heuristic
                 if (useKH) {
-                    killerArray.add(new PositionAndInfo( validMoves.get(currIndex) ), validMoves.size()-i);
+                    killerArray.add( new PositionAndInfo(posAndInfo), validMoves.size()-i);
                 }
                 break;
             }
@@ -212,7 +212,7 @@ public class SearchTree {
             }
 
             //If we know we won or lost -> no need to check deeper
-            if (cancelNextDepth){ //TODO set this
+            if (cancelNextDepth){
                 return validPosition;
             }
 
@@ -269,27 +269,25 @@ public class SearchTree {
         //SIMULATE MOVE
         map = simulateMove(map, posAndInfo, phaseOne);
 
-        //HANDLE WIN OR LOSS
-        winOrLossReturn = checkForWinOrLoss(map);
-        if (winOrLossReturn != null) return winOrLossReturn;
+        //GET MOVES for the next player
+        //  getMovesForNextPlayer fills validMoves array
+        phaseOne = getMovesForNextPlayer(map, validMoves, phaseOne, timed, printOn, ServerLog);
+        indexList = new ArrayList<>(validMoves.size());
 
-        //IF WE'RE A LEAF RETURN EVALUATION
+        //HANDLE WIN OR LOSS
+        if (validMoves.isEmpty()){
+            cancelNextDepth = true;
+            return returnValueForWinOrLoss(map);
+        }
+
+        //IF THE NODE IS A LEAF RETURN EVALUATION
         if (depth >= this.depth){
             heuristicForSimulation.updateMap(map);
             evaluation = heuristicForSimulation.evaluate(phaseOne,timed,ServerLog,upperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
             return evaluation;
         }
 
-        //GET MOVES for the next player
-        //  getMovesForNextPlayer fills validMoves array
-        phaseOne = getMovesForNextPlayer(map, validMoves, phaseOne, timed, printOn, ServerLog);
-        indexList = new ArrayList<>(validMoves.size());
 
-        //  check if it reached the end of the game
-        if (validMoves.isEmpty()) {
-            heuristicForSimulation.updateMap(map); //computing-intensive
-            return heuristicForSimulation.evaluate(phaseOne, timed, ServerLog, upperTimeLimit); //computing-intensive
-        }
 
         //add values to statistic
         statistic.addNodes(validMoves.size(), depth);
@@ -326,14 +324,14 @@ public class SearchTree {
         }
 
         //fill index List
-        for (int i = 0; i < validMoves.size(); i++){
-            indexList.add(i);
-        }
+        for (int i = 0; i < validMoves.size(); i++) indexList.add(i);
+
 
         //SORT MOVES
-        if (useMS) sortMove();
+        if (useMS && phaseOne) sortMove(indexList, validMoves, isMax, map); //changes index List
+        if (useKH) useKillerheuristic(indexList, validMoves);
         if (useBRS) useBRS();
-        if (useKH) useKillerheuristic();
+
 
         //Out of Time ?
         if(timed && (upperTimeLimit - System.nanoTime()<0)) {
@@ -415,27 +413,16 @@ public class SearchTree {
 
     //Helper functions for getValueForNode()
 
-    private Double checkForWinOrLoss(Map map) {
-        int enemyStoneAndOverwriteCount = 0;
+    //TODO: refine to return value according to placement
+    private Double returnValueForWinOrLoss(Map map) {
+        int myStoneCount = map.getCountOfStonesOfPlayer(myPlayerNr);
 
-        //If we have no stones and no overwrite stones -> LOSS
-        if (map.getCountOfStonesOfPlayer(myPlayerNr) == 0 && map.getOverwriteStonesForPlayer(myPlayerNr) == 0){
-            if (extendedPrint) System.out.println("getValueForNode found situation where we got eliminated");
-            return Double.NEGATIVE_INFINITY;
-        }
-
-        //If we have all stones and no enemy has an overwrite stone -> WINN
         for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
             if (playerNr == myPlayerNr) continue;
-            enemyStoneAndOverwriteCount += map.getCountOfStonesOfPlayer(playerNr);
-            enemyStoneAndOverwriteCount += map.getOverwriteStonesForPlayer(playerNr);
-        }
-        if (enemyStoneAndOverwriteCount == 0) {
-            if (extendedPrint) System.out.println("DFSVisit found situation where we WON");
-            return Double.POSITIVE_INFINITY;
+            if (myStoneCount < map.getCountOfStonesOfPlayer(playerNr)) return Double.NEGATIVE_INFINITY;
         }
 
-        return null;
+        return Double.POSITIVE_INFINITY;
     }
 
     private Map simulateMove(Map map, int[] posAndInfo, boolean phaseOne) throws TimeoutException {
@@ -514,7 +501,24 @@ public class SearchTree {
 
 
     //Move Sorting
-    private void sortMove(){
+    private void sortMove(ArrayList<Integer> indexList, ArrayList<int[]> validMoves, boolean isMax, Map map) throws TimeoutException {
+
+        if (!Map.useArrows) {
+            System.err.println("Map doesn't use Arrows so move sorting cant be used");
+            return;
+        }
+
+        indexList.sort(new Comparator<Integer>() {
+            @Override
+            public int compare(Integer i1, Integer i2) {
+                int[] positionAndInfo1 = validMoves.get(i1);
+                int[] positionAndInfo2 = validMoves.get(i2);
+                double valueM1 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo1);
+                double valueM2 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo2);
+                if (isMax) return Double.compare(valueM2, valueM1);
+                else return Double.compare(valueM1, valueM2);
+            }
+        });
 
     }
 
@@ -524,8 +528,30 @@ public class SearchTree {
     }
 
     //Killer Heurisitc
-    private void useKillerheuristic(){
+    private void useKillerheuristic(ArrayList<Integer> indexList, ArrayList<int[]> validMoves) throws TimeoutException{
 
+        for(int i = 0; i < killerArray.getLength(); i++)
+        {
+            //Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Killer Heuristic)");
+                throw new TimeoutException();
+            }
+
+            for (int j = 0; j < validMoves.size(); j++)
+            {
+                int[] positionAndInfo = validMoves.get(j);
+
+                //If We found a Move which cuts off we place it in front
+                if(Arrays.equals(killerArray.getPositionAndInfo(i), positionAndInfo))
+                {
+                    if(j < indexList.size()) {
+                        indexList.remove((Integer) j); //the cast to Integer need to be there because otherwise it would remove the element at the index j
+                        indexList.add(0, j);
+                    }
+                }
+            }
+        }
     }
 
     private boolean isMax(Map map){

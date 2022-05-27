@@ -20,7 +20,7 @@ public class Client{
 	final private boolean useAB;
 	final private boolean useMS;
 	final private boolean useBRS = false;
-	final private boolean useKH = false;
+	final private boolean useKH = true;
 
 	private boolean timed = true;
 
@@ -1057,7 +1057,7 @@ public class Client{
 			if(brsCount == 2 && useBRS)
 			{
 				int[] PhiZug = everyPossibleMove.get(PhiZugIndex);
-				everyPossibleMove = new ArrayList<int[]>();
+				everyPossibleMove = new ArrayList<>();
 				everyPossibleMove.add(PhiZug);
 
 			}
@@ -1079,7 +1079,7 @@ public class Client{
 
 		//sort moves
 		//	without arrows
-		if (useMS && !Map.useArrows) {
+		if (useMS && (!Map.useArrows || !phaseOne)) {
 			for (int[] positionAndInfo : everyPossibleMove) {
 				//Out of Time ?
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
@@ -1129,7 +1129,7 @@ public class Client{
 			});
 		}
 		//	with arrows
-		if (useMS && Map.useArrows){
+		if (useMS && Map.useArrows && phaseOne){
 			//don't know why but this is needed so we can access it inside the Comparator
 			ArrayList<int[]> finalEveryPossibleMove = everyPossibleMove;
 
