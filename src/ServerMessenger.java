@@ -189,9 +189,9 @@ public class ServerMessenger {
             case 1:
                 message = new byte[6];
                 messageBuffer = ByteBuffer.allocate(6);
-                messageBuffer.put((byte)1); //nachrichtentyp
+                messageBuffer.put((byte)1); //MessageType
                 messageBuffer.putInt(1); //length of message
-                //gruppennummer
+                //GroupNumber
                 if (groupNumberAddition == -1) messageBuffer.put((byte) 5 );
                 else messageBuffer.put((byte)(50+groupNumberAddition));
 
@@ -200,7 +200,7 @@ public class ServerMessenger {
             case 5:
                 message = new byte[10];
                 messageBuffer = ByteBuffer.allocate(10);
-                messageBuffer.put((byte)5); //nachrichtentyp
+                messageBuffer.put((byte)5); //MessageType
                 messageBuffer.putInt(5); //length of message
                 messageBuffer.putShort(Short.parseShort(Integer.toString(arguments[0]))); //x
                 messageBuffer.putShort(Short.parseShort(Integer.toString(arguments[1]))); //y

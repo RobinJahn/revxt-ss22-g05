@@ -142,7 +142,7 @@ public class Heuristic {
 
     public static double fastEvaluate(Map map, int myPlayerNr){
 
-        int myStoneCout = map.getCountOfStonesOfPlayer(myPlayerNr);
+        int myStoneCount = map.getCountOfStonesOfPlayer(myPlayerNr);
         int enemyStoneCount = 0;
         double result;
 
@@ -151,7 +151,7 @@ public class Heuristic {
             enemyStoneCount += map.getCountOfStonesOfPlayer(playerNr);
         }
 
-        result = (double)myStoneCout / ((double)enemyStoneCount/ (map.getAnzPlayers() - 1));
+        result = (double)myStoneCount / ((double)enemyStoneCount/ (map.getAnzPlayers() - 1));
         return result;
     }
 
@@ -212,7 +212,7 @@ public class Heuristic {
      * calculates and sets static information about the map.
      * initializes the matrix of values for the map
      *
-     * Current heuristik implementations:
+     * Current heuristic implementations:
      *      check for backed up outgoings
      *
      * Information that are currently saved:
@@ -271,7 +271,7 @@ public class Heuristic {
     private double countMoves(boolean timed,boolean ServerLog, long UpperTimeLimit)throws TimeoutException {
         //Variables
         int myPossibleMoves = 0;
-        int possibleMovesOfEnemys = 0;
+        int possibleMovesOfEnemies = 0;
         double enemyMovesAverage;
         double countOfMovesEvaluation;
 
@@ -284,13 +284,13 @@ public class Heuristic {
             if (myColorI == map.getCurrentlyPlayingI()) {
                 myPossibleMoves = Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size();
             } else {
-                possibleMovesOfEnemys += Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size();
+                possibleMovesOfEnemies += Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size();
             }
             map.nextPlayer();
         } //resets to currently playing
 
         //get percentages out of it
-        enemyMovesAverage = (double)possibleMovesOfEnemys/((double)map.getAnzPlayers()-1);
+        enemyMovesAverage = (double)possibleMovesOfEnemies/((double)map.getAnzPlayers()-1);
 
         //set possible moves percentage
         countOfMovesEvaluation = (myPossibleMoves - enemyMovesAverage);
@@ -327,7 +327,7 @@ public class Heuristic {
 
     private double countStonesBombPhase() {
         //Variables
-        int ownstonecount = map.getStonesOfPlayer(myColorI).size();
+        int ownStoneCount = map.getStonesOfPlayer(myColorI).size();
 
         int nearestEnemiesLower = 0;
         int nearestEnemiesUpper = 2500;
@@ -348,16 +348,16 @@ public class Heuristic {
 
             if(myColorI!= playerNr && !map.getDisqualifiedPlayer(playerNr))
             {
-                int countofenemy = map.getStonesOfPlayer(playerNr).size();
-                if(countofenemy >= ownstonecount && countofenemy < nearestEnemiesUpper)
+                int countOfEnemy = map.getStonesOfPlayer(playerNr).size();
+                if(countOfEnemy >= ownStoneCount && countOfEnemy < nearestEnemiesUpper)
                 {
-                    nearestEnemiesUpper = countofenemy;
+                    nearestEnemiesUpper = countOfEnemy;
                 }
-                else if(countofenemy<= ownstonecount && countofenemy > nearestEnemiesLower)
+                else if(countOfEnemy<= ownStoneCount && countOfEnemy > nearestEnemiesLower)
                 {
-                    nearestEnemiesLower = countofenemy;
+                    nearestEnemiesLower = countOfEnemy;
                 }
-                if(countofenemy< ownstonecount)
+                if(countOfEnemy< ownStoneCount)
                 {
                     enemiesWithLessStones++;
                 }
@@ -368,19 +368,19 @@ public class Heuristic {
         //We have the most stones => target the person with the second most stones
         if(nearestEnemiesUpper == 2500)
         {
-            erg = 2500+(ownstonecount - nearestEnemiesLower) +enemiesWithLessStones * 10000;
+            erg = 2500+(ownStoneCount - nearestEnemiesLower) +enemiesWithLessStones * 10000;
         }
         //We have the lowest amount of stones => target the second to last player
         else if( nearestEnemiesLower == 0 )
         {
-            erg = ownstonecount - nearestEnemiesUpper + enemiesWithLessStones * 10000;
+            erg = ownStoneCount - nearestEnemiesUpper + enemiesWithLessStones * 10000;
         }
         //We have more or equal bombs than all the other players combined => Aggressive Bombing for better Position
         //=> Minimize Distance
         // IF we can overtake someone we will do so
         else if(ownBombCount>=enemyBombCount)
         {
-            erg = -3*(nearestEnemiesUpper - ownstonecount) + enemiesWithLessStones * 10000;
+            erg = -3*(nearestEnemiesUpper - ownStoneCount) + enemiesWithLessStones * 10000;
         }
         //We are somewhere between => minimize distance to Upper and Maximize Distance to Lower
         // Here we could add Parameters if we want to encourage a behavior
@@ -388,7 +388,7 @@ public class Heuristic {
         // IF we can overtake someone we will do so
         else
         {
-            erg = -(nearestEnemiesUpper - ownstonecount) + 3*(ownstonecount - nearestEnemiesLower) + enemiesWithLessStones * 10000;
+            erg = -(nearestEnemiesUpper - ownStoneCount) + 3*(ownStoneCount - nearestEnemiesLower) + enemiesWithLessStones * 10000;
         }
         if(printOn) System.out.println("ERG: " + erg);
 
@@ -562,7 +562,7 @@ public class Heuristic {
     /**
      * creates the waves around one position
      * @param waveMatrix the matrix to create the waves in
-     * @param pos the position around wich the waves are created
+     * @param pos the position around which the waves are created
      */
     private void createWave(int[][] waveMatrix, Position pos, int maxWaveCount, int divisor){
         int x1, x2, y1, y2;

@@ -26,7 +26,7 @@ public class Map{
     private final ArrayList<HashSet<Position>> stonesPerPlayer;
     private final HashSet<Position> expansionFields;
 
-    //Valid Moves Varables
+    //Valid Moves Variables
     private ArrayList<HashMap<Position, Integer>> ValidMoves = null;
     private ArrayList<HashMap<Position, Integer>> OverwriteMoves = null;
 
@@ -47,7 +47,7 @@ public class Map{
             map[i] = staticMap.map[i].clone();
         }
 
-        //General Map info + disualified Players
+        //General Map info + disqualified Players
         overwriteStonesPerPlayer = new int[staticMap.anzPlayers];
         bombsPerPlayer = new int[staticMap.anzPlayers];
         disqualifiedPlayers = new boolean[staticMap.anzPlayers];
@@ -116,7 +116,7 @@ public class Map{
         //  only needed in phase one because in phase two the arrows aren't needed
         if (phaseOne && useArrows) {
 
-            //Valid Moves Varables
+            //Valid Moves Variables
             ValidMoves = new ArrayList<>(staticMap.anzPlayers);
             OverwriteMoves = new ArrayList<>(staticMap.anzPlayers);
             //initValidMoveArrays();
@@ -148,7 +148,7 @@ public class Map{
         }
     }
     
-    // TO STRING METHODES
+    // TO STRING METHODS
 
     /**
      * Returns Infos, Map and Transitions in a formatted String
@@ -499,7 +499,7 @@ public class Map{
                         }
                     }
                 }
-                accuracy = 1; //could be changed to accuracy-- if it should have more proceduaral steps
+                accuracy = 1; //could be changed to accuracy-- if it should have more procedural steps
             }
         }
 
@@ -725,7 +725,7 @@ public class Map{
     }
 
 
-    //  METHODES FOR MOVE CARRY ALONG
+    //  METHODS FOR MOVE CARRY ALONG
 
     private void firstCreation(int x, int y, int newPlayer){
         for (int r = 0; r <= 7; r++){
@@ -792,16 +792,16 @@ public class Map{
                 }
             }
 
-            //delete overwrite moves created by this arrow - index 0 and 1 don't create an overwrite move - index = size-1 sometimes
+            //delete overwrite moves created by this arrow - index 0 and 1 don't create an OverWrite move - index = size-1 sometimes
             if (counter >= 2){
                 currPos = new Position(posAndR[0],posAndR[1]);
-                //checks if the position the arrow points to is one of the players stones -> if so delete overwrite move
+                //checks if the Position, the arrow points to is one of the players stones -> if so delete overwrite move
                 if (counter == oldArrow.positionsWithDirection.size()-1){
                     // if the position isn't the one we colored in this call get the player from the map
                     if (from != counter) {
                         newPlayerOnField = map[currPos.y][currPos.x]-'0';
                     }
-                    //if the arrow points to a position where we are delete the position
+                    //if the arrow points to a position where we are, delete the position
                     if (newPlayerOnField == arrowOfPlayer){
                         removeOverwritePosition(arrowOfPlayer, currPos);
                     }
@@ -873,7 +873,7 @@ public class Map{
         //check further
         //  get last position
         if (currArrow.positionsWithDirection.size()-1 >= 0) {
-            //  create Arrow from last position on foreward
+            //  create Arrow from last position on forward
             createArrowFrom(currArrow, arrowOfPlayer);
         }
         else {
@@ -911,7 +911,7 @@ public class Map{
         char currChar;
         boolean firstStep = true;
 
-        //check if it continiues the arrow
+        //check if it continues the arrow
         if (arrow.positionsWithDirection.size() >= 2){
             firstStep = false;
         }
@@ -929,7 +929,7 @@ public class Map{
             }
             newR = nextR;
 
-            //check for cykles
+            //check for cycles
             if(currPos.equals(StartingPos)) { //
                 //let arrow end one field ahead of the start - and because position one before was already added return
                 return;
@@ -959,7 +959,7 @@ public class Map{
             //if it's another player or 'x'
             arrow.positionsWithDirection.add(new int[]{currPos.x, currPos.y, newR});
 
-            //if it's not the first step an overwrite move can be made
+            //if it's not the first step an OverWrite move can be made
             if (!firstStep) {
                 addOverwritePosition(arrowOfPlayer, currPos.clone());
             }
@@ -994,7 +994,7 @@ public class Map{
     private void addOverwritePosition(int arrowOfPlayer, Position currPos) {
         Integer arrowsPointingToPos;
         //add position to overwrite moves
-        //  increase count of arrows poining to this direction
+        //  increase count of arrows pointing to this direction
         arrowsPointingToPos = OverwriteMoves.get(arrowOfPlayer - 1).get(currPos);
         if (arrowsPointingToPos != null) {
             arrowsPointingToPos++;
@@ -1030,8 +1030,8 @@ public class Map{
 
     private void removeOverwritePosition(int arrowOfPlayer, Position currPos) {
         Integer arrowsPointingToPos;
-        //delete ovwerwrite move
-        //  get number of arrows that poit to this position
+        //delete overwrite move
+        //  get number of arrows that point to this position
         arrowsPointingToPos = OverwriteMoves.get(arrowOfPlayer -1).get(currPos);
 
         if (arrowsPointingToPos != null) {
@@ -1045,7 +1045,7 @@ public class Map{
         }
     }
 
-    //      Checking Methodes for Move Carry Along
+    //      Checking Methods for Move Carry Along
 
     private ArrayList<Arrow> getAllArrows(){
         ArrayList<Arrow> arrowsInMap = new ArrayList<>();
@@ -1096,14 +1096,14 @@ public class Map{
     }
 
     private boolean checkValidMoves(){
-        ArrayList<Arrow> validArows = getAllValidArrows();
+        ArrayList<Arrow> validArrows = getAllValidArrows();
 
         int[] posAndR;
         boolean correct = true;
         boolean isOneOfThem;
         int arrowOfPlayer;
 
-        for (Arrow arrow : validArows){
+        for (Arrow arrow : validArrows){
             //get player
             posAndR = arrow.positionsWithDirection.get(0);
             arrowOfPlayer = map[posAndR[1]][posAndR[0]]-'0';
@@ -1163,7 +1163,7 @@ public class Map{
         return true;
     }
 
-    //  INIT METHODES
+    //  INIT METHODS
 
     private void initValidMoveArrays(){
         for (int playerNr = 0; playerNr < staticMap.anzPlayers; playerNr++) {
@@ -1330,7 +1330,7 @@ public class Map{
     /**
      * colors the map when the keystone is placed in the specified position
      * @param pos position where the keystone is placed
-     * @param map the map on wich it is placed
+     * @param map the map on which it is placed
      */
     public static void colorMap(Position pos, Map map){
         Position StartingPos;
@@ -1593,7 +1593,7 @@ public class Map{
         if (charAtPos != '0' && Character.isDigit(charAtPos)) overwriteMove = true;
 
         if (!overwriteMove) myStoneCount++; //when it's no overwrite move the position gets colored
-        if (overwriteMove && charAtPos != playerNr+'0') myStoneCount++; //if it's an overwrite move and we overwrite an enemys stone
+        if (overwriteMove && charAtPos != playerNr+'0') myStoneCount++; //if it's an OverWrite move, and we overwrite an enemies stone
 
         if (useArrows){
             arrows = map.AffectedArrows[posToMoveTo[1]][posToMoveTo[0]][playerNr-1];
@@ -1602,7 +1602,7 @@ public class Map{
                 if (arrow == null) continue;
 
                 if (overwriteMove){
-                    //get index at wich position in the arrow the position we set to is
+                    //get index at which position in the arrow the position we set to is
                     for (i = arrow.positionsWithDirection.size()-1; i > 0; i--){
                         posAndR = arrow.positionsWithDirection.get(i);
                         if (posToMoveTo[0] == posAndR[0] && posToMoveTo[1] == posAndR[1]) break;
@@ -1611,7 +1611,7 @@ public class Map{
                     myStoneCount += i - 1; //-1 because of the start position, -1 because we don't color the position we set to and +1 because it's an index
                 }
                 else if (arrow.createsValidMove){
-                    myStoneCount += arrow.positionsWithDirection.size()-2; //-2 because the end position was already counted and the start position woun't be counted
+                    myStoneCount += arrow.positionsWithDirection.size()-2; //-2 because the end position was already counted and the start position wouldn't be counted
                 }
             }
         }

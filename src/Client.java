@@ -90,7 +90,7 @@ public class Client{
 						break;
 					}
 					catch (NumberFormatException nfe){
-						System.err.println("Number for group number addition couln't be parsed");
+						System.err.println("Number for group number addition couldn't be parsed");
 						nfe.printStackTrace();
 						printHelp();
 						return;
@@ -279,7 +279,7 @@ public class Client{
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
 
 
-					//Ausgabe fuer den Vergleich mit dem Server
+					//Print for Server Comparison
 					map.setPlayer(moveOfPlayer);
 					if (compare_to_Server) {
 						map_For_Comparison = StringForServerCompare(map_For_Comparison);
@@ -535,7 +535,7 @@ public class Client{
 						break;
 					}
 					case 'c': {
-						if (printOn) System.out.println("Mit wem wollen sie die Farbe tauschen ?");
+						if (printOn) System.out.println("With whom do you want to swap colors ?");
 						additionalInfo = sc.nextInt();
 						//check
 						if (additionalInfo >= 1 && additionalInfo <= map.getAnzPlayers()) moveIsPossible = true;
@@ -608,7 +608,7 @@ public class Client{
 			try{
 			 valueOfMap = (double) Math.round(heuristic.evaluate(phaseOne,timed,ServerLog, Long.MAX_VALUE) * 100) / 100;}
 			catch (TimeoutException Te){
-				System.out.println("Timeoutexception in setABomb");
+				System.out.println("TimeoutException in setABomb");
 				return;
 			}
 			System.out.println("Value of Map is " + valueOfMap);
@@ -780,7 +780,7 @@ public class Client{
 		int[] validPosition;
 		//Timing
 		long startTime = System.nanoTime();
-		long timeOffset = 80_000_000; //ns -> xx ms
+		long timeOffset = 500_000_000; //ns -> xx ms
 		long timeNextDepth = 0;
 		long upperTimeLimit = startTime + (long)time * 1_000_000 - timeOffset;
 		double leavesNextDepth;
@@ -851,14 +851,14 @@ public class Client{
 
 				//prints after one depth
 				if (printOn) {
-					//print recommendet move
+					//print recommended move
 					if (phaseOne) System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + "," + validPosition[2] + ")");
 					else System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + ")");
 
-					//print statisic
+					//print statistic
 					System.out.println(statistic);
 
-					//print timing informations
+					//print timing information
 					System.out.println("Expected time needed for next depth: " + (double)timeNextDepth/ 1_000_000 + "ms");
 					System.out.println("Time Remaining: " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
 					System.out.println("Expected remaining time after calculating next depth: " + (double)(upperTimeLimit - System.nanoTime() - timeNextDepth)/ 1_000_000 + "ms");
@@ -936,7 +936,7 @@ public class Client{
 			return Double.NEGATIVE_INFINITY;
 		}
 
-		//If we have all stones and no enemy has an overwrite stone -> WINN
+		//If we have all stones and no enemy has an OverwriteStone -> WINN
 		for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
 			if (playerNr == myPlayerNr) continue;
 			enemyStoneAndOverwriteCount += map.getCountOfStonesOfPlayer(playerNr);
@@ -987,7 +987,7 @@ public class Client{
 
 			//if there are no possible moves
 
-			//chek if the next player can make a move
+			//check if the next player can make a move
 			map.nextPlayer();
 			skippedPlayers++;
 
@@ -1044,14 +1044,14 @@ public class Client{
 		if (map.getCurrentlyPlayingI() == myPlayerNr) {
 			isMax = true;
 			currBestValue = Double.NEGATIVE_INFINITY;
-			//BRS+Algorithmus
+			//BRS+Algorithm
 			brsCount = 0;
 		}
 		//	Minimizer
 		else {
 			isMax = false;
 			currBestValue = Double.POSITIVE_INFINITY;
-			//PhiZugIndex Random Choice Hier merken wir uns den Index unseres PhiZuges
+			//PhiZugIndex Random Choice Here we save the Index of our PhiMove
 			PhiZugIndex = (int)(Math.random()*(everyPossibleMove.size()-1));
 
 			if(brsCount == 2 && useBRS)
@@ -1114,7 +1114,7 @@ public class Client{
 					/*
 					if(i1>= mapList.size()|| i2>= mapList.size())
 					{
-						System.err.printf("IndexListsize: " + indexList.size() + "\nMapListsize: " + mapList.size());
+						System.err.printf("IndexListSize: " + indexList.size() + "\nMapListSize: " + mapList.size());
 						System.err.println("\nI1: " + i1 +" \nI2" + i2);
 						return 0;
 					}
@@ -1130,7 +1130,7 @@ public class Client{
 		}
 		//	with arrows
 		if (useMS && Map.useArrows){
-			//don't know why but this is needed so we can access it inside the Coparator
+			//don't know why but this is needed so we can access it inside the Comparator
 			ArrayList<int[]> finalEveryPossibleMove = everyPossibleMove;
 
 			indexList.sort(new Comparator<Integer>() {
@@ -1154,6 +1154,7 @@ public class Client{
 
 		//Resort Array to include Killer Heuristic
 		if(useKH){
+
 			ArrayList<Integer> newIndexList = new ArrayList<Integer>(indexList.size());
 			for(int i = 0;i< KillerArray.getLength();i++)
 			{
@@ -1170,7 +1171,7 @@ public class Client{
 					//If We found a Move which cuts off we place it in front
 					if(Arrays.equals(KillerArray.getPositionAndInfo(i), positionAndInfo))
 					{
-						//@Todo Refine This
+						//@Todo Refine This(Indexverschiebung instead of copy)
 						if(j < indexList.size()) {
 							newIndexList.add(indexList.get(j));
 							indexList.remove(j);
@@ -1226,7 +1227,7 @@ public class Client{
 
 			//Call DFS to start building part-tree of children
 			if (depth > 1) {
-				//BrsCount hier ?
+				//BrsCount here
 				if (PhiZugIndex != i && PhiZugIndex != -1)
 				{
 					brsCount++;
@@ -1290,18 +1291,20 @@ public class Client{
 					}
 
 
-					//Cuttoff ?
+					//Cutoff ?
 					if (currBestValue >= currBeta) {
-						int countOfCutoffLeaves = everyPossibleMove.size() - everyPossibleMove.indexOf(positionAndInfo);
+						int countOfCutoffSiblings = everyPossibleMove.size() - everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
-						statistic.reduceNodes(countOfCutoffLeaves, depth);
+
+						//Rename into Siblings
+						statistic.reduceNodes(countOfCutoffSiblings, depth);
 						//Killer Heuristic
 						if(useKH) {
-							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffLeaves);
+							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffSiblings);
 						}
 						//Print before return
 						if (extendedPrint) {
-							System.out.println("Cutoff: Current highest value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
+							System.out.println("Cutoff: Current highest value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffSiblings + " values skipped");
 						}
 						return new double[]{currBestValue, indexOfBest};
 					}
@@ -1314,7 +1317,7 @@ public class Client{
 						if (extendedPrint) System.out.println("Beta Updated: " + currBeta);
 					}
 
-					//Cuttoff ?
+					//Cutoff ?
 					if (currBestValue <= currAlpha) {
 						int countOfCutoffLeaves = everyPossibleMove.size()- everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
