@@ -1,7 +1,6 @@
 package src;
 
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 
 public class Map{
 
@@ -434,11 +433,11 @@ public class Map{
         return result;
     }
 
-    public ArrayList<int[]> getValidMoves(boolean phaseOne){
-        return getValidMoves(currentlyPlaying, phaseOne);
+    public ArrayList<int[]> getValidMovesByArrows(boolean phaseOne){
+        return getValidMovesByArrows(currentlyPlaying, phaseOne);
     }
 
-    public ArrayList<int[]> getValidMoves(int playerId, boolean phaseOne){
+    private ArrayList<int[]> getValidMovesByArrows(int playerId, boolean phaseOne){
         ArrayList<int[]> resultList = new ArrayList<>();
         char currChar;
 
@@ -1408,7 +1407,7 @@ public class Map{
         ArrayList<int[]> everyPossibleMove;
 
         if (useArrows){
-            everyPossibleMove = map.getValidMoves(map.getCurrentlyPlayingI(), true);
+            everyPossibleMove = map.getValidMovesByArrows(map.getCurrentlyPlayingI(), true);
         }
         else {
             everyPossibleMove = getFieldsByOwnColor(map, timed, printOn, serverLog, upperTimeLimit);

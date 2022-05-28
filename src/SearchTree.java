@@ -22,7 +22,7 @@ public class SearchTree {
     //change
     private  boolean timed;
     private int depth;
-    private double approximation;
+    private double approximation = 1;
     int moveCounter;
     boolean cancelNextDepth = false;
     long upperTimeLimit;
@@ -69,7 +69,7 @@ public class SearchTree {
         }
 
         if(ServerLog) {
-            System.out.println("Search tree: For Move: " + moveCounter + ", Depth: " + depth + ", Move: " + Arrays.toString(moveToMake));
+            System.out.println("Search tree: For Move: " + moveCounter + ", Depth: " + this.depth + ", Move: " + Arrays.toString(moveToMake));
         }
 
         return moveToMake;
@@ -84,6 +84,17 @@ public class SearchTree {
         int indexOfBest = 0;
         double[] alphaAndBeta = new double[]{Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY};
         boolean cuttof;
+        int depth = 0;
+
+        //for brs+ wich we don't use here - yes
+        Map nextMap;
+        ArrayList<int[]> validMovesForNext;
+        boolean phaseOneAfterNextMove;
+        int brsCount = 0;
+
+        //For Statistics
+        long startTime = System.nanoTime(); //start timing
+        long totalTime;
 
         //fill index List
         for (int i = 0; i < validMoves.size(); i++){
@@ -91,9 +102,14 @@ public class SearchTree {
         }
 
         //sort index list
-        if (useMS && phaseOne) sortMove(indexList, validMoves, true, map);
-        if (useBRS) useBRS();
+        if (useMS) sortMove(indexList, validMoves, true, map, phaseOne);
         if (useKH) useKillerheuristic(indexList, validMoves);
+
+        // Out of Time ?
+        if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+            if (printOn || ServerLog) System.out.println("Out of time - in getMoveByDepth after move sorting");
+            throw new TimeoutException();
+        }
 
         //prints
         if (printOn) {
@@ -109,24 +125,73 @@ public class SearchTree {
                 else System.out.println((i+1) + ", ");
             }
 
-
             //get values and reset values
             currIndex = indexList.get(i);
             posAndInfo = validMoves.get(currIndex);
             evaluation = Double.NEGATIVE_INFINITY;
 
-            //get evaluation
-            try {
-                evaluation = getValueForNode(map, posAndInfo, phaseOne, 1, statistic, alphaAndBeta.clone());
+            // Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                if (printOn || ServerLog) System.out.println("Out of time - in getMoveByDepth at beginnin of for");
+                throw new TimeoutException();
             }
-            catch (TimeoutException e) {
-                e.printStackTrace();
+
+
+            //SIMULATE MOVE and get the moves for the next layer
+
+            //simulate move
+            nextMap = simulateMove(map, posAndInfo, phaseOne);
+
+            // Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                if (printOn || ServerLog) System.out.println("Out of time - in getMoveByDepth after nextMap got build");
+                throw new TimeoutException();
+            }
+
+            //get moves for the next player
+            //  getMovesForNextPlayer fills validMoves array
+            validMovesForNext = new ArrayList<>();
+            //  get next phase
+            phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, ServerLog);
+
+            //  add values to statistic
+            statistic.addNodes(validMoves.size(), depth);
+
+            // Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                if (printOn || ServerLog) System.out.println("Out of time - in getMoveByDepth after valid Moves for next player were fetched");
+                throw new TimeoutException();
+            }
+
+            //GET EVALUATION - based on state of game, leaf node or inner node
+
+            //handle Win or Loss
+            if (validMoves.isEmpty()){
+                evaluation = returnValueForWinOrLoss(nextMap);
+            }
+            else {
+
+                //if the next node would be a leaf
+                if (depth >= this.depth - 1) {
+                    heuristicForSimulation.updateMap(nextMap);
+                    evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, ServerLog, upperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
+                }
+                else {
+                    //recursive call
+                    evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth+1, statistic, alphaAndBeta.clone(), brsCount + 1);
+                }
+            }
+
+            // Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                if (printOn || ServerLog) System.out.println("Out of time - in getMoveByDepth after evaluate was set");
+                throw new TimeoutException();
             }
 
             //print infos
             if (extendedPrint){
                 System.out.print("NodeForDepth("+ depth +"): ");
-                if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %.2f], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],evaluation);
+                if (phaseOneAfterNextMove) System.out.printf("[(%2d,%2d,%2d)= %.2f], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],evaluation);
                 else System.out.printf("[(%2d,%2d)= %.2f], ",posAndInfo[0],posAndInfo[1],evaluation);
                 System.out.println();
             }
@@ -157,12 +222,20 @@ public class SearchTree {
             System.out.println();
         }
 
+        if (currBestValue == Double.POSITIVE_INFINITY || currBestValue == Double.NEGATIVE_INFINITY){
+            cancelNextDepth = true;
+        }
+
+        //end of timing
+        totalTime = System.nanoTime() - startTime;
+        statistic.totalComputationTime += totalTime;
+
         return validMoves.get(indexOfBest);
     }
 
     private int[] getMoveByTime(Map map, boolean phaseOne, ArrayList<int[]> validMoves, long time){
         //declarations
-        Statistic statistic = new Statistic();
+        Statistic statistic;
         int[] currMove;
         int[] validPosition = validMoves.get(0);
         //Timing
@@ -189,10 +262,9 @@ public class SearchTree {
             //if it noticed we have no more time
             catch (TimeoutException te){
                 if (printOn || ServerLog) {
-                    System.out.println("For Move: " + moveCounter + ", Depth: " + depth + ", Move: " + Arrays.toString(validPosition));
                     System.out.println("Time out Exception thrown");
-                    System.out.println("Time Remaining: " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
-                    te.printStackTrace();
+                    System.out.println("Time Remaining (excludng offset): " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
+                    System.out.println(Arrays.toString(te.getStackTrace()).replace(", ","\n"));
                 }
                 return validPosition;
             }
@@ -201,8 +273,9 @@ public class SearchTree {
             validPosition = currMove;
 
             //calculate time needed for next depth
-            leavesNextDepth = statistic.leafNodes * statistic.branchFactor();
-            totalNodesToGoOver = statistic.totalNodesSeen + leavesNextDepth;
+            //leavesNextDepth = statistic.leafNodes * statistic.branchFactor();
+            //totalNodesToGoOver = statistic.totalNodesSeen + leavesNextDepth;
+            totalNodesToGoOver = statistic.totalNodesSeen * statistic.branchFactor();
 
             //time comparison prints
             if (printOn){
@@ -216,7 +289,7 @@ public class SearchTree {
                 return validPosition;
             }
 
-            //calculate time needed for the next depth
+            //calculate time needed for the next depth //TODO: refine so that only the first ever move don't get approximated
             if (timeNextDepth == 0) {
                 timeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime());
             }
@@ -247,121 +320,144 @@ public class SearchTree {
 
 
     //recursive
-    private double getValueForNode(Map map, int[] posAndInfo, boolean phaseOne, int depth, Statistic statistic, double[] alphaAndBeta) throws TimeoutException {
-        Double winOrLossReturn;
-        ArrayList<int[]> validMoves = new ArrayList<>();
+    private double getValueForNode(Map map, ArrayList<int[]> validMoves, int[] posAndInfo, boolean phaseOne, int depth, Statistic statistic, double[] alphaAndBeta, int brsCount) throws TimeoutException {
         ArrayList<Integer> indexList;
+
         int currIndex;
         double currBestValue;
         double evaluation = 0;
-        int indexOfBest = 0;
         boolean isMax;
         boolean cuttof;
 
+        Map nextMap;
+        ArrayList<int[]> validMovesForNext;
+        boolean phaseOneAfterNextMove;
+        int nextPlayer;
+        int nextBrsCount;
+        boolean isPhiMove = false;
+        boolean madePhiMove = false;
+
+        ArrayList<Map> mapList = null;
+
         //Out of Time ?
         if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-            if (printOn||ServerLog) System.out.println("Out of Time (get Value For Node - start of Method)");
+            if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode - start of Method");
             throw new TimeoutException();
         }
 
-        //FIRST PART: simulate move and get the moves for the next layer
 
-        //SIMULATE MOVE
-        map = simulateMove(map, posAndInfo, phaseOne);
+        //FIRST PART: use algorithms for move sorting, recursive call and get the best value + alpha beta pruning
 
-        //GET MOVES for the next player
-        //  getMovesForNextPlayer fills validMoves array
-        phaseOne = getMovesForNextPlayer(map, validMoves, phaseOne, timed, printOn, ServerLog);
+        //FILL INDEX LIST
         indexList = new ArrayList<>(validMoves.size());
-
-        //HANDLE WIN OR LOSS
-        if (validMoves.isEmpty()){
-            cancelNextDepth = true;
-            return returnValueForWinOrLoss(map);
-        }
-
-        //IF THE NODE IS A LEAF RETURN EVALUATION
-        if (depth >= this.depth){
-            heuristicForSimulation.updateMap(map);
-            evaluation = heuristicForSimulation.evaluate(phaseOne,timed,ServerLog,upperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
-            return evaluation;
-        }
-
-
-
-        //add values to statistic
-        statistic.addNodes(validMoves.size(), depth);
-
-
-        //SECOND PART: use algorithms for move sorting, recursive call and get the best value + alpha beta pruning
-
+        for (int i = 0; i < validMoves.size(); i++) indexList.add(i);
 
         //SET MAXIMIZER OR MINIMIZER
         isMax = isMax(map);
 
-        //  set evaluation
+        //  set currBestValue
         if (isMax) {
             currBestValue = Double.NEGATIVE_INFINITY;
-            //TODO: BRS+
-            //BRS+ Algorithm
-            //brsCount = 0;
         }
         else {
             currBestValue = Double.POSITIVE_INFINITY;
-            //TODO: BRS+
-            //BRS+ Algorithm
-            /*PhiZugIndex Random Choice Hier merken wir uns den Index unseres PhiZuges
-            PhiZugIndex = (int)(Math.random()*(everyPossibleMove.size()-1));
-
-            if(brsCount == 2 && useBRS)
-            {
-                int[] PhiZug = everyPossibleMove.get(PhiZugIndex);
-                everyPossibleMove = new ArrayList<int[]>();
-                everyPossibleMove.add(PhiZug);
-
-            }
-            */
         }
 
-        //fill index List
-        for (int i = 0; i < validMoves.size(); i++) indexList.add(i);
-
-
         //SORT MOVES
-        if (useMS && phaseOne) sortMove(indexList, validMoves, isMax, map); //changes index List
+        if (useMS) mapList = sortMove(indexList, validMoves, isMax, map, phaseOne); //changes index List
         if (useKH) useKillerheuristic(indexList, validMoves);
-        if (useBRS) useBRS();
-
+        if (useBRS) {
+            indexList = useBRS1(indexList, isMax, brsCount);
+            if (indexList.size() == 1) isPhiMove = true;
+        }
 
         //Out of Time ?
         if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-            if (printOn||ServerLog) System.out.println("Out of Time (get Value For Node - after move sorting)");
+            if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode after move sorting");
             throw new TimeoutException();
         }
 
-        //RECURSIVE CALL FOR EVERY MOVE
-        for (int i = 0; i < validMoves.size(); i++) {
 
-            //Out of Time ?
-            if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-                if (printOn||ServerLog) System.out.println("Out of Time (get Value For Node - start of for every move)");
-                throw new TimeoutException();
-            }
+        //RECURSIVE CALL FOR EVERY MOVE
+        for (int i = 0; i < indexList.size(); i++) {
 
             //set and reset variables
             currIndex = indexList.get(i);
             posAndInfo = validMoves.get(currIndex);
 
-            //recursive call
-            try {
-                evaluation = getValueForNode(map, posAndInfo, phaseOne, depth+1, statistic, alphaAndBeta.clone());
-            } catch (TimeoutException e) {
-                e.printStackTrace();
+            //Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime()<0)) {
+                if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode start of for");
+                throw new TimeoutException();
+            }
+
+            //SIMULATE MOVE and get the moves for the next layer
+            if (mapList == null){
+                //simulate move
+                nextMap = simulateMove(map, posAndInfo, phaseOne);
+
+                //Out of Time ?
+                if(timed && (upperTimeLimit - System.nanoTime()<0)) {
+                    if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode after next map got build");
+                    throw new TimeoutException();
+                }
+            }
+            else {
+                nextMap = mapList.get(currIndex);
+            }
+
+            //get moves for the next player
+            //  getMovesForNextPlayer fills validMoves array
+            validMovesForNext = new ArrayList<>();
+            //  get next phase
+            phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, ServerLog);
+            //  get next player
+            nextPlayer = nextMap.getCurrentlyPlayingI();
+
+            //  add values to statistic
+            statistic.addNodes(validMoves.size(), depth);
+
+            //Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime()<0)) {
+                if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode after moves for next player got fetched");
+                throw new TimeoutException();
+            }
+
+
+            if (useBRS) {
+                if (!madePhiMove && !isPhiMove && useBRS2(isMax, brsCount, nextPlayer)) {
+                    isPhiMove = true;
+                    madePhiMove = true;
+                }
+            }
+
+
+            //GET EVALUATION - based on state of game, leaf node or inner node
+
+            //handle Win or Loss
+            if (validMoves.isEmpty()){
+                //cancelNextDepth = true; TODO: not right, here
+                evaluation = returnValueForWinOrLoss(nextMap);
+            }
+            else {
+
+                //if the next node would be a leaf
+                if (depth >= this.depth - 1) {
+                    heuristicForSimulation.updateMap(nextMap);
+                    evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, ServerLog, upperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
+                }
+                else {
+                    if (isPhiMove) nextBrsCount = brsCount;
+                    else nextBrsCount = brsCount + 1;
+
+                    //recursive call
+                    evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth + 1, statistic, alphaAndBeta.clone(), nextBrsCount);
+                }
             }
 
             //Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-                if (printOn||ServerLog) System.out.println("Out of Time (After recursive call or evaluation of map)");
+                if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode after evaluation was set");
                 throw new TimeoutException();
             }
 
@@ -378,18 +474,16 @@ public class SearchTree {
                 //get highest value
                 if (evaluation > currBestValue) {
                     currBestValue = evaluation;
-                    indexOfBest = currIndex;
                 }
             }
             else {
                 //get lowest value
                 if (evaluation < currBestValue) {
                     currBestValue = evaluation;
-                    indexOfBest = currIndex;
                 }
             }
 
-            cuttof = useAlphaBetaPruning(alphaAndBeta, isMax, currBestValue, statistic, validMoves, i);
+            cuttof = useAlphaBetaPruning(alphaAndBeta, isMax, currBestValue, statistic, validMoves, i); //parameter i here because it needs to calculate how many branches were cut
 
             if (cuttof) {
                 //Killer Heuristic
@@ -398,6 +492,8 @@ public class SearchTree {
                 }
                 break;
             }
+
+            if (useBRS) isPhiMove = false;
         }
 
         //prints
@@ -412,6 +508,17 @@ public class SearchTree {
 
 
     //Helper functions for getValueForNode()
+
+    private boolean isMax(Map map){
+        //	Maximizer
+        if (map.getCurrentlyPlayingI() == myPlayerNr) {
+            return true;
+        }
+        //	Minimizer
+        else {
+            return false;
+        }
+    }
 
     //TODO: refine to return value according to placement
     private Double returnValueForWinOrLoss(Map map) {
@@ -448,7 +555,7 @@ public class SearchTree {
         return nextMap;
     }
 
-    private boolean getMovesForNextPlayer(Map map, ArrayList<int[]> movesToReturn, boolean phaseOne,boolean timed,boolean printOn,boolean ServerLog) throws TimeoutException{
+    private boolean getMovesForNextPlayer(Map map, ArrayList<int[]> movesToReturn, boolean phaseOne,boolean timed,boolean printOn,boolean ServerLog){
         ArrayList<int[]> everyPossibleMove;
         int skippedPlayers = 0;
 
@@ -461,7 +568,7 @@ public class SearchTree {
             else { //bomb phase
                 //if we have bombs
                 if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) > 0) everyPossibleMove = Client.getPositionsToSetABomb(map);
-                    //if not
+                //if not
                 else everyPossibleMove = new ArrayList<>(); //empty list
             }
 
@@ -500,71 +607,7 @@ public class SearchTree {
     }
 
 
-    //Move Sorting
-    private void sortMove(ArrayList<Integer> indexList, ArrayList<int[]> validMoves, boolean isMax, Map map) throws TimeoutException {
-
-        if (!Map.useArrows) {
-            System.err.println("Map doesn't use Arrows so move sorting cant be used");
-            return;
-        }
-
-        indexList.sort(new Comparator<Integer>() {
-            @Override
-            public int compare(Integer i1, Integer i2) {
-                int[] positionAndInfo1 = validMoves.get(i1);
-                int[] positionAndInfo2 = validMoves.get(i2);
-                double valueM1 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo1);
-                double valueM2 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo2);
-                if (isMax) return Double.compare(valueM2, valueM1);
-                else return Double.compare(valueM1, valueM2);
-            }
-        });
-
-    }
-
-    //BRS+
-    private void useBRS(){
-
-    }
-
-    //Killer Heurisitc
-    private void useKillerheuristic(ArrayList<Integer> indexList, ArrayList<int[]> validMoves) throws TimeoutException{
-
-        for(int i = 0; i < killerArray.getLength(); i++)
-        {
-            //Out of Time ?
-            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-                if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Killer Heuristic)");
-                throw new TimeoutException();
-            }
-
-            for (int j = 0; j < validMoves.size(); j++)
-            {
-                int[] positionAndInfo = validMoves.get(j);
-
-                //If We found a Move which cuts off we place it in front
-                if(Arrays.equals(killerArray.getPositionAndInfo(i), positionAndInfo))
-                {
-                    if(j < indexList.size()) {
-                        indexList.remove((Integer) j); //the cast to Integer need to be there because otherwise it would remove the element at the index j
-                        indexList.add(0, j);
-                    }
-                }
-            }
-        }
-    }
-
-    private boolean isMax(Map map){
-        //	Maximizer
-        if (map.getCurrentlyPlayingI() == myPlayerNr) {
-            return true;
-        }
-        //	Minimizer
-        else {
-            return false;
-        }
-    }
-
+    //Alpha Beta Pruning
     private boolean useAlphaBetaPruning(double[] alphaAndBeta, boolean isMax, double currBestValue, Statistic statistic, ArrayList<int[]> validMoves, int currentIndex){
         double currAlpha = alphaAndBeta[0];
         double currBeta = alphaAndBeta[1];
@@ -619,6 +662,127 @@ public class SearchTree {
 
         return cuttof;
     }
+
+    //Move Sorting
+    private ArrayList<Map> sortMove(ArrayList<Integer> indexList, ArrayList<int[]> validMoves, boolean isMax, Map map, boolean phaseOne) throws TimeoutException {
+        ArrayList<Map> mapList = new ArrayList<>();
+        Map nextMap;
+
+        if (Map.useArrows && phaseOne) {
+            indexList.sort(new Comparator<Integer>() {
+                @Override
+                public int compare(Integer i1, Integer i2) {
+                    int[] positionAndInfo1 = validMoves.get(i1);
+                    int[] positionAndInfo2 = validMoves.get(i2);
+                    double valueM1 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo1);
+                    double valueM2 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo2);
+                    if (isMax) return Double.compare(valueM2, valueM1);
+                    else return Double.compare(valueM1, valueM2);
+                }
+            });
+            return null;
+        }
+        else {
+            //go over every move
+            for (int[] positionAndInfo : validMoves) {
+                //Out of Time ?
+                if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                    if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - start of for)");
+                    throw new TimeoutException();
+                }
+
+                //clones Map
+                nextMap = new Map(map, phaseOne);
+
+                //Out of Time ?
+                if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                    if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after clone)");
+                    throw new TimeoutException();
+                }
+
+                //if it's the first phase
+                if (phaseOne) {
+                    Map.updateMapWithMove(new Position(positionAndInfo[0], positionAndInfo[1]), positionAndInfo[2], nextMap.getCurrentlyPlayingI(), nextMap, false);
+                }
+                //if it's the bomb phase
+                else {
+                    Map.updateMapAfterBombingBFS(positionAndInfo[0], positionAndInfo[1], nextMap.getCurrentlyPlayingI(), nextMap);
+                }
+
+                mapList.add(nextMap);
+            }
+
+            indexList.sort(new Comparator<Integer>() {
+                @Override
+                public int compare(Integer i1, Integer i2) {
+					/*
+					if(i1>= mapList.size()|| i2>= mapList.size())
+					{
+						System.err.printf("IndexListSize: " + indexList.size() + "\nMapListSize: " + mapList.size());
+						System.err.println("\nI1: " + i1 +" \nI2" + i2);
+						return 0;
+					}
+					*/
+                    Map m1 = mapList.get(i1);
+                    Map m2 = mapList.get(i2);
+                    double valueM1 = Heuristic.fastEvaluate(m1, myPlayerNr);
+                    double valueM2 = Heuristic.fastEvaluate(m2, myPlayerNr);
+                    if (isMax) return Double.compare(valueM2, valueM1);
+                    else return Double.compare(valueM1, valueM2);
+                }
+            });
+
+            return mapList;
+        }
+    }
+
+    //BRS+
+    private ArrayList<Integer> useBRS1(ArrayList<Integer> indexList, boolean isMax, int brsCount){
+        ArrayList<Integer> newIndexList = indexList;
+        if (!isMax && brsCount == 2){
+            newIndexList = new ArrayList<>();
+            newIndexList.add( indexList.get(0) ); //TODO: here we can select what kond of move the phi move should be
+        }
+        return newIndexList;
+    }
+
+    private boolean useBRS2(boolean isMax, int brsCount, int nextPlayer){
+        //TODO: either this could make the first move to a phi move or it could save all / keep the best or worst the possible phi moves and then add one of them to the end of the index list
+        if (!isMax && nextPlayer != myPlayerNr){
+            return true;
+        }
+        //if is Max it's oure move
+        //if nextPlayer == myPlayerNr we're next
+        return false;
+    }
+
+    //Killer Heurisitc
+    private void useKillerheuristic(ArrayList<Integer> indexList, ArrayList<int[]> validMoves) throws TimeoutException{
+
+        for(int i = 0; i < killerArray.getLength(); i++)
+        {
+            //Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Killer Heuristic)");
+                throw new TimeoutException();
+            }
+
+            for (int j = 0; j < validMoves.size(); j++)
+            {
+                int[] positionAndInfo = validMoves.get(j);
+
+                //If We found a Move which cuts off we place it in front
+                if(Arrays.equals(killerArray.getPositionAndInfo(i), positionAndInfo))
+                {
+                    if(j < indexList.size()) {
+                        indexList.remove((Integer) j); //the cast to Integer need to be there because otherwise it would remove the element at the index j
+                        indexList.add(0, j);
+                    }
+                }
+            }
+        }
+    }
+
 
 
 }

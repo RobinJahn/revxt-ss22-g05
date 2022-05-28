@@ -408,7 +408,7 @@ public class Client{
 			if (!compareValidMoves(phaseOne, validMovesByOwnColor)) {
 				System.out.println(map.toString(validMovesByOwnColor, false, useColors));
 				System.out.println("With move carry along");
-				System.out.println(map.toString(map.getValidMoves(phaseOne), false, useColors));
+				System.out.println(map.toString(map.getValidMovesByArrows(phaseOne), false, useColors));
 				return;
 			}
 			else {
@@ -434,19 +434,8 @@ public class Client{
 
 		//make a calculated move
 		if (calculateMove) {
-			validPosition1 = searchTree.getMove(map, timed, depth, phaseOne, validMoves, time, moveCounter);
-
-			if (printOn) {
-				System.out.println("Move from Search tree: " + Arrays.toString(validPosition1));
-			}
-
-			validPosition = getMoveTimeDepth(phaseOne, validMoves);
-
-			if (validPosition1[0] != validPosition[0] || validPosition1[1] != validPosition[1] || validPosition1[2] != validPosition[2]) {
-				System.err.println("Move from Search tree and client do not match");
-				return;
-			}
-
+			validPosition = searchTree.getMove(map, timed, depth, phaseOne, validMoves, time, moveCounter);
+			//validPosition = getMoveTimeDepth(phaseOne, validMoves);
 			//validPosition = validMoves.get( random.nextInt(validMoves.size()) );
 		}
 		//let player enter a move
@@ -587,7 +576,7 @@ public class Client{
 			if (!compareValidMoves(phaseOne, validMoves)) {
 				System.out.println(map.toString(validMoves, false, useColors));
 				System.out.println("With move carry along");
-				System.out.println(map.toString(map.getValidMoves(phaseOne), false, useColors));
+				System.out.println(map.toString(map.getValidMovesByArrows(phaseOne), false, useColors));
 				return;
 			}
 			else {
@@ -615,25 +604,13 @@ public class Client{
 
 		}
 
-
-
         //get a move
         if (calculateMove)
 		{
             if (!pickARandom)
 			{
-				validPosition1 = searchTree.getMove(map, timed, depth, phaseOne, validMoves, time, moveCounter);
-
-				if (printOn) {
-					System.out.println("Move from Search tree: " + Arrays.toString(validPosition1));
-				}
-
-				validPosition = getMoveTimeDepth(phaseOne, validMoves);
-
-				if (validPosition1[0] != validPosition[0] || validPosition1[1] != validPosition[1]) {
-					System.err.println("Move from Search tree and client do not match");
-					return;
-				}
+				validPosition = searchTree.getMove(map, timed, depth, phaseOne, validMoves, time, moveCounter);
+				//validPosition = getMoveTimeDepth(phaseOne, validMoves);
 
 				posToSetKeystone = new Position(validPosition[0], validPosition[1]);
             }
@@ -721,7 +698,7 @@ public class Client{
 
 		for (int[] posAndR1 : validMoves){
 			contains = false;
-			for (int[] posAndR2 : map.getValidMoves(phaseOne)){
+			for (int[] posAndR2 : map.getValidMovesByArrows(phaseOne)){
 				if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1]) {
 					if (phaseOne)  {
 						if (posAndR1[2] == posAndR2[2]) {
@@ -741,7 +718,7 @@ public class Client{
 			}
 		}
 
-		for (int[] posAndR1 : map.getValidMoves(phaseOne)){
+		for (int[] posAndR1 : map.getValidMovesByArrows(phaseOne)){
 			contains = false;
 			for (int[] posAndR2 : validMoves){
 				if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1]) {
@@ -1200,8 +1177,8 @@ public class Client{
 
 			//prints
 			if (printOn && firstCall) {
-				if (depth > 1) System.out.println((i+1) + ", ");
-				else System.out.print((i+1) + ", ");
+				if (!extendedPrint) System.out.print((i+1) + ", ");
+				else System.out.println((i+1) + ", ");
 			}
 
 

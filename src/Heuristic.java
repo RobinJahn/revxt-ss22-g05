@@ -101,9 +101,9 @@ public class Heuristic {
         }
 
         //update relevant infos
-        if (countStones&&phaseOne) countOfStonesEvaluation = countStones();
-        else {
-            countOfStonesEvaluation = countStonesBombPhase();
+        if (countStones) {
+            if (phaseOne) countOfStonesEvaluation = countStones();
+            else countOfStonesEvaluation = countStonesBombPhase();
         }
 
         if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
