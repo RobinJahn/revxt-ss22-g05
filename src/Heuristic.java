@@ -6,6 +6,7 @@ import java.util.concurrent.TimeoutException;
 
 public class Heuristic {
     private final boolean printOn;
+    private final boolean extendedPrint;
 
     private Map map; //is automatically updated because of the reference here
     //the color of the player for which the map is rated
@@ -38,10 +39,12 @@ public class Heuristic {
      * @param map the map in any state. Only the static information are relevant
      * @param myColor the number(color) of the player for which the map is rated - doesn't change for the client
      * @param printOn boolean that defines if the heuristic should print relevant infos
+     * @param extendedPrint prints more information. Like the Matrix
      * @param multiplier list of double values to define the multipliers for the different heuristically evaluations
      */
-    public Heuristic(Map map, int myColor, boolean printOn, double[] multiplier){
+    public Heuristic(Map map, int myColor, boolean printOn, boolean extendedPrint, double[] multiplier){
         this.printOn = printOn;
+        this.extendedPrint = extendedPrint;
         this.map = map;
         this.myColorI = myColor;
         this.myColorC = (char)('0'+myColor);
@@ -244,14 +247,14 @@ public class Heuristic {
                 }
             }
         }
-        if (printOn) System.out.println("Values of Positions");
-        if (printOn) printMatrix();
+        if (extendedPrint) System.out.println("Values of Positions");
+        if (extendedPrint) printMatrix();
 
         //evaluate every position by its neighbours
         addWaveMatrix();
 
-        if (printOn) System.out.println("Added Waves");
-        if (printOn) printMatrix();
+        if (extendedPrint) System.out.println("Added Waves");
+        if (extendedPrint) printMatrix();
 
     }
 
@@ -547,15 +550,15 @@ public class Heuristic {
             createWave(waveMatrix, pos, maxWaveCount, divisor);
         }
 
-
+        if (extendedPrint) System.out.println("Matrix of values to add to wave matrix");
         for (int y = 0; y < map.getHeight(); y++) {
             for (int x = 0; x < map.getWidth(); x++) {
                 if (matrix[y][x] != Double.NEGATIVE_INFINITY) matrix[y][x] += waveMatrix[y][x];
-                if (printOn) System.out.printf("%4d", waveMatrix[y][x]);
+                if (extendedPrint) System.out.printf("%4d", waveMatrix[y][x]);
             }
-            if (printOn) System.out.println();
+            if (extendedPrint) System.out.println();
         }
-        if (printOn) System.out.println();
+        if (extendedPrint) System.out.println();
 
     }
 

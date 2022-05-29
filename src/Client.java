@@ -14,7 +14,7 @@ public class Client{
 	final private boolean printOn;
 	final private boolean extendedPrint;
 	final private boolean useColors;
-	final private boolean ServerLog = true;
+	final private boolean serverLog = true;
 	final private boolean compare_to_Server;
 
 	final private boolean useAB;
@@ -198,9 +198,9 @@ public class Client{
 		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
 
 		//set variables after map was imported
-		heuristic = new Heuristic(map, myPlayerNr,printOn,multipliers); // mark
-		heuristicForSimulation = new Heuristic(map, myPlayerNr,false,multipliers);
-		searchTree = new SearchTree(map, printOn, ServerLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, multipliers);
+		heuristic = new Heuristic(map, myPlayerNr,printOn,extendedPrint,multipliers); // mark
+		heuristicForSimulation = new Heuristic(map, myPlayerNr,false,false,multipliers);
+		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, multipliers);
 
 		//start playing
 		if (printOn) System.out.println();
@@ -219,7 +219,7 @@ public class Client{
 		String map_For_Comparison = "";
 		moveCounter = 0;
 
-		if (printOn) System.out.println(map.toString(null,true,useColors));
+		if (extendedPrint) System.out.println(map.toString(null,true,useColors));
 
 		while (gameOngoing) {
 
@@ -290,15 +290,35 @@ public class Client{
 					else Map.updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, moveOfPlayer, map);
 
 					if (printOn) {
-						System.out.println(map.toString(null, false, useColors));
+						if (firstPhase) {
+							ArrayList<int[]> validMovesByArrows;
+							ArrayList<int[]> validMovesByOwnColor;
+							//calculate possible moves
+							validMovesByArrows = map.getValidMovesByArrows(firstPhase);
+							validMovesByOwnColor = Map.getFieldsByOwnColor(map, timed, printOn, serverLog, Long.MAX_VALUE);
+
+							//prints map
+							if (!compareValidMoves(firstPhase, validMovesByOwnColor)) {
+								System.out.println("With own color");
+								System.out.println(map.toString(validMovesByOwnColor, false, useColors));
+								System.out.println("With move carry along");
+								System.out.println(map.toString(map.getValidMovesByArrows(firstPhase), false, useColors));
+								return;
+							} else {
+								System.out.println(map.toString(validMovesByArrows, false, useColors));
+							}
+						}
+						else {
+							System.out.println(map.toString(Map.getValidMoves(map, timed, printOn, serverLog, Long.MAX_VALUE), false, useColors));
+						}
+
+
 						double valueOfMap;
-						//System.out.println("With move carry along");
-						//System.out.println(map.toString(map.getValidMoves(), false, useColors));
 
 						//calculate value of map and print it
 						try
 						{
-							 valueOfMap = (double) Math.round(heuristic.evaluate(firstPhase,timed,ServerLog, Long.MAX_VALUE) * 100) / 100;
+							 valueOfMap = (double) Math.round(heuristic.evaluate(firstPhase,timed, serverLog, Long.MAX_VALUE) * 100) / 100;
 						}
 						catch (TimeoutException TE)
 						{
@@ -377,7 +397,7 @@ public class Client{
 	//Compare to Server
 	private String StringForServerCompare(String map_For_Comparison)
 	{
-		map_For_Comparison += map.toString_Server(Map.getValidMoves(map, timed, printOn, ServerLog, 0));
+		map_For_Comparison += map.toString_Server(Map.getValidMoves(map, timed, printOn, serverLog, 0));
 		return map_For_Comparison;
 	}
 
@@ -400,25 +420,11 @@ public class Client{
 		map.setPlayer(myPlayerNr);
 
 		//calculate possible moves
-		validMoves = Map.getValidMoves(map,timed,printOn,ServerLog,Long.MAX_VALUE);
-		validMovesByOwnColor = Map.getFieldsByOwnColor(map,timed,printOn,ServerLog,Long.MAX_VALUE);
-
-		//prints map
-		if (printOn) {
-			if (!compareValidMoves(phaseOne, validMovesByOwnColor)) {
-				System.out.println(map.toString(validMovesByOwnColor, false, useColors));
-				System.out.println("With move carry along");
-				System.out.println(map.toString(map.getValidMovesByArrows(phaseOne), false, useColors));
-				return;
-			}
-			else {
-				System.out.println(map.toString(validMoves, false, useColors));
-			}
-		}
+		validMoves = Map.getValidMoves(map,timed,printOn, serverLog,Long.MAX_VALUE);
 
 		//calculate value of map and print it
 		try {
-			valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne,timed,ServerLog, Long.MAX_VALUE)*100)/100;
+			valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne,timed, serverLog, Long.MAX_VALUE)*100)/100;
 		}
 		catch (TimeoutException TE) {
 			System.out.println("TimeOutException in MakeAMove");
@@ -441,7 +447,7 @@ public class Client{
 		//let player enter a move
 		else {
 			//Variables needed for human player
-			Statistic statistic = new Statistic();
+			Statistic statistic = new Statistic(0);
 			boolean moveIsPossible = false;
 			double[] valueAndIndex;
 			char fieldValue;
@@ -552,7 +558,6 @@ public class Client{
 	//phase 2 - bomb phase
 	private void setABomb(){
 		int[] validPosition;
-		int[] validPosition1;
 		ArrayList<int[]> validMoves;
 		boolean moveIsPossible = false;
 		Position posToSetKeystone = new Position(0, 0);
@@ -566,42 +571,6 @@ public class Client{
 		if (validMoves.isEmpty()) {
 			System.err.println("Something's wrong - Positions to set a Bomb are empty but server says they're not");
 			return;
-		}
-
-		//print valid moves
-		if (printOn) {
-
-			double valueOfMap;
-
-			if (!compareValidMoves(phaseOne, validMoves)) {
-				System.out.println(map.toString(validMoves, false, useColors));
-				System.out.println("With move carry along");
-				System.out.println(map.toString(map.getValidMovesByArrows(phaseOne), false, useColors));
-				return;
-			}
-			else {
-				System.out.println(map.toString(validMoves, false, useColors));
-				//calculate value of map and print it
-				try {
-					valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne,timed,ServerLog, Long.MAX_VALUE)*100)/100;
-				}
-				catch (TimeoutException TE) {
-					System.out.println("TimeOutException in MakeAMove");
-					return;
-				}
-
-				System.out.println("Value of Map is " + valueOfMap);
-			}
-
-			//calculate value of map and print it
-			try{
-			 valueOfMap = (double) Math.round(heuristic.evaluate(phaseOne,timed,ServerLog, Long.MAX_VALUE) * 100) / 100;}
-			catch (TimeoutException Te){
-				System.out.println("TimeoutException in setABomb");
-				return;
-			}
-			System.out.println("Value of Map is " + valueOfMap);
-
 		}
 
         //get a move
@@ -695,54 +664,44 @@ public class Client{
 		if (!Map.useArrows) return true;
 		boolean contains;
 		boolean containsAll = true;
+		ArrayList<int[]> validMovesByColorExtra = new ArrayList<>();
+		ArrayList<int[]> validMovesByArrowExtra = new ArrayList<>();
 
 		for (int[] posAndR1 : validMoves){
 			contains = false;
 			for (int[] posAndR2 : map.getValidMovesByArrows(phaseOne)){
-				if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1]) {
-					if (phaseOne)  {
-						if (posAndR1[2] == posAndR2[2]) {
-							contains = true;
-							break;
-						}
-					}
-					else {
-						contains = true;
-						break;
-					}
+				if (Arrays.compare(posAndR1, posAndR2) == 0) {
+					contains = true;
+					break;
 				}
 			}
 			if (!contains) {
 				containsAll = false;
-				break;
+				validMovesByColorExtra.add(posAndR1);
 			}
 		}
 
 		for (int[] posAndR1 : map.getValidMovesByArrows(phaseOne)){
 			contains = false;
 			for (int[] posAndR2 : validMoves){
-				if (posAndR1[0] == posAndR2[0] && posAndR1[1] == posAndR2[1]) {
-					if (phaseOne)  {
-						if (posAndR1[2] == posAndR2[2]) {
-							contains = true;
-							break;
-						}
-					}
-					else {
-						contains = true;
-						break;
-					}
+				if (Arrays.compare(posAndR1, posAndR2) == 0) {
+					contains = true;
+					break;
 				}
 			}
 			if (!contains) {
 				containsAll = false;
-				break;
+				validMovesByArrowExtra.add(posAndR1);
 			}
 		}
 
 
 		if (!containsAll){
-			System.err.println("Valid Moves from Map and Client do not match");
+			System.err.println("Moves of arrows and moves by own color do not match");
+			System.out.println("Moves, that only valid Moves by color contain:");
+			System.out.println( Arrays.deepToString(validMovesByColorExtra.toArray()) );
+			System.out.println("Moves, that only valid Moves by arrows:");
+			System.out.println( Arrays.deepToString(validMovesByArrowExtra.toArray()) );
 			return false;
 		}
 		return true;
@@ -752,7 +711,7 @@ public class Client{
 	//Functions to calculate the best next move
 	private int[] getMoveTimeDepth(boolean phaseOne, ArrayList<int[]> everyPossibleMove) {
 		//declarations
-		Statistic statistic = new Statistic();
+		Statistic statistic;
 		double[] valueAndIndex;
 		int[] validPosition;
 		//Timing
@@ -778,7 +737,7 @@ public class Client{
 			for (currDepth = 1; (upperTimeLimit - System.nanoTime() - timeNextDepth > 0); currDepth++) { //check if we can calculate next layer
 
 				//reset statistic
-				statistic = new Statistic();
+				statistic = new Statistic(currDepth);
 
 				//print
 				if (printOn) System.out.println("DEPTH: " + currDepth);
@@ -789,7 +748,7 @@ public class Client{
 				}
 				//if it noticed we have no more time
 				catch (TimeoutException te){
-					if (printOn||ServerLog) {
+					if (printOn|| serverLog) {
 						System.out.println("For Move: " + moveCounter + ", Depth: " + currDepth + ", Move: " + Arrays.toString(validPosition));
 						System.out.println("Time out Exception thrown");
 						System.out.println("Time Remaining: " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
@@ -848,6 +807,7 @@ public class Client{
 		//if we have no time limit
 		else {
 			currDepth = depth;
+			statistic = new Statistic(depth);
 			//catch will never happen
 			try {
 				valueAndIndex = getNextMoveDFS(everyPossibleMove, phaseOne, depth, statistic, 0,KillerArray);
@@ -858,7 +818,7 @@ public class Client{
 			}
 		}
 
-		if(ServerLog) {
+		if(serverLog) {
 			System.out.println("For Move: " + moveCounter + ", Depth: " + currDepth + ", Move: " + Arrays.toString(validPosition));
 		}
 
@@ -895,7 +855,7 @@ public class Client{
 	private double DFSVisit(Map map, int depth, boolean phaseOne, double alpha, double beta, Statistic statistic,long UpperTimeLimit, int brsCount,KillerArray KillerArray) throws TimeoutException{
 		//Out of Time ?
 		if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-			if (printOn||ServerLog) System.out.println("Out of Time (DFSVisit - start of Method)");
+			if (printOn|| serverLog) System.out.println("Out of Time (DFSVisit - start of Method)");
 			throw new TimeoutException();
 		}
 
@@ -925,12 +885,12 @@ public class Client{
 		}
 
 		//get moves for the next player
-		phaseOne = getMovesForNextPlayer(map, everyPossibleMove, phaseOne,timed,printOn,ServerLog,UpperTimeLimit);
+		phaseOne = getMovesForNextPlayer(map, everyPossibleMove, phaseOne,timed,printOn, serverLog,UpperTimeLimit);
 
 		//check if it reached the end of the game
 		if (everyPossibleMove.isEmpty()) {
 			heuristicForSimulation.updateMap(map); //computing-intensive
-			return heuristicForSimulation.evaluate(phaseOne,timed,ServerLog,UpperTimeLimit); //computing-intensive
+			return heuristicForSimulation.evaluate(phaseOne,timed, serverLog,UpperTimeLimit); //computing-intensive
 		}
 
 		//simulate all moves and return best value
@@ -1060,7 +1020,7 @@ public class Client{
 			for (int[] positionAndInfo : everyPossibleMove) {
 				//Out of Time ?
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
-					if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - start of for)");
+					if (printOn|| serverLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - start of for)");
 					throw new TimeoutException();
 				}
 
@@ -1069,7 +1029,7 @@ public class Client{
 
 				//Out of Time ?
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
-					if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after clone)");
+					if (printOn|| serverLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after clone)");
 					throw new TimeoutException();
 				}
 
@@ -1125,7 +1085,7 @@ public class Client{
 
 		//Out of Time ?
 		if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
-			if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after sort)");
+			if (printOn|| serverLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after sort)");
 			throw new TimeoutException();
 		}
 
@@ -1137,7 +1097,7 @@ public class Client{
 			{
 				//Out of Time ?
 				if(timed && (UpperTimeLimit - System.nanoTime() < 0)) {
-					if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Killer Heuristic)");
+					if (printOn|| serverLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Killer Heuristic)");
 					throw new TimeoutException();
 				}
 
@@ -1167,7 +1127,7 @@ public class Client{
 
 			//Out of Time ?
 			if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-				if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - in go over moves)");
+				if (printOn|| serverLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - in go over moves)");
 				throw new TimeoutException();
 			}
 
@@ -1211,7 +1171,7 @@ public class Client{
 				}
 
 				if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-					if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - Before DFS Visit call)");
+					if (printOn|| serverLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - Before DFS Visit call)");
 					throw new TimeoutException();
 				}
 
@@ -1221,15 +1181,15 @@ public class Client{
 			else {
 				heuristicForSimulation.updateMap(nextMap); //computing-intensive
 				if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-					if (printOn || ServerLog) System.out.println("Out of time (After UpdateMap Before Evaluate)");
+					if (printOn || serverLog) System.out.println("Out of time (After UpdateMap Before Evaluate)");
 					throw new TimeoutException();
 				}
-				evaluation = heuristicForSimulation.evaluate(phaseOne,timed,ServerLog,UpperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
+				evaluation = heuristicForSimulation.evaluate(phaseOne,timed, serverLog,UpperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
 			}
 
 			//Out of Time ?
 			if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-				if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - after DFS Visit call)");
+				if (printOn|| serverLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - after DFS Visit call)");
 				throw new TimeoutException();
 			}
 
@@ -1273,8 +1233,7 @@ public class Client{
 						int countOfCutoffSiblings = everyPossibleMove.size() - everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
 
-						//Rename into Siblings
-						statistic.reduceNodes(countOfCutoffSiblings, depth);
+						//statistic.reduceNodes(countOfCutoffSiblings, depth);
 						//Killer Heuristic
 						if(useKH) {
 							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffSiblings);
@@ -1298,7 +1257,7 @@ public class Client{
 					if (currBestValue <= currAlpha) {
 						int countOfCutoffLeaves = everyPossibleMove.size()- everyPossibleMove.indexOf(positionAndInfo);
 						//delete nodes out of statistic
-						statistic.reduceNodes(countOfCutoffLeaves, depth);
+						//statistic.reduceNodes(countOfCutoffLeaves, depth);
 						//Killer Heuristic
 						if(useKH) {
 							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffLeaves);

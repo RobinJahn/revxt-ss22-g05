@@ -10,7 +10,7 @@ public class SearchTree {
     //don't change
     private final boolean printOn;
     private final boolean extendedPrint;
-    private final boolean ServerLog;
+    private final boolean serverLog;
     private final int myPlayerNr;
     private Heuristic heuristicForSimulation;
 
@@ -26,13 +26,14 @@ public class SearchTree {
     int moveCounter;
     boolean cancelNextDepth = false;
     long upperTimeLimit;
+    long timeForLastDepth1 = 0;
 
     KillerArray killerArray = new KillerArray();
 
 
     public SearchTree(Map map, boolean printOn, boolean ServerLog, boolean extendedPrint, int myPlayerNr, boolean useAB, boolean useMS, boolean useBRS, boolean useKH, double[] multiplier){
         this.printOn = printOn;
-        this.ServerLog = ServerLog;
+        this.serverLog = ServerLog;
         this.myPlayerNr = myPlayerNr;
         this.extendedPrint = extendedPrint;
 
@@ -41,7 +42,7 @@ public class SearchTree {
         this.useBRS = useBRS;
         this.useKH = useKH;
 
-        heuristicForSimulation = new Heuristic(map, myPlayerNr, false, multiplier);
+        heuristicForSimulation = new Heuristic(map, myPlayerNr, false, false, multiplier);
     }
 
     public int[] getMove(Map map, boolean timed, int depth, boolean phaseOne, ArrayList<int[]> validMoves, long time, int moveCounter){
@@ -52,12 +53,13 @@ public class SearchTree {
 
         int[] moveToMake = new int[]{-1, -1, -1};
 
-        Statistic statistic = new Statistic();
+        Statistic statistic;
 
         if (timed){
             moveToMake = getMoveByTime(map, phaseOne, validMoves, time);
         }
         else {
+            statistic = new Statistic(depth);
             try {
                 moveToMake = getMoveByDepth(map, phaseOne, validMoves, statistic);
                 if (printOn) System.out.println(statistic);
@@ -68,8 +70,9 @@ public class SearchTree {
             }
         }
 
-        if(ServerLog) {
+        if(serverLog) {
             System.out.println("Search tree: For Move: " + moveCounter + ", Depth: " + this.depth + ", Move: " + Arrays.toString(moveToMake));
+            System.out.println();
         }
 
         return moveToMake;
@@ -86,15 +89,13 @@ public class SearchTree {
         boolean cuttof;
         int depth = 0;
 
-        //for brs+ wich we don't use here - yes
+        //for brs+ wich we don't use here
         Map nextMap;
         ArrayList<int[]> validMovesForNext;
         boolean phaseOneAfterNextMove;
         int brsCount = 0;
 
-        //For Statistics
-        long startTime = System.nanoTime(); //start timing
-        long totalTime;
+        statistic.addNodes(validMoves.size(), depth);
 
         //fill index List
         for (int i = 0; i < validMoves.size(); i++){
@@ -107,20 +108,21 @@ public class SearchTree {
 
         // Out of Time ?
         if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-            if (printOn || ServerLog) System.out.println("Out of time - in getMoveByDepth after move sorting");
+            if (printOn || serverLog) System.out.println("Out of time - in getMoveByDepth after move sorting");
             throw new TimeoutException();
         }
 
         //prints
-        if (printOn) {
-            System.out.println("Calculating values for " + validMoves.size() + " moves with depth " + depth);
+        if (printOn || serverLog) {
+            System.out.println("Calculating values for " + validMoves.size() + " moves with depth " + this.depth);
             System.out.println("Currently at: ");
         }
+
 
         //go over every move
         for (int i = 0; i < validMoves.size(); i++) {
             //prints
-            if (printOn){
+            if (printOn || serverLog){
                 if (!extendedPrint) System.out.print((i+1) + ", ");
                 else System.out.println((i+1) + ", ");
             }
@@ -132,7 +134,7 @@ public class SearchTree {
 
             // Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-                if (printOn || ServerLog) System.out.println("Out of time - in getMoveByDepth at beginnin of for");
+                if (printOn || serverLog) System.out.println("Out of time - in getMoveByDepth at beginnin of for");
                 throw new TimeoutException();
             }
 
@@ -144,7 +146,7 @@ public class SearchTree {
 
             // Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-                if (printOn || ServerLog) System.out.println("Out of time - in getMoveByDepth after nextMap got build");
+                if (printOn || serverLog) System.out.println("Out of time - in getMoveByDepth after nextMap got build");
                 throw new TimeoutException();
             }
 
@@ -152,14 +154,14 @@ public class SearchTree {
             //  getMovesForNextPlayer fills validMoves array
             validMovesForNext = new ArrayList<>();
             //  get next phase
-            phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, ServerLog);
+            phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, serverLog);
 
             //  add values to statistic
-            statistic.addNodes(validMoves.size(), depth);
+            statistic.addNodes(validMovesForNext.size(), depth+1);
 
             // Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-                if (printOn || ServerLog) System.out.println("Out of time - in getMoveByDepth after valid Moves for next player were fetched");
+                if (printOn || serverLog) System.out.println("Out of time - in getMoveByDepth after valid Moves for next player were fetched");
                 throw new TimeoutException();
             }
 
@@ -174,7 +176,7 @@ public class SearchTree {
                 //if the next node would be a leaf
                 if (depth >= this.depth - 1) {
                     heuristicForSimulation.updateMap(nextMap);
-                    evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, ServerLog, upperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
+                    evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, serverLog, upperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
                 }
                 else {
                     //recursive call
@@ -184,7 +186,7 @@ public class SearchTree {
 
             // Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-                if (printOn || ServerLog) System.out.println("Out of time - in getMoveByDepth after evaluate was set");
+                if (printOn || serverLog) System.out.println("Out of time - in getMoveByDepth after evaluate was set");
                 throw new TimeoutException();
             }
 
@@ -226,42 +228,50 @@ public class SearchTree {
             cancelNextDepth = true;
         }
 
-        //end of timing
-        totalTime = System.nanoTime() - startTime;
-        statistic.totalComputationTime += totalTime;
-
         return validMoves.get(indexOfBest);
     }
 
     private int[] getMoveByTime(Map map, boolean phaseOne, ArrayList<int[]> validMoves, long time){
         //declarations
-        Statistic statistic;
+        Statistic statistic = null;
         int[] currMove;
         int[] validPosition = validMoves.get(0);
         //Timing
         long startTime = System.nanoTime();
-        long timeOffset = 80_000_000; //ns -> xx ms
-        long timeNextDepth = 0;
+        long totalTime;
+        long timeOffset = 500_000_000; // xxx_000_000 ns -> xxx ms
+        long timeOffsetCatch = 50_000_000;
+        long timeNextDepth = timeForLastDepth1;
         upperTimeLimit = startTime + time * 1_000_000 - timeOffset;
-        double leavesNextDepth;
         double totalNodesToGoOver;
+
 
         //iterative deepening
         for (depth = 1; (upperTimeLimit - System.nanoTime() - timeNextDepth > 0); depth++) {
 
             //reset statistic
-            statistic = new Statistic();
+            statistic = new Statistic(depth);
 
             //print
-            if (printOn) System.out.println("DEPTH: " + depth);
+            if (printOn || serverLog) System.out.println("DEPTH: " + depth);
 
             //get the best move for this depth
             try {
+                //start timing
+                startTime = System.nanoTime();
+                //call
                 currMove = getMoveByDepth(map, phaseOne, validMoves, statistic);
+                //end of timing
+                totalTime = System.nanoTime() - startTime;
+                statistic.totalComputationTime += totalTime;
             }
             //if it noticed we have no more time
             catch (TimeoutException te){
-                if (printOn || ServerLog) {
+                //end of timing
+                totalTime = System.nanoTime() - startTime;
+                if (depth == 1) timeForLastDepth1 = totalTime + timeOffsetCatch;
+
+                if (printOn || serverLog) {
                     System.out.println("Time out Exception thrown");
                     System.out.println("Time Remaining (excludng offset): " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
                     System.out.println(Arrays.toString(te.getStackTrace()).replace(", ","\n"));
@@ -272,13 +282,8 @@ public class SearchTree {
             //if we got a valid Position without running out of time - update it
             validPosition = currMove;
 
-            //calculate time needed for next depth
-            //leavesNextDepth = statistic.leafNodes * statistic.branchFactor();
-            //totalNodesToGoOver = statistic.totalNodesSeen + leavesNextDepth;
-            totalNodesToGoOver = statistic.totalNodesSeen * statistic.branchFactor();
-
             //time comparison prints
-            if (printOn){
+            if (printOn || serverLog){
                 System.out.println("Expected Time needed for this depth: " + timeNextDepth/ 1_000_000 + "ms");
                 System.out.println("Actual time needed: " + (double)statistic.totalComputationTime/ 1_000_000 + "ms");
                 System.out.println("Approximation: " + approximation);
@@ -290,6 +295,8 @@ public class SearchTree {
             }
 
             //calculate time needed for the next depth //TODO: refine so that only the first ever move don't get approximated
+            totalNodesToGoOver = statistic.totalNodesSeen * statistic.branchFactor();
+
             if (timeNextDepth == 0) {
                 timeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime());
             }
@@ -298,13 +305,15 @@ public class SearchTree {
                 timeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime() * approximation);
             }
 
+            if (depth == 1) timeForLastDepth1 = statistic.totalComputationTime;
+
             //prints after one depth
-            if (printOn) {
+            if (printOn || serverLog) {
                 //print recommendet move
                 if (phaseOne) System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + "," + validPosition[2] + ")");
                 else System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + ")");
 
-                //print statisic
+                //print statistic
                 System.out.println(statistic);
 
                 //print timing information
@@ -325,7 +334,7 @@ public class SearchTree {
 
         int currIndex;
         double currBestValue;
-        double evaluation = 0;
+        double evaluation;
         boolean isMax;
         boolean cuttof;
 
@@ -341,7 +350,7 @@ public class SearchTree {
 
         //Out of Time ?
         if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-            if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode - start of Method");
+            if (printOn || serverLog) System.out.println("Out of Time - in getValueForNode - start of Method");
             throw new TimeoutException();
         }
 
@@ -373,7 +382,7 @@ public class SearchTree {
 
         //Out of Time ?
         if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-            if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode after move sorting");
+            if (printOn || serverLog) System.out.println("Out of Time - in getValueForNode after move sorting");
             throw new TimeoutException();
         }
 
@@ -387,7 +396,7 @@ public class SearchTree {
 
             //Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-                if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode start of for");
+                if (printOn || serverLog) System.out.println("Out of Time - in getValueForNode start of for");
                 throw new TimeoutException();
             }
 
@@ -398,7 +407,7 @@ public class SearchTree {
 
                 //Out of Time ?
                 if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-                    if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode after next map got build");
+                    if (printOn || serverLog) System.out.println("Out of Time - in getValueForNode after next map got build");
                     throw new TimeoutException();
                 }
             }
@@ -410,16 +419,16 @@ public class SearchTree {
             //  getMovesForNextPlayer fills validMoves array
             validMovesForNext = new ArrayList<>();
             //  get next phase
-            phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, ServerLog);
+            phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, serverLog);
             //  get next player
             nextPlayer = nextMap.getCurrentlyPlayingI();
 
             //  add values to statistic
-            statistic.addNodes(validMoves.size(), depth);
+            statistic.addNodes(validMovesForNext.size(), depth+1);
 
             //Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-                if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode after moves for next player got fetched");
+                if (printOn || serverLog) System.out.println("Out of Time - in getValueForNode after moves for next player got fetched");
                 throw new TimeoutException();
             }
 
@@ -444,7 +453,7 @@ public class SearchTree {
                 //if the next node would be a leaf
                 if (depth >= this.depth - 1) {
                     heuristicForSimulation.updateMap(nextMap);
-                    evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, ServerLog, upperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
+                    evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, serverLog, upperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
                 }
                 else {
                     if (isPhiMove) nextBrsCount = brsCount;
@@ -457,7 +466,7 @@ public class SearchTree {
 
             //Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-                if (printOn || ServerLog) System.out.println("Out of Time - in getValueForNode after evaluation was set");
+                if (printOn || serverLog) System.out.println("Out of Time - in getValueForNode after evaluation was set");
                 throw new TimeoutException();
             }
 
@@ -539,7 +548,7 @@ public class SearchTree {
 
         // Out of Time ?
         if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-            if (printOn||ServerLog) System.out.println("Out of time - in simulate move after clone");
+            if (printOn|| serverLog) System.out.println("Out of time - in simulate move after clone");
             throw new TimeoutException();
         }
 
@@ -625,7 +634,7 @@ public class SearchTree {
             if (currBestValue >= currBeta) {
                 int countOfCutoffLeaves = validMoves.size() - currentIndex;
                 //delete nodes out of statistic
-                statistic.reduceNodes(countOfCutoffLeaves, depth);
+                //statistic.reduceNodes(countOfCutoffLeaves, depth);
 
                 //Print before return
                 if (extendedPrint) {
@@ -646,7 +655,7 @@ public class SearchTree {
             if (currBestValue <= currAlpha) {
                 int countOfCutoffLeaves = validMoves.size()- currentIndex;
                 //delete nodes out of statistic
-                statistic.reduceNodes(countOfCutoffLeaves, depth);
+                //statistic.reduceNodes(countOfCutoffLeaves, depth);
 
                 //Print before return
                 if (extendedPrint) {
@@ -687,7 +696,7 @@ public class SearchTree {
             for (int[] positionAndInfo : validMoves) {
                 //Out of Time ?
                 if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-                    if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - start of for)");
+                    if (printOn|| serverLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - start of for)");
                     throw new TimeoutException();
                 }
 
@@ -696,7 +705,7 @@ public class SearchTree {
 
                 //Out of Time ?
                 if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-                    if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after clone)");
+                    if (printOn|| serverLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Move Sorting - after clone)");
                     throw new TimeoutException();
                 }
 
@@ -763,7 +772,7 @@ public class SearchTree {
         {
             //Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-                if (printOn||ServerLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Killer Heuristic)");
+                if (printOn|| serverLog) System.out.println("Out of time (getBestValueAndIndexFromMoves - In Killer Heuristic)");
                 throw new TimeoutException();
             }
 

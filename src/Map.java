@@ -348,7 +348,7 @@ public class Map{
         mapString.append("\n");
     }
 
-    // GETTER
+    // GETTER ----------------------------------------------------------------------------------------------------------
 
     /**
      * @param x x coordinate
@@ -456,7 +456,6 @@ public class Map{
                         break;
                     case 'c':
                         for (int playerNr = 1; playerNr <= staticMap.anzPlayers; playerNr++) {
-                            if (playerNr == playerId) continue;
                             resultList.add(new int[]{pos.x, pos.y, playerNr});
                         }
                         break;
@@ -516,7 +515,7 @@ public class Map{
     }
 
 
-    // SETTER
+    // SETTER ----------------------------------------------------------------------------------------------------------
 
     /**
      * Sets given Char at the given x and y position in the Map.
@@ -1184,7 +1183,7 @@ public class Map{
         return staticMap.doAStep(pos,r);
     }
 
-    //STATIC FUNCTIONS
+    //STATIC FUNCTIONS --------------------------------------------------------------------------------------------------------------------------------------------
 
     //  functions to simulate a move
 
@@ -1554,7 +1553,7 @@ public class Map{
                             break;
                         }
                         else if (currChar == 'c') {
-                            for (int playerNr = 1; playerNr < map.getAnzPlayers(); playerNr++){
+                            for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
                                 wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
                                 if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, playerNr});
                             }
