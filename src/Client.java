@@ -36,6 +36,8 @@ public class Client{
 	double approximation = 1;
 	SearchTree searchTree;
 
+	int AllValidFields = 0;
+
 	Random random = new Random(1);
 
 
@@ -202,9 +204,51 @@ public class Client{
 		heuristicForSimulation = new Heuristic(map, myPlayerNr,false,false,multipliers);
 		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, multipliers);
 
+		//Staging Preparations
+		for(int i = 0;i<map.getWidth();i++)
+		{
+			for(int j = 0; j<map.getHeight();j++)
+			{
+				char fieldValue = map.getCharAt(i,j);
+				if((fieldValue >= '0' && fieldValue <= '8') || fieldValue == 'b' || fieldValue == 'i' || fieldValue == 'c'|| fieldValue == 'x')
+				{
+					AllValidFields++;
+				}
+			}
+		}
+
+
+		if (printOn) {
+			System.out.println("Fill Percentage: " + getFillPercentage());
+			System.out.println();
+		}
 		//start playing
-		if (printOn) System.out.println();
 		play();
+	}
+
+	private double getFillPercentage()
+	{
+		int occupiedFields = 0;
+		for(int x = 0;x<map.getWidth();x++)
+		{
+			for(int y = 0; y<map.getHeight();y++)
+			{
+				char fieldValue = map.getCharAt(x,y);
+				switch (fieldValue)
+				{
+					case '1':
+					case '2':
+					case '3':
+					case '4':
+					case '5':
+					case '6':
+					case '7':
+					case '8':
+					case 'x': occupiedFields++; break;
+				}
+			}
+		}
+		return occupiedFields / (double) AllValidFields;
 	}
 
 	/**
@@ -250,6 +294,19 @@ public class Client{
 					if (timed && printOn) System.out.println("We have: " + time + "ms");
 
 					if (depth == 0) depth = Integer.MAX_VALUE;
+
+					//Stages
+					double fillPercentage = getFillPercentage();
+					if(fillPercentage > 0.5 && fillPercentage < 0.8)
+					{
+						heuristic.setMoveCountMultiplier(4);
+					}
+					else if(fillPercentage> 0.8)
+					{
+						heuristic.setMoveCountMultiplier(1);
+						heuristic.setStoneCountMultiplier(8);
+					}
+					if(printOn) System.out.println("Fill Percentage: " + fillPercentage);
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) {
