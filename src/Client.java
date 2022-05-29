@@ -36,7 +36,7 @@ public class Client{
 	double approximation = 1;
 	SearchTree searchTree;
 
-	int AllValidFields = 0;
+	int CountOfReachableFields = 0;
 
 	Random random = new Random(1);
 
@@ -205,18 +205,8 @@ public class Client{
 		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, multipliers);
 
 		//Staging Preparations
-		for(int i = 0;i<map.getWidth();i++)
-		{
-			for(int j = 0; j<map.getHeight();j++)
-			{
-				char fieldValue = map.getCharAt(i,j);
-				if((fieldValue >= '0' && fieldValue <= '8') || fieldValue == 'b' || fieldValue == 'i' || fieldValue == 'c'|| fieldValue == 'x')
-				{
-					AllValidFields++;
-				}
-			}
-		}
 
+		CountOfReachableFields = getCountOfReachableFields();
 
 		if (printOn) {
 			System.out.println("Fill Percentage: " + getFillPercentage());
@@ -226,6 +216,61 @@ public class Client{
 		play();
 	}
 
+	private int getCountOfReachableFields()
+	{
+		TreeSet<Integer> TreeSet = new TreeSet<>();
+		PriorityQueue<Integer> Queue = new PriorityQueue<>();
+
+		for(int x = 0;x<map.getWidth();x++)
+		{
+			for(int y = 0; y<map.getHeight();y++)
+			{
+				char fieldValue = map.getCharAt(x,y);
+				if(fieldValue == 'x' && map.getOverwriteStonesForPlayer(1) > 0)
+				{
+					TreeSet.add(x*100+y);
+				}
+				else if((fieldValue >= '1' && fieldValue <= '8'))
+				{
+					TreeSet.add(x*100+y);
+					Queue.add(x*100+y);
+				}
+			}
+		}
+
+		Integer location;
+
+		while((location = Queue.poll() )!= null)
+		{
+			Position currPosition = new Position(location / 100,location % 100);
+			Position startPosition = new Position(location / 100,location % 100);
+
+			for(int r = 0; r<8;r++)
+			{
+				char value;
+				Integer newr = r;
+				do {
+					newr = map.doAStep(currPosition, newr);
+					if(newr == null)
+					{
+						break;
+					}
+					value = map.getCharAt(currPosition);
+					if(value == '0' || value == 'b' || value == 'i' || value == 'c')
+					{
+						if(TreeSet.add(currPosition.x*100+ currPosition.y))
+						{
+							Queue.add(currPosition.x*100+ currPosition.y);
+						}
+					}
+				} while (currPosition != startPosition && value != '-');
+			}
+		}
+
+
+
+		return TreeSet.size();
+	}
 	private double getFillPercentage()
 	{
 		int occupiedFields = 0;
@@ -248,7 +293,7 @@ public class Client{
 				}
 			}
 		}
-		return occupiedFields / (double) AllValidFields;
+		return occupiedFields / (double) CountOfReachableFields;
 	}
 
 	/**
