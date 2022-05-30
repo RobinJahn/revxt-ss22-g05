@@ -287,7 +287,7 @@ public class Heuristic {
             if (myColorI == map.getCurrentlyPlayingI()) {
                 myPossibleMoves = Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size();
             } else {
-                possibleMovesOfEnemies += Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size();
+                possibleMovesOfEnemies += Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size(); //TODO: Make valid Moves contain all moves from beginning on
             }
             map.nextPlayer();
         } //resets to currently playing

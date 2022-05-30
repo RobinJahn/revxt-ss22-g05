@@ -3,6 +3,7 @@ package src;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
@@ -311,6 +312,12 @@ public class Client{
 						else {
 							System.out.println(map.toString(Map.getValidMoves(map, timed, printOn, serverLog, Long.MAX_VALUE), false, useColors));
 						}
+
+						//check if arrows are correct
+						System.out.println("Reference in Affected Arrows: " + map.checkForReferenceInAffectedArrows());
+						System.out.println("All valid Moves are correct: " + map.checkValidMoves());
+						System.out.println("All overwrite Moves are correct: " + map.checkOverwriteMoves());
+						System.out.println();
 
 
 						double valueOfMap;

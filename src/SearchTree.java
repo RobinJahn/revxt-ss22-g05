@@ -269,7 +269,10 @@ public class SearchTree {
             catch (TimeoutException te){
                 //end of timing
                 totalTime = System.nanoTime() - startTime;
-                if (depth == 1) timeForLastDepth1 = totalTime + timeOffsetCatch;
+                if (depth == 1) {
+                    timeForLastDepth1 = totalTime + timeOffsetCatch;
+
+                }
 
                 if (printOn || serverLog) {
                     System.out.println("Time out Exception thrown");

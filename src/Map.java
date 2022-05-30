@@ -793,12 +793,15 @@ public class Map{
             //delete overwrite moves created by this arrow - index 0 and 1 don't create an OverWrite move - index = size-1 sometimes
             if (counter >= 2){
                 currPos = new Position(posAndR[0],posAndR[1]);
+
                 //checks if the Position, the arrow points to is one of the players stones -> if so delete overwrite move
                 if (counter == oldArrow.positionsWithDirection.size()-1){
+
                     // if the position isn't the one we colored in this call get the player from the map
                     if (from != counter) {
                         newPlayerOnField = map[currPos.y][currPos.x]-'0';
                     }
+
                     //if the arrow points to a position where we are, delete the position
                     if (newPlayerOnField == arrowOfPlayer){
                         removeOverwritePosition(arrowOfPlayer, currPos);
@@ -899,11 +902,14 @@ public class Map{
     }
 
     private void createArrowFrom(Arrow arrow, int arrowOfPlayer){
+        //set posAndR to last position
         int[] posAndR = arrow.positionsWithDirection.get( arrow.positionsWithDirection.size()-1 );
         int direction = posAndR[2];
         Position currPos = new Position(posAndR[0], posAndR[1]);
+        //set posAndR to first pos
         posAndR = arrow.positionsWithDirection.get(0);
         Position StartingPos = new Position(posAndR[0], posAndR[1]);
+
         Integer newR = direction;
         Integer nextR;
         char currChar;
@@ -923,12 +929,12 @@ public class Map{
             if (nextR == null) {
                 //set end to position it can't go to
                 currPos = Position.goInR(currPos, direction);
-                break; //if the step wasn't possible
+                break;
             }
             newR = nextR;
 
             //check for cycles
-            if(currPos.equals(StartingPos)) { //
+            if(currPos.equals(StartingPos)) {
                 //let arrow end one field ahead of the start - and because position one before was already added return
                 return;
             }
@@ -1072,7 +1078,7 @@ public class Map{
         return  validArrowsInMap;
     }
 
-    private boolean checkForReferenceInAffectedArrows(){
+    public boolean checkForReferenceInAffectedArrows(){
         ArrayList<Arrow> allArrows = getAllArrows();
         boolean isOneOfThem;
         int[] posAndR;
@@ -1093,7 +1099,7 @@ public class Map{
         return true;
     }
 
-    private boolean checkValidMoves(){
+    public boolean checkValidMoves(){
         ArrayList<Arrow> validArrows = getAllValidArrows();
 
         int[] posAndR;
@@ -1121,7 +1127,7 @@ public class Map{
         return true;
     }
 
-    private boolean checkOverwriteMoves(){
+    public boolean checkOverwriteMoves(){
         ArrayList<Arrow> allArrows = getAllArrows();
         int[] posAndR;
         boolean correct = true;
@@ -1525,6 +1531,11 @@ public class Map{
 
                     //check what's there
                     currChar = map.getCharAt(currPos);
+
+                    //detect loop //TODO: check with test Server Log
+                    if (currPos.equals(pos)){
+                        break;
+                    }
 
                     //player or 0
                     if (Character.isDigit(currChar)){
