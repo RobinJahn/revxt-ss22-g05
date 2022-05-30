@@ -86,6 +86,24 @@ public class Heuristic {
         setStaticInfos();
     }
 
+    // Setter
+
+    public void setStoneCountMultiplier(double stoneCountMultiplier) {
+        this.stoneCountMultiplier = stoneCountMultiplier;
+    }
+
+    public void setMoveCountMultiplier(double moveCountMultiplier) {
+        this.moveCountMultiplier = moveCountMultiplier;
+    }
+
+    public void setFieldValueMultiplier(double fieldValueMultiplier) {
+        this.fieldValueMultiplier = fieldValueMultiplier;
+    }
+
+    public void setEdgeMultiplier(double edgeMultiplier) {
+        this.edgeMultiplier = edgeMultiplier;
+    }
+
     /**
      * Function to evaluate the map that was given the constructor (call by reference)
      * @return returns the value of the map

@@ -165,7 +165,6 @@ public class Map{
         return mapString.toString();
     }
 
-    //Kopieren und umbauen zur toString_Server Methode
     public String toString_Server(ArrayList<int[]> everyPossibleMove)
     {
         String mapString = "";

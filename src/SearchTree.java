@@ -86,10 +86,10 @@ public class SearchTree {
         double evaluation;
         int indexOfBest = 0;
         double[] alphaAndBeta = new double[]{Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY};
-        boolean cuttof;
+        boolean cutoff;
         int depth = 0;
 
-        //for brs+ wich we don't use here
+        //for brs+ which we don't use here - yes
         Map nextMap;
         ArrayList<int[]> validMovesForNext;
         boolean phaseOneAfterNextMove;
@@ -204,8 +204,8 @@ public class SearchTree {
                 indexOfBest = currIndex;
             }
 
-            cuttof = useAlphaBetaPruning(alphaAndBeta, true, currBestValue, statistic, validMoves, i);
-            if (cuttof){
+            cutoff = useAlphaBetaPruning(alphaAndBeta, true, currBestValue, statistic, validMoves, i);
+            if (cutoff){
                 //Killer Heuristic
                 if (useKH) {
                     killerArray.add( new PositionAndInfo(posAndInfo), validMoves.size()-i);
@@ -276,7 +276,7 @@ public class SearchTree {
 
                 if (printOn || serverLog) {
                     System.out.println("Time out Exception thrown");
-                    System.out.println("Time Remaining (excludng offset): " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
+                    System.out.println("Time Remaining (excluding offset): " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
                     System.out.println(Arrays.toString(te.getStackTrace()).replace(", ","\n"));
                 }
                 return validPosition;
@@ -312,7 +312,7 @@ public class SearchTree {
 
             //prints after one depth
             if (printOn || serverLog) {
-                //print recommendet move
+                //print recommended move
                 if (phaseOne) System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + "," + validPosition[2] + ")");
                 else System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + ")");
 
@@ -339,7 +339,7 @@ public class SearchTree {
         double currBestValue;
         double evaluation;
         boolean isMax;
-        boolean cuttof;
+        boolean cutoff;
 
         Map nextMap;
         ArrayList<int[]> validMovesForNext;
@@ -495,9 +495,9 @@ public class SearchTree {
                 }
             }
 
-            cuttof = useAlphaBetaPruning(alphaAndBeta, isMax, currBestValue, statistic, validMoves, i); //parameter i here because it needs to calculate how many branches were cut
+            cutoff = useAlphaBetaPruning(alphaAndBeta, isMax, currBestValue, statistic, validMoves, i); //parameter i here because it needs to calculate how many branches were cut
 
-            if (cuttof) {
+            if (cutoff) {
                 //Killer Heuristic
                 if (useKH) {
                     killerArray.add(new PositionAndInfo( validMoves.get(currIndex) ), validMoves.size()-i);
@@ -591,7 +591,7 @@ public class SearchTree {
 
             //if there are no possible moves
 
-            //chek if the next player can make a move
+            //check if the next player can make a move
             map.nextPlayer();
             skippedPlayers++;
 
@@ -623,7 +623,7 @@ public class SearchTree {
     private boolean useAlphaBetaPruning(double[] alphaAndBeta, boolean isMax, double currBestValue, Statistic statistic, ArrayList<int[]> validMoves, int currentIndex){
         double currAlpha = alphaAndBeta[0];
         double currBeta = alphaAndBeta[1];
-        boolean cuttof = false;
+        boolean cutoff = false;
 
         //Maximizer
         if (isMax) {
@@ -633,7 +633,7 @@ public class SearchTree {
                 if (extendedPrint) System.out.println("Alpha Updated: [" + currAlpha + ", " + currBeta + "]");
             }
 
-            //Cuttoff ?
+            //Cutoff ?
             if (currBestValue >= currBeta) {
                 int countOfCutoffLeaves = validMoves.size() - currentIndex;
                 //delete nodes out of statistic
@@ -643,7 +643,7 @@ public class SearchTree {
                 if (extendedPrint) {
                     System.out.println("Cutoff: Current highest value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
                 }
-                cuttof = true;
+                cutoff = true;
             }
         }
         //Minimizer
@@ -654,7 +654,7 @@ public class SearchTree {
                 if (extendedPrint) System.out.println("Beta Updated: [" + currAlpha + ", " + currBeta + "]");
             }
 
-            //Cuttoff ?
+            //Cutoff ?
             if (currBestValue <= currAlpha) {
                 int countOfCutoffLeaves = validMoves.size()- currentIndex;
                 //delete nodes out of statistic
@@ -664,7 +664,7 @@ public class SearchTree {
                 if (extendedPrint) {
                     System.out.println("Cutoff: Current lowest value (" + currBestValue + ") <= current Alpha (" + currAlpha + ") - " + countOfCutoffLeaves + " values skipped");
                 }
-                cuttof = true;
+                cutoff = true;
             }
         }
 
@@ -672,7 +672,7 @@ public class SearchTree {
         alphaAndBeta[0] = currAlpha;
         alphaAndBeta[1] = currBeta;
 
-        return cuttof;
+        return cutoff;
     }
 
     //Move Sorting
@@ -753,7 +753,7 @@ public class SearchTree {
         ArrayList<Integer> newIndexList = indexList;
         if (!isMax && brsCount == 2){
             newIndexList = new ArrayList<>();
-            newIndexList.add( indexList.get(0) ); //TODO: here we can select what kond of move the phi move should be
+            newIndexList.add( indexList.get(0) ); //TODO: here we can select what kind of move the phi move should be
         }
         return newIndexList;
     }
@@ -763,12 +763,12 @@ public class SearchTree {
         if (!isMax && nextPlayer != myPlayerNr){
             return true;
         }
-        //if is Max it's oure move
+        //if is Max it's our move
         //if nextPlayer == myPlayerNr we're next
         return false;
     }
 
-    //Killer Heurisitc
+    //Killer Heuristic
     private void useKillerheuristic(ArrayList<Integer> indexList, ArrayList<int[]> validMoves) throws TimeoutException{
 
         for(int i = 0; i < killerArray.getLength(); i++)
@@ -794,7 +794,4 @@ public class SearchTree {
             }
         }
     }
-
-
-
 }
