@@ -3,7 +3,6 @@ package src;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
@@ -320,6 +319,11 @@ public class Client{
 
 				case 4: //Move Request
 				{
+					//Set UpperTimeLimit
+					long startTime = System.nanoTime();
+					long timeOffset = 500_000_000; // xxx_000_000 ns -> xxx ms
+					long upperTimeLimit = startTime + time * (long)1_000_000 - timeOffset;
+
 					if (printOn) {
 						System.out.println("received Move Request");
 						System.out.println("Move: " + moveCounter);
@@ -341,7 +345,7 @@ public class Client{
 
 					if (depth == 0) depth = Integer.MAX_VALUE;
 
-					//Stages
+					//Stages //heuristic.setStage(int Stagenumber)
 					double fillPercentage = getFillPercentage();
 					if(fillPercentage > 0.5 && fillPercentage < 0.8)
 					{
@@ -356,9 +360,9 @@ public class Client{
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) {
-						makeAMove();
+						makeAMove(upperTimeLimit);
 					} else {
-						setABomb();
+						setABomb(upperTimeLimit);
 					}
 					break;
 				}
@@ -514,7 +518,7 @@ public class Client{
 	/**
 	 * Method to make a move after a move request was sent to the Client
 	 */
-	private void makeAMove(){
+	private void makeAMove(long upperTimeLimit){
 		//calculated Move
 		int[] positionAndInfo;
 		int[] validPosition = new int[]{-1,-1,-1};
@@ -527,20 +531,21 @@ public class Client{
 		ArrayList<int[]> validMovesByOwnColor;
 
 		map.setPlayer(myPlayerNr);
-
 		//calculate possible moves
-		validMoves = Map.getValidMoves(map,timed,printOn, serverLog,Long.MAX_VALUE);
+		validMoves = Map.getValidMoves(map,timed,printOn, serverLog,upperTimeLimit);
 
 		//calculate value of map and print it
-		try {
-			valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne,timed, serverLog, Long.MAX_VALUE)*100)/100;
-		}
-		catch (TimeoutException TE) {
-			System.out.println("TimeOutException in MakeAMove");
-			return;
-		}
-		if (printOn) System.out.println("Value of Map is " + valueOfMap);
 
+		if (printOn){
+			try {
+				valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne,timed, serverLog, upperTimeLimit)*100)/100;
+			}
+			catch (TimeoutException TE) {
+				System.out.println("TimeOutException in MakeAMove");
+				return;
+			}
+			System.out.println("Value of Map is " + valueOfMap);
+		}
 		//check for error
 		if (validMoves.isEmpty()) {
 			System.err.println("Something's wrong - Valid Moves are empty but server says they're not");
@@ -549,7 +554,7 @@ public class Client{
 
 		//make a calculated move
 		if (calculateMove) {
-			validPosition = searchTree.getMove(map, timed, depth, phaseOne, validMoves, time, moveCounter);
+			validPosition = searchTree.getMove(map, timed, depth, phaseOne, validMoves, upperTimeLimit, moveCounter);
 			//validPosition = getMoveTimeDepth(phaseOne, validMoves);
 			//validPosition = validMoves.get( random.nextInt(validMoves.size()) );
 		}
@@ -665,7 +670,7 @@ public class Client{
 	}
 
 	//phase 2 - bomb phase
-	private void setABomb(){
+	private void setABomb(long upperTimeLimit){
 		int[] validPosition;
 		ArrayList<int[]> validMoves;
 		boolean moveIsPossible = false;
@@ -687,7 +692,7 @@ public class Client{
 		{
             if (!pickARandom)
 			{
-				validPosition = searchTree.getMove(map, timed, depth, phaseOne, validMoves, time, moveCounter);
+				validPosition = searchTree.getMove(map, timed, depth, phaseOne, validMoves, upperTimeLimit, moveCounter);
 				//validPosition = getMoveTimeDepth(phaseOne, validMoves);
 
 				posToSetKeystone = new Position(validPosition[0], validPosition[1]);

@@ -45,18 +45,19 @@ public class SearchTree {
         heuristicForSimulation = new Heuristic(map, myPlayerNr, false, false, multiplier);
     }
 
-    public int[] getMove(Map map, boolean timed, int depth, boolean phaseOne, ArrayList<int[]> validMoves, long time, int moveCounter){
+    public int[] getMove(Map map, boolean timed, int depth, boolean phaseOne, ArrayList<int[]> validMoves, long upperTimeLimit, int moveCounter){
 
         this.timed = timed;
         this.depth = depth;
         this.moveCounter = moveCounter;
+        this.upperTimeLimit = upperTimeLimit;
 
         int[] moveToMake = new int[]{-1, -1, -1};
 
         Statistic statistic;
 
         if (timed){
-            moveToMake = getMoveByTime(map, phaseOne, validMoves, time);
+            moveToMake = getMoveByTime(map, phaseOne, validMoves);
         }
         else {
             statistic = new Statistic(depth);
@@ -231,7 +232,7 @@ public class SearchTree {
         return validMoves.get(indexOfBest);
     }
 
-    private int[] getMoveByTime(Map map, boolean phaseOne, ArrayList<int[]> validMoves, long time){
+    private int[] getMoveByTime(Map map, boolean phaseOne, ArrayList<int[]> validMoves){
         //declarations
         Statistic statistic = null;
         int[] currMove;
@@ -239,10 +240,10 @@ public class SearchTree {
         //Timing
         long startTime = System.nanoTime();
         long totalTime;
-        long timeOffset = 500_000_000; // xxx_000_000 ns -> xxx ms
         long timeOffsetCatch = 50_000_000;
         long timeNextDepth = timeForLastDepth1;
-        upperTimeLimit = startTime + time * 1_000_000 - timeOffset;
+
+
         double totalNodesToGoOver;
 
 
