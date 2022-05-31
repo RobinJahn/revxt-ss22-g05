@@ -19,7 +19,7 @@ public class Client{
 
 	final private boolean useAB;
 	final private boolean useMS;
-	final private boolean useBRS = false;
+	final private boolean useBRS = true;
 	final private boolean useKH = true;
 
 	private boolean timed = true;
@@ -46,6 +46,10 @@ public class Client{
 		boolean useColors = true;
 		boolean compare_to_Server = false;
 		boolean extendedPrint = false;
+
+		boolean useAB = true;
+		boolean useMS = true;
+
 		//variables for the server
 		String ip = "127.0.0.1";
 		int port = 7777;
@@ -53,8 +57,6 @@ public class Client{
 		//variables for the heuristic
 		final int countOfMultipliers = Heuristic.countOfMultipliers;
 		double[] multipliers = null;
-		boolean useAB = true;
-		boolean useMS = true;
 
 		//get call arguments
 		for (int i = 0; i < args.length; i++){
@@ -293,6 +295,9 @@ public class Client{
 		int[] timeAndDepth;
 		String map_For_Comparison = "";
 		moveCounter = 0;
+		long timeOffset;
+		long upperTimeLimit;
+		long startTime;
 
 		if (extendedPrint) System.out.println(map.toString(null,true,useColors));
 
@@ -305,10 +310,8 @@ public class Client{
 
 				case 4: //Move Request
 				{
-					//Set UpperTimeLimit
-					long startTime = System.nanoTime();
-					long timeOffset = 500_000_000; // xxx_000_000 ns -> xxx ms
-					long upperTimeLimit = startTime + time * (long)1_000_000 - timeOffset;
+					//Start Timer
+					startTime = System.nanoTime();
 
 					if (printOn) {
 						System.out.println("received Move Request");
@@ -327,6 +330,8 @@ public class Client{
 					}
 					//set timed
 					timed = time != 0;
+					timeOffset = 500_000_000;// xxx_000_000 ns -> xxx ms
+					upperTimeLimit = startTime + time * (long)1_000_000 - timeOffset;
 					if (timed && printOn) System.out.println("We have: " + time + "ms");
 
 					if (depth == 0) depth = Integer.MAX_VALUE;

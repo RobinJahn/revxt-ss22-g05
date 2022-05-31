@@ -114,7 +114,7 @@ public class SearchTree {
         }
 
         //prints
-        if (printOn || serverLog) {
+        if (printOn) {
             System.out.println("Calculating values for " + validMoves.size() + " moves with depth " + this.depth);
             System.out.println("Currently at: ");
         }
@@ -123,7 +123,7 @@ public class SearchTree {
         //go over every move
         for (int i = 0; i < validMoves.size(); i++) {
             //prints
-            if (printOn || serverLog){
+            if (printOn){
                 if (!extendedPrint) System.out.print((i+1) + ", ");
                 else System.out.println((i+1) + ", ");
             }
@@ -278,6 +278,8 @@ public class SearchTree {
                 if (printOn || serverLog) {
                     System.out.println("Time out Exception thrown");
                     System.out.println("Time Remaining (excluding offset): " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");
+                }
+                if (printOn){
                     System.out.println(Arrays.toString(te.getStackTrace()).replace(", ","\n"));
                 }
                 return validPosition;
@@ -287,8 +289,8 @@ public class SearchTree {
             validPosition = currMove;
 
             //time comparison prints
+            if (printOn) System.out.println("Expected Time needed for this depth: " + timeNextDepth/ 1_000_000 + "ms");
             if (printOn || serverLog){
-                System.out.println("Expected Time needed for this depth: " + timeNextDepth/ 1_000_000 + "ms");
                 System.out.println("Actual time needed: " + (double)statistic.totalComputationTime/ 1_000_000 + "ms");
                 System.out.println("Approximation: " + approximation);
             }
@@ -312,14 +314,16 @@ public class SearchTree {
             if (depth == 1) timeForLastDepth1 = statistic.totalComputationTime;
 
             //prints after one depth
-            if (printOn || serverLog) {
+            if (printOn) {
                 //print recommended move
-                if (phaseOne) System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + "," + validPosition[2] + ")");
+                if (phaseOne)
+                    System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + "," + validPosition[2] + ")");
                 else System.out.println("Recommended Move: (" + validPosition[0] + "," + validPosition[1] + ")");
 
                 //print statistic
                 System.out.println(statistic);
-
+            }
+            if (printOn || serverLog) {
                 //print timing information
                 System.out.println("Expected time needed for next depth: " + (double)timeNextDepth/ 1_000_000 + "ms");
                 System.out.println("Time Remaining: " + (double)(upperTimeLimit - System.nanoTime()) / 1_000_000 + "ms");

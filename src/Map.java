@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Map{
 
-    final static boolean useArrows = true;
+    final static boolean useArrows = false;
     final static private boolean checkIfAllArrowsAreCorrect = false;
 
     //static Map
