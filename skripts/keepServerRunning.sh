@@ -36,17 +36,21 @@ do
 	done
 
 	#start server
-	if [ $time -eq 0 ]
+	if (( $(echo "$time==0" | bc -l) ))
 	then
 		if [ $depth -eq 0 ]; then
+			echo "./server_nogl -m $mapName"
 			./server_nogl -m $mapName
 		else
+			echo "./server_nogl -m $mapName -d $depth"
 			./server_nogl -m $mapName -d $depth
 		fi
 	else
 		if [ $depth -eq 0 ]; then
+			echo "./server_nogl -m $mapName -t $time"
 			./server_nogl -m $mapName -t $time
 		else
+		       	echo "./server_nogl -m $mapName -d $depth -t $time"
 		       	./server_nogl -m $mapName -d $depth -t $time
 		fi
 	fi
