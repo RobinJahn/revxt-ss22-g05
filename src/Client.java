@@ -36,7 +36,7 @@ public class Client{
 	double approximation = 1;
 	SearchTree searchTree;
 
-	int CountOfReachableFields = 0;
+	int CountOfReachableFields = 1;
 
 	Random random = new Random(1);
 
@@ -206,7 +206,7 @@ public class Client{
 
 		//Staging Preparations
 
-		CountOfReachableFields = getCountOfReachableFields();
+		//CountOfReachableFields = getCountOfReachableFields();
 
 		if (printOn) {
 			System.out.println("Fill Percentage: " + getFillPercentage());
@@ -274,25 +274,11 @@ public class Client{
 	private double getFillPercentage()
 	{
 		int occupiedFields = 0;
-		for(int x = 0;x<map.getWidth();x++)
-		{
-			for(int y = 0; y<map.getHeight();y++)
-			{
-				char fieldValue = map.getCharAt(x,y);
-				switch (fieldValue)
-				{
-					case '1':
-					case '2':
-					case '3':
-					case '4':
-					case '5':
-					case '6':
-					case '7':
-					case '8':
-					case 'x': occupiedFields++; break;
-				}
-			}
+		for (int playerNR = 1; playerNR <= map.getAnzPlayers(); playerNR++){
+			occupiedFields += map.getCountOfStonesOfPlayer(playerNR);
 		}
+		occupiedFields += map.getExpansionFields().size();
+
 		return occupiedFields / (double) CountOfReachableFields;
 	}
 
@@ -397,12 +383,17 @@ public class Client{
 					else Map.updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, moveOfPlayer, map);
 
 					if (printOn) {
-						if (firstPhase) {
+						if (firstPhase && Map.useArrows) {
 							ArrayList<int[]> validMovesByArrows;
-							ArrayList<int[]> validMovesByOwnColor;
+							ArrayList<int[]> validMovesByOwnColor = null;
 							//calculate possible moves
 							validMovesByArrows = map.getValidMovesByArrows(firstPhase);
-							validMovesByOwnColor = Map.getFieldsByOwnColor(map, timed, printOn, serverLog, Long.MAX_VALUE);
+							try {
+								validMovesByOwnColor = Map.getFieldsByOwnColor(map, timed, printOn, serverLog, Long.MAX_VALUE);
+							}
+							catch (TimeoutException e){
+								System.err.println("Something went wrong - timeout exception was thrown even if no time limit was set");
+							}
 
 							//prints map
 							if (!compareValidMoves(firstPhase, validMovesByOwnColor)) {
@@ -414,16 +405,25 @@ public class Client{
 							} else {
 								System.out.println(map.toString(validMovesByArrows, false, useColors));
 							}
+
+							//check if arrows are correct
+							System.out.println("Reference in Affected Arrows: " + map.checkForReferenceInAffectedArrows());
+							System.out.println("All valid Moves are correct: " + map.checkValidMoves());
+							System.out.println("All overwrite Moves are correct: " + map.checkOverwriteMoves());
+							System.out.println();
 						}
 						else {
-							System.out.println(map.toString(Map.getValidMoves(map, timed, printOn, serverLog, Long.MAX_VALUE), false, useColors));
+							ArrayList<int[]> validMoves = null;
+							try {
+								validMoves = Map.getValidMoves(map, timed, printOn, serverLog, Long.MAX_VALUE);
+							}
+							catch (TimeoutException e){
+								System.err.println("Something went wrong - timeout exception was thrown even if no time limit was set");
+							}
+							System.out.println(map.toString(validMoves, false, useColors));
 						}
 
-						//check if arrows are correct
-						System.out.println("Reference in Affected Arrows: " + map.checkForReferenceInAffectedArrows());
-						System.out.println("All valid Moves are correct: " + map.checkValidMoves());
-						System.out.println("All overwrite Moves are correct: " + map.checkOverwriteMoves());
-						System.out.println();
+
 
 
 						double valueOfMap;
@@ -510,7 +510,11 @@ public class Client{
 	//Compare to Server
 	private String StringForServerCompare(String map_For_Comparison)
 	{
-		map_For_Comparison += map.toString_Server(Map.getValidMoves(map, timed, printOn, serverLog, 0));
+		try {
+			map_For_Comparison += map.toString_Server(Map.getValidMoves(map, timed, printOn, serverLog, 0));
+		} catch (ExceptionWithMove e) {
+			e.printStackTrace();
+		}
 		return map_For_Comparison;
 	}
 
@@ -532,7 +536,16 @@ public class Client{
 
 		map.setPlayer(myPlayerNr);
 		//calculate possible moves
-		validMoves = Map.getValidMoves(map,timed,printOn, serverLog,upperTimeLimit);
+		if (printOn) System.out.println("Get Valid Moves in make a move");
+		try {
+			validMoves = Map.getValidMoves(map, timed, printOn, serverLog, upperTimeLimit);
+		} catch (ExceptionWithMove e) {
+			validPosition = e.PosAndInfo;
+			//send message where to move
+			serverM.sendMove(validPosition[0], validPosition[1], validPosition[2], myPlayerNr);
+			return;
+		}
+
 
 		//calculate value of map and print it
 
@@ -775,7 +788,7 @@ public class Client{
 	}
 
 	private boolean compareValidMoves(boolean phaseOne, ArrayList<int[]> validMoves) {
-		if (!Map.useArrows) return true;
+		if (!Map.useArrows || validMoves == null) return true;
 		boolean contains;
 		boolean containsAll = true;
 		ArrayList<int[]> validMovesByColorExtra = new ArrayList<>();

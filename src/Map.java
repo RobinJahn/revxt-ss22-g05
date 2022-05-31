@@ -700,10 +700,16 @@ public class Map{
         overwriteStonesPerPlayer[currentlyPlaying-1]--;
     }
 
-    public void nextPlayer(){
+    public int nextPlayer(){
+        int skippedPlayers = -1;
         //TODO: check if player can make a move
-        currentlyPlaying++;
-        if (currentlyPlaying == staticMap.anzPlayers+1) currentlyPlaying = 1;
+        do {
+            currentlyPlaying++;
+            if (currentlyPlaying == staticMap.anzPlayers+1) currentlyPlaying = 1;
+            skippedPlayers++;
+        } while (disqualifiedPlayers[currentlyPlaying - 1]);
+
+        return skippedPlayers;
     }
 
     public  int getNextPlayer(){
@@ -1407,7 +1413,7 @@ public class Map{
      * @param map map to check for possible moves
      * @return returns an Array List of Positions
      */
-    public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit){
+    public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws ExceptionWithMove {
         ArrayList<int[]> everyPossibleMove;
 
         if (useArrows){
@@ -1415,10 +1421,6 @@ public class Map{
         }
         else {
             everyPossibleMove = getFieldsByOwnColor(map, timed, printOn, serverLog, upperTimeLimit);
-
-            if (everyPossibleMove.isEmpty()){
-                System.err.println("Found no moves in time");
-            }
         }
 
         return everyPossibleMove;
@@ -1479,7 +1481,7 @@ public class Map{
         return false;
     }
 
-    public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit){
+    public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws ExceptionWithMove{
         HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
         ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
         int r;
@@ -1500,8 +1502,7 @@ public class Map{
         //out of time ?
         if (timed && (upperTimeLimit-System.nanoTime() < 0)){
             if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
-
-            return resultPosAndInfo;
+            throw new ExceptionWithMove(resultPosAndInfo.get(0));
         }
 
         //goes over every position of the current player and checks in all directions if a move is possible

@@ -568,7 +568,7 @@ public class SearchTree {
         return nextMap;
     }
 
-    private boolean getMovesForNextPlayer(Map map, ArrayList<int[]> movesToReturn, boolean phaseOne,boolean timed,boolean printOn,boolean ServerLog){
+    private boolean getMovesForNextPlayer(Map map, ArrayList<int[]> movesToReturn, boolean phaseOne,boolean timed,boolean printOn,boolean ServerLog) throws TimeoutException {
         ArrayList<int[]> everyPossibleMove;
         int skippedPlayers = 0;
 
@@ -593,7 +593,7 @@ public class SearchTree {
             //if there are no possible moves
 
             //check if the next player can make a move
-            map.nextPlayer();
+            skippedPlayers += map.nextPlayer();
             skippedPlayers++;
 
             //if no player can make a move
