@@ -86,6 +86,9 @@ public class Client{
 				case "--output":
 				case "-o": printOn = true; break;
 
+				case "--useArrows":
+				case "-ua": Map.useArrows = true; break;
+
 				case "--group-number-addition":
 				case "-gna":
 					if (i < args.length -1) i++;
@@ -145,6 +148,7 @@ public class Client{
 				"-o or --output \t\t\t\t\t\t Activates output\n" +
 				"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n" +
 				"-ab or --alpha-beta \t\t\t\t Disables Alpha-BetaPruning\n" +
+				"-ua or --useArrows \t\t\t\t\t Activates usage of arrows\n"+
 				"-gna or --group-number-addition \t changes the group number to 50 + the given number \n"
 		);
 	}
@@ -330,7 +334,7 @@ public class Client{
 					}
 					//set timed
 					timed = time != 0;
-					timeOffset = 500_000_000;// xxx_000_000 ns -> xxx ms
+					timeOffset = 300_000_000;// xxx_000_000 ns -> xxx ms
 					upperTimeLimit = startTime + time * (long)1_000_000 - timeOffset;
 					if (timed && printOn) System.out.println("We have: " + time + "ms");
 

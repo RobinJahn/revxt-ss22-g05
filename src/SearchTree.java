@@ -72,7 +72,7 @@ public class SearchTree {
         }
 
         if(serverLog) {
-            System.out.println("Search tree: For Move: " + moveCounter + ", Depth: " + this.depth + ", Move: " + Arrays.toString(moveToMake));
+            System.out.println("Search tree: For Move: " + moveCounter + ", Depth: " + (this.depth-1) + ", Move: " + Arrays.toString(moveToMake));
             System.out.println();
         }
 
@@ -242,7 +242,6 @@ public class SearchTree {
         long totalTime;
         long timeOffsetCatch = 50_000_000;
         long timeNextDepth = timeForLastDepth1;
-
 
         double totalNodesToGoOver;
 

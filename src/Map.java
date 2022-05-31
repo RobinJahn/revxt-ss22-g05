@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Map{
 
-    final static boolean useArrows = false;
+    static boolean useArrows = false; //needs to stay false because it can bes set by parameter
     final static private boolean checkIfAllArrowsAreCorrect = false;
 
     //static Map
@@ -1500,7 +1500,7 @@ public class Map{
         }
 
         //out of time ?
-        if (timed && (upperTimeLimit-System.nanoTime() < 0)){
+        if (timed && (upperTimeLimit-System.nanoTime() < 0)){ //TODO: this can lead to a null pointer exception
             if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
             throw new ExceptionWithMove(resultPosAndInfo.get(0));
         }
@@ -1513,7 +1513,7 @@ public class Map{
                 //out of time ?
                 if (timed && (upperTimeLimit-System.nanoTime() < 0)){
                     if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
-                    return resultPosAndInfo;
+                    throw new ExceptionWithMove(resultPosAndInfo.get(resultPosAndInfo.size()-1 ));
                 }
 
                 newR = r;
