@@ -891,7 +891,7 @@ public class Map{
         for (int j = i; j < currArrow.positionsWithDirection.size(); j++) {
             //  start position
             if (j == 0) {
-                System.err.println("Something went wrong - While Updating Arrow it got deleted");
+                System.err.println("Something went wrong - While Updating Arrow, it got deleted");
                 posAndR = currArrow.positionsWithDirection.get(0);
                 StartingArrows[posAndR[1]][posAndR[0]][posAndR[2]] = currArrow;
             }
@@ -933,7 +933,7 @@ public class Map{
             //check for walls
             if (nextR == null) {
                 //set end to position it can't go to
-                currPos = Position.goInR(currPos, direction);
+                currPos = Position.goInR(currPos, newR);
                 break;
             }
             newR = nextR;

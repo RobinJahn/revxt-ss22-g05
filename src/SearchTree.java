@@ -126,6 +126,7 @@ public class SearchTree {
             if (printOn){
                 if (!extendedPrint) System.out.print((i+1) + ", ");
                 else System.out.println((i+1) + ", ");
+                if (i % map.getWidth() == 0) System.out.println();
             }
 
             //get values and reset values

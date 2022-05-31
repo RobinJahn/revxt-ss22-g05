@@ -366,7 +366,7 @@ public class Client{
 				{
 					if (printOn) {
 						System.out.println("received Move");
-						System.out.println("Move: " + moveCounter);
+ 						System.out.println("Move: " + moveCounter);
 					}
 
 					moveCounter++;
@@ -410,16 +410,23 @@ public class Client{
 								System.out.println(map.toString(validMovesByOwnColor, false, useColors));
 								System.out.println("With move carry along");
 								System.out.println(map.toString(map.getValidMovesByArrows(firstPhase), false, useColors));
+
+								//check if arrows are correct
+								System.out.println("Reference in Affected Arrows: " + map.checkForReferenceInAffectedArrows());
+								System.out.println("All valid Moves are correct: " + map.checkValidMoves());
+								System.out.println("All overwrite Moves are correct: " + map.checkOverwriteMoves());
+								System.out.println();
+
 								return;
 							} else {
 								System.out.println(map.toString(validMovesByArrows, false, useColors));
-							}
 
-							//check if arrows are correct
-							System.out.println("Reference in Affected Arrows: " + map.checkForReferenceInAffectedArrows());
-							System.out.println("All valid Moves are correct: " + map.checkValidMoves());
-							System.out.println("All overwrite Moves are correct: " + map.checkOverwriteMoves());
-							System.out.println();
+								//check if arrows are correct
+								System.out.println("Reference in Affected Arrows: " + map.checkForReferenceInAffectedArrows());
+								System.out.println("All valid Moves are correct: " + map.checkValidMoves());
+								System.out.println("All overwrite Moves are correct: " + map.checkOverwriteMoves());
+								System.out.println();
+							}
 						}
 						else {
 							ArrayList<int[]> validMoves = null;
@@ -836,7 +843,7 @@ public class Client{
 			System.err.println("Moves of arrows and moves by own color do not match");
 			System.out.println("Moves, that only valid Moves by color contain:");
 			System.out.println( Arrays.deepToString(validMovesByColorExtra.toArray()) );
-			System.out.println("Moves, that only valid Moves by arrows:");
+			System.out.println("Moves, that only valid Moves by arrows contain:");
 			System.out.println( Arrays.deepToString(validMovesByArrowExtra.toArray()) );
 			return false;
 		}
