@@ -461,10 +461,10 @@ public class Client{
 
 				case 7: //Disqualification
 				{
-					if (printOn) System.out.println("received Disqualification");
+					if (printOn || serverLog) System.out.println("received Disqualification");
 					int player = serverM.readRestOfDisqualification();
 					map.disqualifyPlayer(player);
-					if (printOn) System.out.println("Player " + player + " was disqualified");
+					if (printOn || serverLog) System.out.println("Player " + player + " was disqualified");
 					if (player == myPlayerNr) gameOngoing = false;
 					break;
 				}
@@ -474,7 +474,7 @@ public class Client{
 					serverM.readRestOfNextPhase();
 					firstPhase = false;
 					approximation = 1;
-					if (printOn) {
+					if (printOn || serverLog) {
 						System.out.println("received end of phase 1");
 						System.out.println("reset approximation");
 					}
@@ -483,7 +483,7 @@ public class Client{
 
 				case 9: //End of Phase 2
 				{
-					if (printOn) System.out.println("received end of phase 2 - game ended");
+					if (printOn || serverLog) System.out.println("received end of phase 2 - game ended");
 
 					if (compare_to_Server) {
 						map_For_Comparison = StringForServerCompare(map_For_Comparison);
