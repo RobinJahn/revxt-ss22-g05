@@ -158,6 +158,7 @@ public class SearchTree {
             //  get next phase
             phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, serverLog);
 
+
             //  add values to statistic
             statistic.addNodes(validMovesForNext.size(), depth+1);
 
@@ -170,7 +171,7 @@ public class SearchTree {
             //GET EVALUATION - based on state of game, leaf node or inner node
 
             //handle Win or Loss
-            if (validMoves.isEmpty()){
+            if (validMovesForNext.isEmpty()){
                 evaluation = returnValueForWinOrLoss(nextMap);
             }
             else {
@@ -452,7 +453,7 @@ public class SearchTree {
             //GET EVALUATION - based on state of game, leaf node or inner node
 
             //handle Win or Loss
-            if (validMoves.isEmpty()){
+            if (validMovesForNext.isEmpty()){
                 //cancelNextDepth = true; TODO: not right, here
                 evaluation = returnValueForWinOrLoss(nextMap);
             }
