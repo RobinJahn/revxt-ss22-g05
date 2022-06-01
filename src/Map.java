@@ -1500,7 +1500,7 @@ public class Map{
         }
 
         //out of time ?
-        if (timed && (upperTimeLimit-System.nanoTime() < 0)){ //TODO: this can lead to a null pointer exception
+        if (!resultPosAndInfo.isEmpty() && timed && (upperTimeLimit-System.nanoTime() < 0)){ //TODO: this can lead to a null pointer exception
             if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
             throw new ExceptionWithMove(resultPosAndInfo.get(0));
         }
@@ -1511,7 +1511,7 @@ public class Map{
             for (r = 0; r <= 7; r++){
 
                 //out of time ?
-                if (timed && (upperTimeLimit-System.nanoTime() < 0)){
+                if (!resultPosAndInfo.isEmpty() && timed && (upperTimeLimit-System.nanoTime() < 0)){
                     if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
                     throw new ExceptionWithMove(resultPosAndInfo.get(resultPosAndInfo.size()-1 ));
                 }
