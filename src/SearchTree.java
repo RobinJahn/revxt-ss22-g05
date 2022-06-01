@@ -756,6 +756,8 @@ public class SearchTree {
 
     //BRS+
     private ArrayList<Integer> useBRS1(ArrayList<Integer> indexList, boolean isMax, int brsCount){
+        if (indexList.isEmpty()) return indexList;
+
         ArrayList<Integer> newIndexList = indexList;
         if (!isMax && brsCount == 2){
             newIndexList = new ArrayList<>();
