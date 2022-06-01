@@ -490,7 +490,7 @@ public class Heuristic {
             while (true) {
                 newR = map.doAStep(pos, newR);
 
-                if (newR == null || ( pos.equals(savedPos) && newR == r )){
+                if (newR == null || pos.equals(savedPos)){ //should be ( pos.equals(savedPos) && newR == r )
                     break;
                 }
                 reachableFields[r]++;
