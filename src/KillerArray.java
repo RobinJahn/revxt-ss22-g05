@@ -6,7 +6,7 @@ public class KillerArray {
 
     private int length = 0;
 
-    //@Todo Cuts anhand Höhe Bewerten
+    //@Todo Evaluate cuts by height
     //@Todo Parameter testing
     private int maxLength = 10;
 
