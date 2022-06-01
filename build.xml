@@ -17,7 +17,7 @@
 
     <target name="compile" description="compile the source">
         <!-- Compile the Java code from ${src} into ${build} -->
-        <javac srcdir="${src}" includeantruntime="false" destdir="${build}"/>
+        <javac encoding="UTF-8" srcdir="${src}" includeantruntime="false" destdir="${build}"/>
     </target>
 
     <target name="makejar" description="generate the jar">
