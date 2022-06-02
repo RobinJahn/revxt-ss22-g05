@@ -45,7 +45,7 @@ public class Client{
 		boolean printOn = false;
 		boolean useColors = true;
 		boolean compare_to_Server = false;
-		boolean extendedPrint = true;
+		boolean extendedPrint = false;
 
 		boolean useAB = true;
 		boolean useMS = true;

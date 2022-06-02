@@ -300,15 +300,17 @@ public class Heuristic {
         //Variables
         int myPossibleMoves = 0;
         int possibleMovesOfEnemies = 0;
-        double enemyMovesAverage;
         double countOfMovesEvaluation;
 
         //gets possible moves of all players and adds them to the corresponding move counter
         for (int i = 1; i <= map.getAnzPlayers(); i++) {
+
+            //out of time ?
             if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
                 if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get FieldValue)");
                 throw new TimeoutException();
             }
+
             if (myColorI == map.getCurrentlyPlayingI()) {
                 myPossibleMoves = Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size();
             } else {
@@ -317,11 +319,8 @@ public class Heuristic {
             map.nextPlayer();
         } //resets to currently playing
 
-        //get percentages out of it
-        enemyMovesAverage = (double)possibleMovesOfEnemies/((double)map.getAnzPlayers()-1);
 
-        //set possible moves percentage
-        countOfMovesEvaluation = (myPossibleMoves - enemyMovesAverage);
+        countOfMovesEvaluation = (double)(myPossibleMoves * map.getAnzPlayers()) / (myPossibleMoves + possibleMovesOfEnemies); //actual formula: #myMoves in % / average moves per player in % -> (#myMoves/#allMoves ) / (1/#player)
 
         return countOfMovesEvaluation;
     }
@@ -331,7 +330,6 @@ public class Heuristic {
         //Variables
         int countOfOwnStones;
         int countOfEnemyStones = 0;
-        double enemyStonesAverage;
         double countOfStonesEvaluation;
 
         //gets count of own stones
@@ -343,13 +341,7 @@ public class Heuristic {
             countOfEnemyStones += map.getCountOfStonesOfPlayer(playerNr);
         }
 
-        //get percentages out of it
-        enemyStonesAverage = (double)countOfEnemyStones/((double)map.getAnzPlayers()-1);
-
-        //set stone percentage
-
-        countOfStonesEvaluation = (countOfOwnStones - enemyStonesAverage);
-        //else countOfStonesEvaluation = 500; //if enemy has no stones you have 100% stones
+        countOfStonesEvaluation = (double)(countOfOwnStones * map.getAnzPlayers()) / (countOfEnemyStones + countOfOwnStones);  //actual formula: #myStones in % / average colored stones per player in % -> (#myStones/#coloredStones ) / (1/#player)
 
         return countOfStonesEvaluation;
     }

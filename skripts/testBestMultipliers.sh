@@ -50,7 +50,7 @@ bestM4=1
 #get all Maps	
 cd ..
 cd Maps
-maps=($(ls | grep ".*.map"))
+maps=($(ls | grep "\.map"))
 echo "maps: "
 echo "${maps[@]}"
 
