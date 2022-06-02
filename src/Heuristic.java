@@ -32,6 +32,9 @@ public class Heuristic {
     private double fieldValueMultiplier;
     private double edgeMultiplier;
 
+    //Staging
+    private int stageNumber = 1;
+
 
     /**
      * Constructor - initializes map and my color.
@@ -102,6 +105,24 @@ public class Heuristic {
 
     public void setEdgeMultiplier(double edgeMultiplier) {
         this.edgeMultiplier = edgeMultiplier;
+    }
+
+    /**
+     * Function updates the Heuristic Multipliers according to the current GameStage
+     * @param stageNumber is the current game Stage 1 = Early Game, 2 = Mid Game, 3 = Late Game
+     */
+    public void updateHeuristicMultipliers(int stageNumber)
+    {
+        if(this.stageNumber != stageNumber)
+        {
+            this.stageNumber = stageNumber;
+            switch (stageNumber)
+            {
+                case 1: setMoveCountMultiplier(4); setStoneCountMultiplier(5); setFieldValueMultiplier(1); setEdgeMultiplier(2); break;
+                case 2: setMoveCountMultiplier(8); break;
+                case 3: setMoveCountMultiplier(4); setStoneCountMultiplier(10); break;
+            }
+        }
     }
 
     /**

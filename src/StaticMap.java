@@ -428,6 +428,8 @@ public class StaticMap {
 
     //Helper
 
+
+    //@ToDO
     private int getCountOfReachableFields()
     {
         TreeSet<Integer> TreeSet = new TreeSet<>();

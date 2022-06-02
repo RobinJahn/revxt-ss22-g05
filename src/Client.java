@@ -274,16 +274,15 @@ public class Client{
 
 					if (depth == 0) depth = Integer.MAX_VALUE;
 
-					//Stages //heuristic.setStage(int Stagenumber)
+					//Staging
 					double fillPercentage = map.getFillPercentage();
 					if(fillPercentage > 0.5 && fillPercentage < 0.8)
 					{
-						heuristic.setMoveCountMultiplier(4);
+						heuristic.updateHeuristicMultipliers(2);
 					}
 					else if(fillPercentage> 0.8)
 					{
-						heuristic.setMoveCountMultiplier(1);
-						heuristic.setStoneCountMultiplier(8);
+						heuristic.updateHeuristicMultipliers(3);
 					}
 					if(printOn) System.out.println("Fill Percentage: " + String.format("%.2f",fillPercentage*100) + "%");
 
@@ -1168,8 +1167,7 @@ public class Client{
 
 		//Resort Array to include Killer Heuristic
 		if(useKH){
-
-			ArrayList<Integer> newIndexList = new ArrayList<Integer>(indexList.size());
+			int anzahl = 0;
 			for(int i = 0;i< KillerArray.getLength();i++)
 			{
 				//Out of Time ?
@@ -1185,18 +1183,17 @@ public class Client{
 					//If We found a Move which cuts off we place it in front
 					if(Arrays.equals(KillerArray.getPositionAndInfo(i), positionAndInfo))
 					{
-						//@Todo Refine This(Indexverschiebung instead of copy)
 						if(j < indexList.size()) {
-							newIndexList.add(indexList.get(j));
-							indexList.remove(j);
+							Integer temp = indexList.get(j);
+							indexList.set(j,indexList.get(anzahl));
+							indexList.set(anzahl,temp);
+							anzahl++;
 						}
+						if(printOn) System.out.println("Killer Heuristic swapped a move forward");
+						break;
 					}
 				}
 			}
-			//Append the remaining Moves
-			newIndexList.addAll(indexList);
-			//Overwrite Old IndexList
-			indexList = newIndexList;
 		}
 
 		//go over every possible move
@@ -1313,7 +1310,7 @@ public class Client{
 						//statistic.reduceNodes(countOfCutoffSiblings, depth);
 						//Killer Heuristic
 						if(useKH) {
-							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffSiblings);
+							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffSiblings*(2/(depth+1)));
 						}
 						//Print before return
 						if (extendedPrint) {
@@ -1337,7 +1334,7 @@ public class Client{
 						//statistic.reduceNodes(countOfCutoffLeaves, depth);
 						//Killer Heuristic
 						if(useKH) {
-							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffLeaves);
+							KillerArray.add(new PositionAndInfo(positionAndInfo), countOfCutoffLeaves*(2/(depth+1)));
 						}
 						//Print before return
 						if (extendedPrint) {
