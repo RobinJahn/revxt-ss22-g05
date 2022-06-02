@@ -32,7 +32,7 @@ public class StaticMap {
         if (!importedCorrectly) {
             System.err.println("Map didn't import correctly.");
         }
-        countOfReachableFields = (height-2)*(width-2); //approximation //TODO: replace with working function below
+        countOfReachableFields = (height-2)*(width-2); //approximation
         //countOfReachableFields = getCountOfReachableFields();
     }
 
@@ -432,23 +432,25 @@ public class StaticMap {
     //@ToDO
     private int getCountOfReachableFields()
     {
-        TreeSet<Integer> TreeSet = new TreeSet<>();
-        PriorityQueue<Integer> Queue = new PriorityQueue<>();
-        countOfReachableFields = 1;
 
-        for(int x = 0;x<width;x++)
+        char[][] map = this.map.clone();
+        PriorityQueue<Integer> Queue = new PriorityQueue<>();
+        countOfReachableFields = 0;
+        //Fill Queue with Starting Positions
+        for(int y = 0;y<height;y++)
         {
-            for(int y = 0; y<height;y++)
+            for(int x = 0; x<width;x++)
             {
                 char fieldValue = map[y][x];
                 if(fieldValue == 'x' && initialOverwriteStones > 0)
                 {
-                    TreeSet.add(x*100+y);
+                    map[y][x] = 'R';
+                    Queue.add((x)*100+(y));
                 }
                 else if((fieldValue >= '1' && fieldValue <= '8'))
                 {
-                    TreeSet.add(x*100+y);
-                    Queue.add(x*100+y);
+                    map[y][x] = 'R';
+                    Queue.add((x)*100+(y));
                 }
             }
         }
@@ -457,32 +459,34 @@ public class StaticMap {
 
         while((location = Queue.poll() )!= null)
         {
-            Position currPosition = new Position(location / 100,location % 100);
-            Position startPosition = new Position(location / 100,location % 100);
 
             for(int r = 0; r<8;r++)
             {
-                char value;
-                Integer newr = r;
-                do {
-                    newr = doAStep(currPosition, newr);
-                    if(newr == null)
-                    {
-                        break;
-                    }
-                    value = map[currPosition.y][currPosition.x];
-                    if(value == '0' || value == 'b' || value == 'i' || value == 'c')
-                    {
-                        if(TreeSet.add(currPosition.x*100+ currPosition.y))
-                        {
-                            Queue.add(currPosition.x*100+ currPosition.y);
-                        }
-                    }
-                } while (currPosition != startPosition && value != '-');
+                char value1;
+                char value2;
+                Position pos1 = new Position(location / 100,location % 100);
+                Position pos2 = new Position(location / 100,location % 100);
+
+
+                Integer wall1 = doAStep(pos1, r);
+                Integer wall2 = doAStep(pos2, (r+4)%8);
+                if(wall1  == null || wall2 == null)
+                {
+                    continue;
+                }
+                value1 = map[pos1.y][pos1.x];
+                value2 = map[pos2.y][pos2.x];
+                if((value1 == '0' || value1 == 'b' || value1 == 'i' || value1 == 'c') && value2 =='R' )
+                {
+                        countOfReachableFields++;
+                        map[pos1.y][pos1.x] = 'R';
+                        Queue.add(pos1.x*100+ pos1.y);
+                }
             }
         }
 
-        return TreeSet.size();
+        return countOfReachableFields;
+
     }
 
 }
