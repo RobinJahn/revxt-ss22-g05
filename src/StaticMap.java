@@ -1,10 +1,7 @@
 package src;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class StaticMap {
     //main data structure to store the Map Infos
@@ -22,6 +19,7 @@ public class StaticMap {
     public int explosionRadius;
     public int height;
     public int width;
+    public int countOfReachableFields;
 
     //private
     private boolean importedCorrectly;
@@ -34,6 +32,8 @@ public class StaticMap {
         if (!importedCorrectly) {
             System.err.println("Map didn't import correctly.");
         }
+        countOfReachableFields = (height-2)*(width-2); //approximation //TODO: replace with working function below
+        //countOfReachableFields = getCountOfReachableFields();
     }
 
     //PUBLIC METHODS
@@ -424,6 +424,63 @@ public class StaticMap {
         for (int playerNr = 0; playerNr < anzPlayers; playerNr++) {
             initialStonesPerPlayer.add(new HashSet<>());
         }
+    }
+
+    //Helper
+
+    private int getCountOfReachableFields()
+    {
+        TreeSet<Integer> TreeSet = new TreeSet<>();
+        PriorityQueue<Integer> Queue = new PriorityQueue<>();
+        countOfReachableFields = 1;
+
+        for(int x = 0;x<width;x++)
+        {
+            for(int y = 0; y<height;y++)
+            {
+                char fieldValue = map[y][x];
+                if(fieldValue == 'x' && initialOverwriteStones > 0)
+                {
+                    TreeSet.add(x*100+y);
+                }
+                else if((fieldValue >= '1' && fieldValue <= '8'))
+                {
+                    TreeSet.add(x*100+y);
+                    Queue.add(x*100+y);
+                }
+            }
+        }
+
+        Integer location;
+
+        while((location = Queue.poll() )!= null)
+        {
+            Position currPosition = new Position(location / 100,location % 100);
+            Position startPosition = new Position(location / 100,location % 100);
+
+            for(int r = 0; r<8;r++)
+            {
+                char value;
+                Integer newr = r;
+                do {
+                    newr = doAStep(currPosition, newr);
+                    if(newr == null)
+                    {
+                        break;
+                    }
+                    value = map[currPosition.y][currPosition.x];
+                    if(value == '0' || value == 'b' || value == 'i' || value == 'c')
+                    {
+                        if(TreeSet.add(currPosition.x*100+ currPosition.y))
+                        {
+                            Queue.add(currPosition.x*100+ currPosition.y);
+                        }
+                    }
+                } while (currPosition != startPosition && value != '-');
+            }
+        }
+
+        return TreeSet.size();
     }
 
 }

@@ -513,6 +513,20 @@ public class Map{
         return disqualifiedPlayers[PlayerNum-1];
     }
 
+    public int getCountOfReachableFields(){
+        return staticMap.countOfReachableFields;
+    }
+
+    public double getFillPercentage()
+    {
+        int occupiedFields = 0;
+        for (int playerNR = 1; playerNR <= staticMap.anzPlayers; playerNR++){
+            occupiedFields += getCountOfStonesOfPlayer(playerNR);
+        }
+        //occupiedFields += expansionFields.size(); don't think that's relevant
+
+        return occupiedFields / (double) staticMap.countOfReachableFields;
+    }
 
     // SETTER ----------------------------------------------------------------------------------------------------------
 

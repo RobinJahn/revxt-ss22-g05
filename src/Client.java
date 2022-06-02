@@ -36,7 +36,7 @@ public class Client{
 	double approximation = 1;
 	SearchTree searchTree;
 
-	int CountOfReachableFields = 1;
+
 
 	Random random = new Random(1);
 
@@ -45,7 +45,7 @@ public class Client{
 		boolean printOn = false;
 		boolean useColors = true;
 		boolean compare_to_Server = false;
-		boolean extendedPrint = false;
+		boolean extendedPrint = true;
 
 		boolean useAB = true;
 		boolean useMS = true;
@@ -206,87 +206,20 @@ public class Client{
 		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
 
 		//set variables after map was imported
-		heuristic = new Heuristic(map, myPlayerNr,printOn,extendedPrint,multipliers); // mark
+		heuristic = new Heuristic(map, myPlayerNr, printOn, extendedPrint, multipliers); // mark
 		heuristicForSimulation = new Heuristic(map, myPlayerNr,false,false,multipliers);
 		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, multipliers);
 
 		//Staging Preparations
 
-		//CountOfReachableFields = getCountOfReachableFields();
-
 		if (printOn) {
-			System.out.println("Fill Percentage: " + getFillPercentage());
+			System.out.println("Fill Percentage: " + String.format("%.2f",map.getFillPercentage()*100) + "%");
 			System.out.println();
 		}
 		//start playing
 		play();
 	}
 
-	private int getCountOfReachableFields()
-	{
-		TreeSet<Integer> TreeSet = new TreeSet<>();
-		PriorityQueue<Integer> Queue = new PriorityQueue<>();
-
-		for(int x = 0;x<map.getWidth();x++)
-		{
-			for(int y = 0; y<map.getHeight();y++)
-			{
-				char fieldValue = map.getCharAt(x,y);
-				if(fieldValue == 'x' && map.getOverwriteStonesForPlayer(1) > 0)
-				{
-					TreeSet.add(x*100+y);
-				}
-				else if((fieldValue >= '1' && fieldValue <= '8'))
-				{
-					TreeSet.add(x*100+y);
-					Queue.add(x*100+y);
-				}
-			}
-		}
-
-		Integer location;
-
-		while((location = Queue.poll() )!= null)
-		{
-			Position currPosition = new Position(location / 100,location % 100);
-			Position startPosition = new Position(location / 100,location % 100);
-
-			for(int r = 0; r<8;r++)
-			{
-				char value;
-				Integer newr = r;
-				do {
-					newr = map.doAStep(currPosition, newr);
-					if(newr == null)
-					{
-						break;
-					}
-					value = map.getCharAt(currPosition);
-					if(value == '0' || value == 'b' || value == 'i' || value == 'c')
-					{
-						if(TreeSet.add(currPosition.x*100+ currPosition.y))
-						{
-							Queue.add(currPosition.x*100+ currPosition.y);
-						}
-					}
-				} while (currPosition != startPosition && value != '-');
-			}
-		}
-
-
-
-		return TreeSet.size();
-	}
-	private double getFillPercentage()
-	{
-		int occupiedFields = 0;
-		for (int playerNR = 1; playerNR <= map.getAnzPlayers(); playerNR++){
-			occupiedFields += map.getCountOfStonesOfPlayer(playerNR);
-		}
-		occupiedFields += map.getExpansionFields().size();
-
-		return occupiedFields / (double) CountOfReachableFields;
-	}
 
 	/**
 	 * Plays the Game. Get Messages from server and calls methods to handle the different kinds
@@ -302,6 +235,7 @@ public class Client{
 		long timeOffset;
 		long upperTimeLimit;
 		long startTime;
+
 
 		if (extendedPrint) System.out.println(map.toString(null,true,useColors));
 
@@ -341,7 +275,7 @@ public class Client{
 					if (depth == 0) depth = Integer.MAX_VALUE;
 
 					//Stages //heuristic.setStage(int Stagenumber)
-					double fillPercentage = getFillPercentage();
+					double fillPercentage = map.getFillPercentage();
 					if(fillPercentage > 0.5 && fillPercentage < 0.8)
 					{
 						heuristic.setMoveCountMultiplier(4);
@@ -351,7 +285,7 @@ public class Client{
 						heuristic.setMoveCountMultiplier(1);
 						heuristic.setStoneCountMultiplier(8);
 					}
-					if(printOn) System.out.println("Fill Percentage: " + fillPercentage);
+					if(printOn) System.out.println("Fill Percentage: " + String.format("%.2f",fillPercentage*100) + "%");
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) {

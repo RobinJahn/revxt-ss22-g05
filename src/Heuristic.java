@@ -1,7 +1,6 @@
 package src;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 public class Heuristic {
@@ -24,6 +23,7 @@ public class Heuristic {
     private boolean countStones;
     private boolean countMoves;
     private boolean useFieldValues;
+    private boolean useReachablePositionsForPos = true;
 
     //multipliers
     public static final int countOfMultipliers = 4;
@@ -114,6 +114,7 @@ public class Heuristic {
         double averageFieldValue = 0;
         double result = 0;
 
+        //set values for bomb phase
         if (!phaseOne){
             stoneCountMultiplier = 1;
             countStones = true;
@@ -121,36 +122,42 @@ public class Heuristic {
             useFieldValues = false;
         }
 
-        //update relevant infos
+        //count stones
         if (countStones) {
             if (phaseOne) countOfStonesEvaluation = countStones();
             else countOfStonesEvaluation = countStonesBombPhase();
         }
 
+        //out of time ?
         if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
             if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get countStones)");
             throw new TimeoutException();
         }
 
+        //count moves
         if (countMoves) countOfMovesEvaluation = countMoves(timed,ServerLog,UpperTimeLimit);
 
+        //out of time ?
         if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
             if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get count Moves)");
             throw new TimeoutException();
         }
 
+        //add values of won fields
         if (useFieldValues) averageFieldValue = getFieldValues();
 
+        //out of time ?
         if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
             if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get FieldValue)");
             throw new TimeoutException();
         }
 
-
+        //calculate result
         if (countStones) result += countOfStonesEvaluation * stoneCountMultiplier;
         if (countMoves) result += countOfMovesEvaluation * moveCountMultiplier;
         if (useFieldValues) result += averageFieldValue * fieldValueMultiplier;
 
+        //prints
         if (printOn) {
             System.out.println("Value for stone count = " + countOfStonesEvaluation * stoneCountMultiplier);
             System.out.println("Value for move count = " + countOfMovesEvaluation * moveCountMultiplier);
@@ -187,12 +194,12 @@ public class Heuristic {
     /**
      * prints out the evaluation matrix
      */
-    public void printMatrix(){
+    public void printMatrix(double[][] matrix){
         System.out.println("Matrix of map:");
         for (int y = 0; y < matrix.length; y++){
             for (int x = 0; x < matrix[y].length; x++){
-                if (matrix[y][x] != Double.NEGATIVE_INFINITY) System.out.printf("%4d", (int)matrix[y][x]);
-                else  System.out.printf("%4c", '-');
+                if (matrix[y][x] != Double.NEGATIVE_INFINITY) System.out.printf("%8s", String.format("%4.2f", matrix[y][x]) );
+                else  System.out.printf("%8c", '-');
             }
             System.out.println();
         }
@@ -266,13 +273,13 @@ public class Heuristic {
             }
         }
         if (extendedPrint) System.out.println("Values of Positions");
-        if (extendedPrint) printMatrix();
+        if (extendedPrint) printMatrix(matrix);
 
         //evaluate every position by its neighbours
         addWaveMatrix();
 
         if (extendedPrint) System.out.println("Added Waves");
-        if (extendedPrint) printMatrix();
+        if (extendedPrint) printMatrix(matrix);
 
     }
 
@@ -286,7 +293,7 @@ public class Heuristic {
             averageFieldValue += matrix[pos.y][pos.x];
         }
 
-        return averageFieldValue;
+        return averageFieldValue/map.getCountOfStonesOfPlayer(myColorI); //calculates the average stone value
     }
 
     private double countMoves(boolean timed,boolean ServerLog, long UpperTimeLimit)throws TimeoutException {
@@ -329,6 +336,7 @@ public class Heuristic {
 
         //gets count of own stones
         countOfOwnStones = map.getCountOfStonesOfPlayer(myColorI);
+
         //gets count of enemy stones
         for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
             if (playerNr == myColorI) continue;
@@ -430,15 +438,21 @@ public class Heuristic {
         //set values
         outgoingDirections = getOutgoingDirections(pos);
         isCapturable = isCapturable(outgoingDirections);
-        reachableFields = checkReachableFields(pos, outgoingDirections); //because of the list a distinction between directions is possible
+        reachableFields = checkReachableFields(pos);
         for (int a : reachableFields) sumOfReachableFields += a;
         backedOuOutgoings = getBackedUpOutgoings(outgoingDirections);
 
         //get evaluation
-        result = sumOfReachableFields;
+        if (useReachablePositionsForPos) {
+            result = (double)sumOfReachableFields / map.getCountOfReachableFields();
+        }
+
         // or: result = Math.pow(base, backedOuOutgoings);
+        if (!isCapturable){
+            if (useReachablePositionsForPos) result *= edgeMultiplier;
+            else result += edgeMultiplier;
+        }
         result += bonusFieldValue(charAtPos);
-        if (!isCapturable) result *= edgeMultiplier;
 
         return result;
     }
@@ -479,7 +493,7 @@ public class Heuristic {
         else return true;
     }
 
-    private int[] checkReachableFields(Position savedPos, boolean[] outgoingDirections) {
+    private int[] checkReachableFields(Position savedPos) {
         Integer newR;
         int[] reachableFields = new int[8];
         Position pos;
@@ -490,13 +504,13 @@ public class Heuristic {
             while (true) {
                 newR = map.doAStep(pos, newR);
 
-                if (newR == null || pos.equals(savedPos)){ //should be ( pos.equals(savedPos) && newR == r )
+                if (newR == null || ( pos.equals(savedPos) && newR == r )){ //was pos.equals(savedPos)
                     break;
                 }
                 reachableFields[r]++;
 
                 //safety to not run infinitely
-                if (reachableFields[r] > map.getHeight()*map.getWidth()) {
+                if (reachableFields[r] > 8 * map.getCountOfReachableFields()) { // 8 because of the 8 directions. reachable fields = maximum stones a field in any direction could reach.
                     System.err.println("This shouldn't happen - checkReachableFields() ran into an infinite loop");
                     reachableFields[r] = -1;
                     break;
@@ -539,45 +553,44 @@ public class Heuristic {
      */
     private void addWaveMatrix(){
         //adjustable values
-        int lowerLimit = 0;
-        int maxWaveCount = 3;
+        double lowerLimit = 1;
+        int maxWaveCount = 1;
         int divisor = base;
         //variables
-        int[][] waveMatrix = new int[matrix.length][matrix[0].length];
+        double[][] waveMatrix = new double[matrix.length][matrix[0].length];
         ArrayList<Position> highValues = new ArrayList<>();
-        Position currPos = new Position(0,0);
         double currValue;
 
         //goes through every position of the map
         for (int y = 0; y < map.getHeight(); y++) {
             for (int x = 0; x < map.getWidth(); x++) {
 
-                //set new position
-                currPos.x = x;
-                currPos.y = y;
-                //get int at position
+                //get double at position
                 currValue = matrix[y][x];
 
                 if(currValue >= lowerLimit){
-                    highValues.add(currPos.clone());
+                    highValues.add(new Position(x,y));
                 }
             }
         }
 
+        //for every position that gets waves
         for (Position pos : highValues){
-            createWave(waveMatrix, pos, maxWaveCount, divisor);
+            createWave(waveMatrix, pos, maxWaveCount, divisor); //changes wave matrix
         }
 
-        if (extendedPrint) System.out.println("Matrix of values to add to wave matrix");
-        for (int y = 0; y < map.getHeight(); y++) {
-            for (int x = 0; x < map.getWidth(); x++) {
-                if (matrix[y][x] != Double.NEGATIVE_INFINITY) matrix[y][x] += waveMatrix[y][x];
-                if (extendedPrint) System.out.printf("%4d", waveMatrix[y][x]);
+        //print of waves
+        if (extendedPrint) {
+            System.out.println("Matrix of values to add to wave matrix");
+            printMatrix(waveMatrix);
+        }
+
+        //add to matrix
+        for (int y = 0; y < matrix.length; y++){
+            for (int x = 0; x < matrix[0].length; x++){
+                matrix[y][x] += waveMatrix[y][x];
             }
-            if (extendedPrint) System.out.println();
         }
-        if (extendedPrint) System.out.println();
-
     }
 
     /**
@@ -585,7 +598,7 @@ public class Heuristic {
      * @param waveMatrix the matrix to create the waves in
      * @param pos the position around which the waves are created
      */
-    private void createWave(int[][] waveMatrix, Position pos, int maxWaveCount, int divisor){
+    private void createWave(double[][] waveMatrix, Position pos, int maxWaveCount, int divisor){
         int x1, x2, y1, y2;
         x1 = pos.x;
         x2 = pos.x;
@@ -595,7 +608,7 @@ public class Heuristic {
         double value = matrix[pos.y][pos.x]/divisor; //sets value to value of field/divisor to start
         int waveCount = 1;
 
-        while(value >= divisor && waveCount <= maxWaveCount) {
+        while(waveCount <= maxWaveCount) {
             x1-=1;
             x2+=1;
             y1-=1;
@@ -609,12 +622,12 @@ public class Heuristic {
             for (int yi = y1; yi <= y2; yi++) {
                 if (yi == y1 || yi == y2) { //first and last one is row
                     for (int xi = x1; xi <= x2; xi++) {
-                        if(yi >= 0 && yi < waveMatrix.length && xi >= 0 && xi < waveMatrix[0].length)  waveMatrix[yi][xi] += loopSign * Math.round(value); //if catches indices that went over the edge
+                        if(yi >= 0 && yi < waveMatrix.length && xi >= 0 && xi < waveMatrix[0].length)  waveMatrix[yi][xi] += loopSign * value; //if catches indices that went over the edge
                     }
                 }
                 else { //column between the rows
                     for (int xi : new int[]{x1,x2}){
-                        if(yi >= 0 && yi < waveMatrix.length && xi >= 0 && xi < waveMatrix[0].length) waveMatrix[yi][xi] += loopSign * Math.round(value); //if catches indices that went over the edge
+                        if(yi >= 0 && yi < waveMatrix.length && xi >= 0 && xi < waveMatrix[0].length) waveMatrix[yi][xi] += loopSign * value; //if catches indices that went over the edge
                     }
                 }
             }
