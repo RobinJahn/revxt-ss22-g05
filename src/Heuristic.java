@@ -536,7 +536,7 @@ public class Heuristic {
                 reachableFields[r]++;
 
                 //safety to not run infinitely
-                if (reachableFields[r] > 8 * map.getCountOfReachableFields()) { // 8 because of the 8 directions. reachable fields = maximum stones a field in any direction could reach.
+                if (reachableFields[r] > 8 * (map.getWidth()-2) * (map.getHeight()-2) ) { // 8 because of the 8 directions. reachable fields = maximum stones a field in any direction could reach.
                     System.err.println("This shouldn't happen - checkReachableFields() ran into an infinite loop");
                     reachableFields[r] = -1;
                     break;

@@ -218,6 +218,7 @@ public class Client{
 
 		if (printOn) {
 			if (extendedPrint) map.printReachableFields();
+			System.out.println("Count of reachable Fields: " + map.getCountOfReachableFields());
 			System.out.println("Fill Percentage: " + String.format("%.2f",map.getFillPercentage()*100) + "%");
 			System.out.println();
 		}
@@ -686,6 +687,7 @@ public class Client{
 
                 //check if the move is valid
                 moveIsPossible = possibleMoves.contains(posToSetKeystone);
+				//moveIsPossible = true;
             }
 			sc.close();
         }
