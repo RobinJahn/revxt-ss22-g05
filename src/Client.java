@@ -71,6 +71,9 @@ public class Client{
 				case "--quiet":
 				case "-q": printOn = false; extendedPrint = false; break;
 
+				case "--extendedPrint":
+				case "-ep": extendedPrint = true; printOn = true; break;
+
 				case "--colour":
 				case "-c": useColors = false; break;
 
@@ -141,6 +144,7 @@ public class Client{
 				"-i or --ip <IP Address>\t\t\t\t Applies this IP\n" +
 				"-p or --port <Port Number>\t\t\t Applies this Port Number\n" +
 				"-q or --quiet \t\t\t\t\t\t Disables Console Output\n" +
+				"-ep or --extendedPrint\t\t\t\t\tEnables Print and Extended Print\n" +
 				"-c or --colour\t\t\t\t\t\t Disables Coloured Output for the IntelliJ-IDE\n" +
 				"-s or --server\t\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
 				"-h or --help\t\t\t\t\t\t show this blob\n" +
@@ -213,6 +217,7 @@ public class Client{
 		//Staging Preparations
 
 		if (printOn) {
+			if (extendedPrint) map.printReachableFields();
 			System.out.println("Fill Percentage: " + String.format("%.2f",map.getFillPercentage()*100) + "%");
 			System.out.println();
 		}
@@ -268,7 +273,7 @@ public class Client{
 					}
 					//set timed
 					timed = time != 0;
-					timeOffset = 300_000_000;// xxx_000_000 ns -> xxx ms
+					timeOffset = 400_000_000;// xxx_000_000 ns -> xxx ms
 					upperTimeLimit = startTime + time * (long)1_000_000 - timeOffset;
 					if (timed && printOn) System.out.println("We have: " + time + "ms");
 
@@ -276,14 +281,7 @@ public class Client{
 
 					//Staging
 					double fillPercentage = map.getFillPercentage();
-					if(fillPercentage > 0.5 && fillPercentage < 0.8)
-					{
-						heuristic.updateHeuristicMultipliers(2);
-					}
-					else if(fillPercentage> 0.8)
-					{
-						heuristic.updateHeuristicMultipliers(3);
-					}
+					heuristic.updateHeuristicMultipliers(fillPercentage);
 					if(printOn) System.out.println("Fill Percentage: " + String.format("%.2f",fillPercentage*100) + "%");
 
 					//Handle Move Request - Both functions print the map with the possible moves marked

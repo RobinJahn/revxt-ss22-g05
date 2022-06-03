@@ -109,10 +109,20 @@ public class Heuristic {
 
     /**
      * Function updates the Heuristic Multipliers according to the current GameStage
-     * @param stageNumber is the current game Stage 1 = Early Game, 2 = Mid Game, 3 = Late Game
+     * @param fillPercentage is the current game Stage 1 = Early Game, 2 = Mid Game, 3 = Late Game
      */
-    public void updateHeuristicMultipliers(int stageNumber)
+    public void updateHeuristicMultipliers(double fillPercentage)
     {
+        int stageNumber = 1;
+        if(fillPercentage > 0.5 && fillPercentage < 0.8)
+        {
+            stageNumber = 2;
+        }
+        else if(fillPercentage> 0.8)
+        {
+            stageNumber = 3;
+        }
+
         if(this.stageNumber != stageNumber)
         {
             this.stageNumber = stageNumber;
@@ -293,6 +303,9 @@ public class Heuristic {
                 }
             }
         }
+
+        if (extendedPrint) System.out.println("Reachable Fields");
+
         if (extendedPrint) System.out.println("Values of Positions");
         if (extendedPrint) printMatrix(matrix);
 
@@ -566,7 +579,7 @@ public class Heuristic {
      */
     private void addWaveMatrix(){
         //adjustable values
-        double lowerLimit = 1;
+        double lowerLimit = 1; //TODO: calcualte
         int maxWaveCount = 1;
         int divisor = base;
         //variables
@@ -581,7 +594,7 @@ public class Heuristic {
                 //get double at position
                 currValue = matrix[y][x];
 
-                if(currValue >= lowerLimit){
+                if(currValue >= lowerLimit && map.checkForReachableField(x,y)){
                     highValues.add(new Position(x,y));
                 }
             }

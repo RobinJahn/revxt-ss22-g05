@@ -6,6 +6,7 @@ import java.util.*;
 public class StaticMap {
     //main data structure to store the Map Infos
     public char[][] map;
+    public char[][] reachableFieldMatrix;
 
     //Data Structure and needed Variables to store Transitions
     public HashMap<Character,Character> transitions = new HashMap<>();
@@ -32,8 +33,9 @@ public class StaticMap {
         if (!importedCorrectly) {
             System.err.println("Map didn't import correctly.");
         }
-        countOfReachableFields = (height-2)*(width-2); //approximation
-        //countOfReachableFields = getCountOfReachableFields();
+        //countOfReachableFields = (height-2)*(width-2); //approximation
+        countOfReachableFields = getCountOfReachableFields();
+
     }
 
     //PUBLIC METHODS
@@ -432,11 +434,15 @@ public class StaticMap {
     //@ToDO
     private int getCountOfReachableFields()
     {
-
-        char[][] map = this.map.clone();
+        char[][] map = new char[height][width];
+        for (int i = 0; i < height; i++){
+            map[i] = this.map[i].clone();
+        }
+        Integer newR;
         PriorityQueue<Integer> Queue = new PriorityQueue<>();
-        countOfReachableFields = 0;
+        int countOfReachableFields = 0;
         //Fill Queue with Starting Positions
+        //TODO: replace for with calls of initial stone lists
         for(int y = 0;y<height;y++)
         {
             for(int x = 0; x<width;x++)
@@ -447,7 +453,7 @@ public class StaticMap {
                     map[y][x] = 'R';
                     Queue.add((x)*100+(y));
                 }
-                else if((fieldValue >= '1' && fieldValue <= '8'))
+                else if(fieldValue >= '1' && fieldValue <= '8')
                 {
                     map[y][x] = 'R';
                     Queue.add((x)*100+(y));
@@ -457,6 +463,8 @@ public class StaticMap {
 
         Integer location;
 
+        countOfReachableFields += Queue.size();
+
         while((location = Queue.poll() )!= null)
         {
 
@@ -464,26 +472,41 @@ public class StaticMap {
             {
                 char value1;
                 char value2;
-                Position pos1 = new Position(location / 100,location % 100);
-                Position pos2 = new Position(location / 100,location % 100);
+                Position startPos = new Position(location / 100,location % 100);
+                Position pos1 = startPos.clone();
+                Position pos2 = startPos.clone();
 
-
-                Integer wall1 = doAStep(pos1, r);
+                //1. termination condition
+                //  get pos and char at pos
                 Integer wall2 = doAStep(pos2, (r+4)%8);
-                if(wall1  == null || wall2 == null)
+                value2 = map[pos2.y][pos2.x];
+                if (wall2 == null || value2 != 'R')
                 {
                     continue;
                 }
-                value1 = map[pos1.y][pos1.x];
-                value2 = map[pos2.y][pos2.x];
-                if((value1 == '0' || value1 == 'b' || value1 == 'i' || value1 == 'c') && value2 =='R' )
-                {
+
+
+                //2. termination condition
+                newR = r;
+                while (true) {
+                    newR = doAStep(pos1, newR);
+
+                    if (newR == null || startPos.equals(pos1)) {
+                        break;
+                    }
+
+                    value1 = map[pos1.y][pos1.x];
+                    if (value1 == '0' || value1 == 'b' || value1 == 'i' || value1 == 'c') {
                         countOfReachableFields++;
                         map[pos1.y][pos1.x] = 'R';
-                        Queue.add(pos1.x*100+ pos1.y);
+                        Queue.add(pos1.x * 100 + pos1.y);
+                        break;
+                    }
                 }
             }
         }
+
+        reachableFieldMatrix = map;
 
         return countOfReachableFields;
 

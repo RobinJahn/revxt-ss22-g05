@@ -528,6 +528,14 @@ public class Map{
         return occupiedFields / (double) staticMap.countOfReachableFields;
     }
 
+    boolean checkForReachableField(int x, int y){
+        return staticMap.reachableFieldMatrix[y][x] == 'R';
+    }
+
+    public void printReachableFields(){
+        System.out.println(Arrays.deepToString(staticMap.reachableFieldMatrix).replace("],", "\n"));
+    }
+
     // SETTER ----------------------------------------------------------------------------------------------------------
 
     /**
