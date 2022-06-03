@@ -442,22 +442,20 @@ public class StaticMap {
         PriorityQueue<Integer> Queue = new PriorityQueue<>();
         int countOfReachableFields = 0;
         //Fill Queue with Starting Positions
-        //TODO: replace for with calls of initial stone lists
-        for(int y = 0;y<height;y++)
+
+        if(initialOverwriteStones > 0) {
+            for (Position p : initialExpansionFields) {
+                map[p.y][p.x] = 'R';
+                Queue.add(p.x*100+p.y);
+            }
+        }
+
+        for(int i = 0;i<anzPlayers;i++)
         {
-            for(int x = 0; x<width;x++)
+            for(Position p : initialStonesPerPlayer.get(i))
             {
-                char fieldValue = map[y][x];
-                if(fieldValue == 'x' && initialOverwriteStones > 0)
-                {
-                    map[y][x] = 'R';
-                    Queue.add((x)*100+(y));
-                }
-                else if(fieldValue >= '1' && fieldValue <= '8')
-                {
-                    map[y][x] = 'R';
-                    Queue.add((x)*100+(y));
-                }
+                map[p.y][p.x] = 'R';
+                Queue.add(p.x*100+p.y);
             }
         }
 
