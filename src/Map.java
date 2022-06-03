@@ -1312,34 +1312,25 @@ public class Map{
             nextPos = new Position(currPosAndDist[0], currPosAndDist[1]);
             counterForExpRad = currPosAndDist[2];
 
-            //if explosion radius allows it
-            if (counterForExpRad < explosionRadius) {
+            //go in every possible direction
+            for (int r = 0; r <= 7; r++) {
+                //get position it will move to
+                posAfterStep = Position.goInR(nextPos, r);
+                //check what's there
+                charAtPos = map.getCharAt(posAfterStep);
 
-                //go in every possible direction
-                for (int r = 0; r <= 7; r++) {
-                    //get position it will move to
-                    posAfterStep = Position.goInR(nextPos, r);
-                    //check what's there
-                    charAtPos = map.getCharAt(posAfterStep);
+                //if there's a transition go through and delete it (not the char though)
+                if (charAtPos == 't') {
+                    //go one step back because we need to come from where the transition points
+                    posAfterStep = Position.goInR(posAfterStep, (r + 4) % 8);
+                    //tries to go through transition
+                    newR = map.doAStep(posAfterStep, r); //takes Position it came from. Because from there it needs to go through
+                    if (newR == null) continue;
+                }
 
-                    //if there's a transition go through and delete it (not the char though)
-                    if (charAtPos == 't') {
-                        //go one step back because we need to come from where the transition points
-                        posAfterStep = Position.goInR(posAfterStep, (r + 4) % 8);
-                        //tries to go through transition
-                        newR = map.doAStep(posAfterStep, r); //takes Position it came from. Because from there it needs to go through
-                        if (newR != null) {
-							/* should be unnecessary
-							//removes transition pair from the hash List - if it's here it wen through the transition
-							transitionEnd1 = Transitions.saveInChar(posAfterStep.x, posAfterStep.y, (newR + 4) % 8);
-							transitionEnd2 = map.getTransitions().get(transitionEnd1);
-							map.getTransitions().remove(transitionEnd1);
-							map.getTransitions().remove(transitionEnd2);
-							 */
-                        }
-                    }
-
-                    if (charAtPos != '+' && charAtPos != '-') { // + is grey, - is black
+                if (charAtPos != '+' && charAtPos != '-') { // + is grey, - is black
+                    //if explosion radius allows it
+                    if (counterForExpRad < explosionRadius) {
                         map.setCharAt(posAfterStep.x, posAfterStep.y, '+');
                         posQ.add(new int[]{posAfterStep.x, posAfterStep.y, counterForExpRad + 1});
                     }

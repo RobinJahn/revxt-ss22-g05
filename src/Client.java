@@ -699,7 +699,7 @@ public class Client{
 	public static ArrayList<int[]> getPositionsToSetABomb(Map map) {
 		ArrayList<int[]> validMoves = new ArrayList<>();
 		char fieldValue;
-		int accuracy = 2;
+		int accuracy = 2; //TODO: set accurracy by fill Percentage
 
 		//if player has no bomb's return empty array
 		if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) {
