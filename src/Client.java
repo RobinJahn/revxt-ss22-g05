@@ -139,22 +139,27 @@ public class Client{
 	}
 
 	private static void printHelp(){
-		System.out.println(
-				"java -jar client05.jar accepts the following optional options:\n" +
-				"-i or --ip <IP Address>\t\t\t\t Applies this IP\n" +
-				"-p or --port <Port Number>\t\t\t Applies this Port Number\n" +
-				"-q or --quiet \t\t\t\t\t\t Disables Console Output\n" +
-				"-ep or --extendedPrint\t\t\t\t\tEnables Print and Extended Print\n" +
-				"-c or --colour\t\t\t\t\t\t Disables Coloured Output for the IntelliJ-IDE\n" +
-				"-s or --server\t\t\t\t\t\t Enables the Output for Map Comparison with the Server\n" +
-				"-h or --help\t\t\t\t\t\t show this blob\n" +
-				"-n or --no-sorting \t\t\t\t\t Disables Move-sorting\n"+
-				"-o or --output \t\t\t\t\t\t Activates output\n" +
-				"-m or --multiplier <m1, m2, m3, m4>\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n" +
-				"-ab or --alpha-beta \t\t\t\t Disables Alpha-BetaPruning\n" +
-				"-ua or --useArrows \t\t\t\t\t Activates usage of arrows\n"+
-				"-gna or --group-number-addition \t changes the group number to 50 + the given number \n"
-		);
+		StringBuilder helpString = new StringBuilder();
+		helpString.append("java -jar client05.jar accepts the following optional options:\n");
+		helpString.append("-i or --ip <IP Address>\t\t\t\t Applies this IP\n");
+		helpString.append("-p or --port <Port Number>\t\t\t Applies this Port Number\n");
+		helpString.append("-q or --quiet \t\t\t\t\t\t Disables Console Output\n");
+		helpString.append("-ep or --extendedPrint\t\t\t\tEnables Print and Extended Print\n");
+		helpString.append("-c or --colour\t\t\t\t\t\t Disables Coloured Output for the IntelliJ-IDE\n");
+		helpString.append("-s or --server\t\t\t\t\t\t Enables the Output for Map Comparison with the Server\n");
+		helpString.append("-h or --help\t\t\t\t\t\t show this blob\n");
+		helpString.append("-n or --no-sorting \t\t\t\t\t Disables Move-sorting\n");
+		helpString.append("-o or --output \t\t\t\t\t\t Activates output\n");
+
+		helpString.append("-m or --multiplier <");
+		for (int i = 1; i <= Heuristic.countOfMultipliers; i++) helpString.append("m").append(i).append(" ");
+		helpString.append(">\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n");
+
+		helpString.append("-ab or --alpha-beta \t\t\t\t Disables Alpha-BetaPruning\n");
+		helpString.append("-ua or --useArrows \t\t\t\t\t Activates usage of arrows\n");
+		helpString.append("-gna or --group-number-addition \t changes the group number to 50 + the given number \n");
+
+		System.out.println(helpString);
 	}
 
 	//functions that let the client play
@@ -281,9 +286,8 @@ public class Client{
 					if (depth == 0) depth = Integer.MAX_VALUE;
 
 					//Staging
-					double fillPercentage = map.getFillPercentage();
-					heuristic.updateHeuristicMultipliers(fillPercentage);
-					if(printOn) System.out.println("Fill Percentage: " + String.format("%.2f",fillPercentage*100) + "%");
+					heuristic.updateHeuristicMultipliers();
+					if(printOn) System.out.println("Fill Percentage: " + String.format("%.2f",map.getFillPercentage()*100) + "%");
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) {

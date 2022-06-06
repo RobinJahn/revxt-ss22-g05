@@ -10,8 +10,8 @@ helpMsg() {
 }
 
 #default values
-depth=4
-time=0
+depth=0
+time=1
 print=false
 extendedPrint=false
 
