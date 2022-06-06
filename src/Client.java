@@ -1,5 +1,6 @@
 package src;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -237,11 +238,11 @@ public class Client{
 		boolean firstPhase = true;
 		int[] timeAndDepth;
 		String map_For_Comparison = "";
+		ClientServerComparator CSC = new ClientServerComparator();
 		moveCounter = 0;
 		long timeOffset;
 		long upperTimeLimit;
 		long startTime;
-
 
 		if (extendedPrint) System.out.println(map.toString(null,true,useColors));
 
@@ -312,11 +313,20 @@ public class Client{
 					int moveOfPlayer = moveInfos[3];
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
 
-
-					//Print for Server Comparison
-					map.setPlayer(moveOfPlayer);
 					if (compare_to_Server) {
-						map_For_Comparison = StringForServerCompare(map_For_Comparison);
+						map.setPlayer(moveOfPlayer);
+						if(firstPhase){
+							try {
+								CSC.setClientString(map.toString_Server(Map.getValidMoves(map, false, false, false, 0)));
+							}catch (ExceptionWithMove EWM)
+							{
+								EWM.printStackTrace();
+							}
+						}
+						else {
+							CSC.setClientString(map.toString_Server(null));
+						}
+						CSC.compare(moveCounter-1);
 					}
 
 					//Handle Move
@@ -371,9 +381,6 @@ public class Client{
 							System.out.println(map.toString(validMoves, false, useColors));
 						}
 
-
-
-
 						double valueOfMap;
 
 						//calculate value of map and print it
@@ -417,12 +424,24 @@ public class Client{
 				{
 					if (printOn || serverLog) System.out.println("received end of phase 2 - game ended");
 
-					if (compare_to_Server) {
-						map_For_Comparison = StringForServerCompare(map_For_Comparison);
-					}
-
 					serverM.readRestOfNextPhase();
 					gameOngoing = false;
+
+					if(compare_to_Server)
+					{
+						try {
+							FileWriter FW = new FileWriter("ErrorCounts.txt",true);
+							BufferedWriter BW = new BufferedWriter(FW);
+							String toAdd = "ErrorCount: " + CSC.getErrorCount() +"\n";
+							BW.write(toAdd);
+							BW.close();
+							FW.close();
+						}
+						catch (Exception e)
+						{
+							e.printStackTrace();
+						}
+					}
 					break;
 				}
 
@@ -431,39 +450,8 @@ public class Client{
 					System.err.println("Server closed connection or a message was received that couldn't be handled");
 					break;
 				}
-
 			}
 		}
-
-		if(compare_to_Server)
-		{
-			File newFile;
-			FileWriter fw;
-			//setup File and File Writer
-			newFile = new File("Client_View.txt");
-
-			try {
-				newFile.createNewFile();
-				fw = new FileWriter("Client_View.txt", false);
-				fw.write(map_For_Comparison);
-				fw.close();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-		}
-	}
-
-	//Compare to Server
-	private String StringForServerCompare(String map_For_Comparison)
-	{
-		try {
-			map_For_Comparison += map.toString_Server(Map.getValidMoves(map, timed, printOn, serverLog, 0));
-		} catch (ExceptionWithMove e) {
-			e.printStackTrace();
-		}
-		return map_For_Comparison;
 	}
 
 	//phase 1

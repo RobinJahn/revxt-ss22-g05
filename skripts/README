@@ -16,9 +16,6 @@ These Scripts include
 
     testBestMultipliers.sh
         This script makes the client play every Map 100 times with random Values for the Heuristik and saves the overall best Values for it
-    
-    ZOCK_Server_Client_Vergleich.jar
-        This is used in order to compare the Output of the Server and the Client
-
-    ZOCK_Server_Client_Vergleich.jar
-        This script makes the client play on every Map, compares the view of the Client and the Server and then stats on how many Maps they were identicall
+     
+    ZOCK_Server_Client_Vergleich.sh
+        This script makes the client play on every Map, compares the view of the Client and the Server. After each game the File ErrorCounts.txt is appended with the Count of Errors found in this game.

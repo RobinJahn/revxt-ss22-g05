@@ -1,14 +1,15 @@
 #!/bin/bash
 clear
 
-client=client05.jar
+#client=client05.jar
+client=revxt-ss22-g05.jar
 korrekte_ausgaben=0
 anzahl_karten=0
 
 echo "Client: $client"
-
+cd ..
+cd bin
 chmod 770 $client
-chmod 770 ZOCK_Server_Client_Vergleich.jar
 
 #get all Maps
 cd ..
@@ -28,7 +29,7 @@ cd serverAndAi
 for mapName in "${maps[@]}" 
 do
     # start own client
-    sleep 3 && java -jar ../bin/client05.jar -s &
+    sleep 3 && java -jar ../bin/revxt-ss22-g05.jar --server &
     pid1=$!
 
 	#get anzPlayer 
@@ -57,19 +58,5 @@ do
 	done
     echo "Spiel Fertig"
 
-    errorcount=$(java -jar ../skripts/ZOCK_Server_Client_Vergleich.jar)
-	if [ $errorcount -eq 0 ]
-	then
-		echo "Client und Server View identisch"
-		korrekte_ausgaben=$((korrekte_ausgaben+1))
-	fi
-	if [ $errorcount -gt 0 ]
-	then
-		echo "$errorcount Unterschiede in den Views"
-		cp Client_View.txt Client_View_Fehler_Map_$((korrekte_ausgaben+1)).txt
-		cp Server_View.txt Server_View_Fehler_Map_$((korrekte_ausgaben+1)).txt
-	fi
     sleep 10
 done
-echo ""
-echo "$korrekte_ausgaben / $anzahl_karten Karten sind Fehlerfrei"
