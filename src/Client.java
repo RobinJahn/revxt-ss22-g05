@@ -56,7 +56,8 @@ public class Client{
 		int groupNumberAddition = -1;
 		//variables for the heuristic
 		final int countOfMultipliers = Heuristic.countOfMultipliers;
-		double[] multipliers = null;
+		final int countOfPhases = 3;
+		double[][] multipliers = null;
 
 		//get call arguments
 		for (int i = 0; i < args.length; i++){
@@ -109,13 +110,20 @@ public class Client{
 
 				case "--multiplier":
 				case "-m":
-					multipliers = new double[countOfMultipliers];
-					int offset = ++i;
+					if (multipliers == null) multipliers = new double[countOfPhases][countOfMultipliers];
+					int indexOfMultiplier = 0;
+					int phase;
+					if (i < args.length -1) i++;
+
 					//read in n multipliers
 					try {
-						while (i < args.length && i-offset <= countOfMultipliers-1) {
-							multipliers[i-offset] = Double.parseDouble(args[i]);
+						phase = Integer.parseInt(args[i]) - 1; //-1 because it's an index
+						i++;
+
+						while (i < args.length && indexOfMultiplier < countOfMultipliers) {
+							multipliers[phase][indexOfMultiplier] = Double.parseDouble(args[i]);
 							i++;
+							indexOfMultiplier++;
 						}
 						i--; //reset the last i++
 						break;
@@ -123,7 +131,6 @@ public class Client{
 					catch (NumberFormatException nfe){
 						nfe.printStackTrace();
 						printHelp();
-						return;
 					}
 
 				default: System.out.print(args[i] + " is not an option\n");
@@ -151,9 +158,10 @@ public class Client{
 		helpString.append("-n or --no-sorting \t\t\t\t\t Disables Move-sorting\n");
 		helpString.append("-o or --output \t\t\t\t\t\t Activates output\n");
 
-		helpString.append("-m or --multiplier <");
+		helpString.append("-m or --multiplier <phase number> <");
 		for (int i = 1; i <= Heuristic.countOfMultipliers; i++) helpString.append("m").append(i).append(" ");
-		helpString.append(">\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier)\n");
+		helpString.append(">\n");
+		helpString.append("\t\t\t\t\t\t\t\t\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier, m5 = wave count)\n");
 
 		helpString.append("-ab or --alpha-beta \t\t\t\t Disables Alpha-BetaPruning\n");
 		helpString.append("-ua or --useArrows \t\t\t\t\t Activates usage of arrows\n");
@@ -172,7 +180,7 @@ public class Client{
 	 */
 	public Client(String ip,
 				  int port,
-				  double[] multipliers,
+				  double[][] multipliers,
 				  boolean useAB,
 				  boolean printOn,
 				  boolean useColors,

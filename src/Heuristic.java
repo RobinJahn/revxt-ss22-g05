@@ -29,6 +29,8 @@ public class Heuristic {
 
     //multipliers
     public static final int countOfMultipliers = 5;
+    public final double[][] multiplier;
+
     private double stoneCountMultiplier;
     private double moveCountMultiplier;
     private double fieldValueMultiplier;
@@ -48,57 +50,101 @@ public class Heuristic {
      * @param extendedPrint prints more information. Like the Matrix
      * @param multiplier list of double values to define the multipliers for the different heuristically evaluations
      */
-    public Heuristic(Map map, int myColor, boolean printOn, boolean extendedPrint, double[] multiplier){
+    public Heuristic(Map map, int myColor, boolean printOn, boolean extendedPrint, double[][] multiplier){
         this.printOn = printOn;
         this.extendedPrint = extendedPrint;
         this.map = map;
         this.myColorI = myColor;
         this.myColorC = (char)('0'+myColor);
         matrix = new double[map.getHeight()][map.getWidth()];
+        this.multiplier = multiplier;
 
+        setMultipliers(multiplier, 1);
+        initMatrix();
+        initEdgeMatrixAndFieldValueMatrix();
+        updateHeuristicMultipliers();
+    }
+
+    private void setMultipliers(double[][] multiplier, int phase) {
         //set multiplier
-        //default multiplier
-        stoneCountMultiplier = 5;
-        moveCountMultiplier = 4;
-        fieldValueMultiplier = 1;
-        edgeMultiplier = 2;
-        waveCount = 2;
 
-        //corresponding default enables
-        countStones = true;
-        countMoves = true;
-        useFieldValues = true;
-        useEdges = true;
-        useWaves = true;
+        if (multiplier == null) {
 
-        //set given parameters
-        if (multiplier != null) {
+            //default multiplier
+            switch (stageNumber) {
+                case 1:
+                    stoneCountMultiplier = 5;
+                    moveCountMultiplier = 5;
+                    fieldValueMultiplier = 2;
+                    edgeMultiplier = 5;
+                    waveCount = 3;
+
+                    //corresponding default enables
+                    countStones = true;
+                    countMoves = true;
+                    useFieldValues = true;
+                    useEdges = true;
+                    useWaves = true;
+
+                    break;
+                case 2:
+                    stoneCountMultiplier = 8;
+                    moveCountMultiplier = 2;
+                    fieldValueMultiplier = 1;
+                    edgeMultiplier = 5;
+                    waveCount = 2;
+
+                    //corresponding default enables
+                    countStones = true;
+                    countMoves = true;
+                    useFieldValues = true;
+                    useEdges = true;
+                    useWaves = true;
+
+                    break;
+                case 3:
+                    stoneCountMultiplier = 10;
+                    moveCountMultiplier = 1;
+                    fieldValueMultiplier = 0;
+                    edgeMultiplier = 5;
+                    waveCount = 0;
+
+                    //corresponding default enables
+                    countStones = true;
+                    countMoves = true;
+                    useFieldValues = false;
+                    useEdges = true;
+                    useWaves = false;
+
+                    break;
+            }
+
+        }
+        else{
+            //set given parameters
             for (int i = 0; i < multiplier.length; i++) {
                 switch (i) {
                     case 0:
-                        stoneCountMultiplier = multiplier[i];
+                        stoneCountMultiplier = multiplier[phase-1][i];
                         if (stoneCountMultiplier == 0) countStones = false;
                         break;
                     case 1:
-                        moveCountMultiplier = multiplier[i];
+                        moveCountMultiplier = multiplier[phase-1][i];
                         if (moveCountMultiplier == 0) countMoves = false;
                         break;
                     case 2:
-                        fieldValueMultiplier = multiplier[i];
+                        fieldValueMultiplier = multiplier[phase-1][i];
                         if (fieldValueMultiplier == 0) useFieldValues = false;
                     case 3:
-                        edgeMultiplier = multiplier[i];
+                        edgeMultiplier = multiplier[phase-1][i];
                         if (edgeMultiplier == 0) useEdges = false;
                     case 4:
-                        waveCount = multiplier[i];
+                        waveCount = multiplier[phase-1][i];
                         if (waveCount == 0) useWaves = false;
                 }
             }
         }
 
-        initMatrix();
-        initEdgeMatrixAndFieldValueMatrix();
-        updateHeuristicMultipliers();
     }
 
     //SETTER -----------------------------------------------------------------------------------------------------------
@@ -138,30 +184,8 @@ public class Heuristic {
         if (this.stageNumber != stageNumber)
         {
             this.stageNumber = stageNumber;
-            switch (stageNumber)
-            {
-                case 1:
-                    setStoneCountMultiplier(5);
-                    setMoveCountMultiplier(5);
-                    setFieldValueMultiplier(1);
-                    setEdgeMultiplier(5);
-                    setWaveCount(2);
-                    break;
-                case 2:
-                    setStoneCountMultiplier(10);
-                    setMoveCountMultiplier(3);
-                    setFieldValueMultiplier(1);
-                    setEdgeMultiplier(5);
-                    setWaveCount(2);
-                    break;
-                case 3:
-                    setStoneCountMultiplier(10);
-                    setMoveCountMultiplier(0);
-                    setFieldValueMultiplier(0);
-                    setEdgeMultiplier(2);
-                    setWaveCount(2);
-                    break;
-            }
+
+            setMultipliers(multiplier, stageNumber);
 
             setStaticInfos();
         }
