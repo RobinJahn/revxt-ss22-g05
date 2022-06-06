@@ -1,18 +1,9 @@
 #!/bin/bash
 
-#in current folder
-logs=($(ls | grep "log_game"))
-for log in "${logs[@]}"
-do
-	rm $log
-done
-
-#in server folder
 cd ..
-cd serverAndAi	
-logs=($(ls | grep "log_game"))
+
+logs=($(find "$PWD" | grep "log_game_[0-9]*.[0-9]*\.txt"))
 for log in "${logs[@]}"
 do
 	rm $log
 done
-

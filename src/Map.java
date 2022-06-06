@@ -1130,9 +1130,10 @@ public class Map{
         ArrayList<Arrow> validArrows = getAllValidArrows();
 
         int[] posAndR;
-        boolean correct = true;
         boolean isOneOfThem;
         int arrowOfPlayer;
+        ArrayList<ArrayList<Position>> validMovesOfValidArrows = new ArrayList<>(8);
+        for (int i = 0; i < 8; i++) validMovesOfValidArrows.add(new ArrayList<>());
 
         for (Arrow arrow : validArrows){
             //get player
@@ -1140,6 +1141,7 @@ public class Map{
             arrowOfPlayer = map[posAndR[1]][posAndR[0]]-'0';
             //get last position
             posAndR = arrow.positionsWithDirection.get( arrow.positionsWithDirection.size()-1 );
+            validMovesOfValidArrows.get(arrowOfPlayer-1).add(new Position(posAndR[0], posAndR[1]));
             //reset
             isOneOfThem = false;
 
@@ -1151,6 +1153,16 @@ public class Map{
                 return false;
             }
         }
+
+       for (int playerNr = 0; playerNr < getAnzPlayers(); playerNr++){
+           for (Position pos : ValidMoves.get(playerNr).keySet()){
+
+               if (!validMovesOfValidArrows.get(playerNr).contains(pos)) {
+                   return false;
+               }
+           }
+       }
+
         return true;
     }
 

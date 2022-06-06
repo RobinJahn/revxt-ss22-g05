@@ -31,7 +31,7 @@ public class SearchTree {
     KillerArray killerArray = new KillerArray();
 
 
-    public SearchTree(Map map, boolean printOn, boolean ServerLog, boolean extendedPrint, int myPlayerNr, boolean useAB, boolean useMS, boolean useBRS, boolean useKH, double[] multiplier){
+    public SearchTree(Map map, boolean printOn, boolean ServerLog, boolean extendedPrint, int myPlayerNr, boolean useAB, boolean useMS, boolean useBRS, boolean useKH, double[][] multiplier){
         this.printOn = printOn;
         this.serverLog = ServerLog;
         this.myPlayerNr = myPlayerNr;

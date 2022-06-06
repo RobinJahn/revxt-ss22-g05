@@ -5,24 +5,26 @@ helpMsg() {
   echo "-d <depth> sets the depth"
   echo "-t <time> sets the time"
   echo "-p enables print of game"
-  echo "-e endables extended print"
+  echo "-e enables extended print"
   exit 1
 }
 
 #default values
-depth=4
-time=0
+depth=0
+time=1
 print=false
 extendedPrint=false
+map=""
 
 #read in parameters
-while getopts "d:t:peh" opt
+while getopts "d:t:m:peh" opt
 do
    case "$opt" in
       d ) depth="$OPTARG" ;;
       t ) time="$OPTARG" ;;
       p ) print=true ;;
       e ) extendedPrint=true ;;
+      m ) map="$OPTARG" ;;
       h ) helpMsg ;;
       ? ) helpMsg ;;
    esac
@@ -35,45 +37,67 @@ echo "time: $time"
 echo "print on: $print"
 echo "extended print on: $extendedPrint"
 
+sleepingTime=4
 i=1
 max=100 #how many games should be played
 
-outFile="serverOut.txt"
+outFileServer="serverOut.txt"
+outFileClient="clientOut.txt"
 
-bestResult=0 #0 is worst placement
+
+bestResult="-1" #0 is worst placement
 
 bestM1=1
 bestM2=1
 bestM3=1
 bestM4=1
 
-#get all Maps	
-cd ..
-cd Maps
-maps=($(ls | grep "\.map"))
+
+
+#if user put in a map
+if [ -n "$map" ]; then
+  maps=("$map")
+else
+  #get all Maps
+  maps=($(ls "../Maps/" | grep "\.map"))
+fi
+
+#print maps
 echo "maps: "
-echo "${maps[@]}"
+printf '%s\n' "${maps[@]}"
+echo ""
 
 #compile newest version of client
-cd ..
-ant -S jar
+(cd ..; ant -S jar)
 
-#change directory to the one where the server and ai is
-cd serverAndAi
-
+#play sets of games
 while [ $i -le $max ]
 do
-	#set m's to random variables
-	m1=$(($RANDOM % 10))
-	m2=$(($RANDOM % 10))
-	m3=$(($RANDOM % 10))
-	m4=$(($RANDOM % 10))
 
+	#set m's to random variables
+	multipliers1=()
+	multipliers2=()
+	multipliers3=()
+
+	for ((i1 = 0; i1 < 5; i1++)); do
+    multipliers1+=($(($RANDOM % 10)))
+	done
+	for ((i1 = 0; i1 < 5; i1++)); do
+    multipliers2+=($(($RANDOM % 10)))
+  done
+  for ((i1 = 0; i1 < 5; i1++)); do
+    multipliers3+=($(($RANDOM % 10)))
+  done
+
+  #print random multipliers
+  echo ""
 	echo "script: Set m's to:"
-	echo "m1: $m1"
-       	echo "m2: $m2"
-      	echo "m3: $m3" 
-      	echo "m4: $m4"
+	echo "multipliers1"
+	echo "${multipliers1[@]}"
+	echo "multipliers2"
+  echo "${multipliers2[@]}"
+  echo "multipliers3"
+  echo "${multipliers3[@]}"
 	
 	#start games on different maps
 	result=0
@@ -85,9 +109,9 @@ do
 
 		# start own client
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
-		sleep 3 && 
+		sleep $sleepingTime &&
 			echo "script: started client" &&
-			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m $m1 $m2 $m3 $m4 -ab -c &> "clientOut.txt" &
+			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m 1 "${multipliers1[@]}" -m 1 "${multipliers1[@]}" -m 1 "${multipliers1[@]}" -c > "$outFileClient" &
 		pid1=$!
 
 
@@ -102,74 +126,73 @@ do
 		while [ $ii -lt $countOfPlayer ]
 		do
 			if $extendedPrint; then echo "script: start ai $ii"; fi
-			sleep 3 && 
+			sleep $sleepingTime &&
 				echo "script: started ai" &&
-				./ai_trivial -q &
+				../serverAndAi/ai_trivial -q &> /dev/null &
 			pidAIs+=(ii)
 			ii=$((ii+1))
 		done
 
 		#start server
-		if $extendedPrint; then echo "script: server started"; fi
+		echo "script: server started"
 
-		if [ $time -eq 0 ]
-    	then
-    		if [ $depth -eq 0 ]; then
-    		  if $print; then
-    		    echo "script: with output"
-    			  ./server_nogl -C -m ../Maps/$mapName | tee $outFile #with output of server
-    			else
-    			  echo "script: without output"
-            ./server_nogl -C -m ../Maps/$mapName &> $outFile #without
-          fi
-    		else
-    		  if $print; then
-    		    echo "script: with output -d"
-    			  ./server_nogl -C -m ../Maps/$mapName -d $depth | tee $outFile #with output of server
-    			else
-    			  echo "script: without output -d"
-            ./server_nogl -C -m ../Maps/$mapName -d $depth &> $outFile #without
-          fi
-    		fi
-    	else
-    		if [ $depth -eq 0 ]; then
-    		  if $print; then
-    		    echo "script: with output -t"
-    			  ./server_nogl -C -m ../Maps/$mapName -t $time | tee $outFile #with output of server
-          else
-            echo "script: without output -t"
-            ./server_nogl -C -m ../Maps/$mapName -t $time &> $outFile #without
-          fi
-    		else
-    		  if $print; then
-    		    echo "script: with output -d -t"
-    		    ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth | tee $outFile #with output of server
-    		  else
-    		    echo "script: without output -d -t"
-            ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth &> $outFile #without
-          fi
-    		fi
-    	fi
+		if (( $(echo "$time==0" | bc -l) )); then
+      if [ $depth -eq 0 ]; then
+        if $print; then
+          echo "script: with output"
+          (cd ../serverAndAi/; ./server_nogl -C -m ../Maps/$mapName | tee "../skripts/$outFileServer") #with output of server
+        else
+          echo "script: without output"
+          (cd ../serverAndAi/; ./server_nogl -C -m ../Maps/$mapName > "../skripts/$outFileServer") #without
+        fi
+      else
+        if $print; then
+          echo "script: with output -d"
+          (cd ../serverAndAi/; ./server_nogl -C -m ../Maps/$mapName -d $depth | tee "../skripts/$outFileServer") #with output of server
+        else
+          echo "script: without output -d"
+          (cd ../serverAndAi/; ./server_nogl -C -m ../Maps/$mapName -d $depth > "../skripts/$outFileServer") #without
+        fi
+      fi
+    else
+      if [ $depth -eq 0 ]; then
+        if $print; then
+          echo "script: with output -t"
+          (cd ../serverAndAi/; ./server_nogl -C -m ../Maps/$mapName -t $time | tee "../skripts/$outFileServer") #with output of server
+        else
+          echo "script: without output -t"
+          (cd ../serverAndAi/; ./server_nogl -C -m ../Maps/$mapName -t $time > "../skripts/$outFileServer") #without
+        fi
+      else
+        if $print; then
+          echo "script: with output -d -t"
+          (cd ../serverAndAi/; ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth | tee "../skripts/$outFileServer") #with output of server
+        else
+          echo "script: without output -d -t"
+          (cd ../serverAndAi/; ./server_nogl -C -m ../Maps/$mapName -t $time -d $depth > "../skripts/$outFileServer") #without
+        fi
+      fi
+    fi
 		
 	
 		#when game is over
-		if $extendedPrint; then echo "skript: game is over"; fi
+		if $extendedPrint; then echo "script: game is over"; fi
 		
 		#wait for client
 		wait $pid1
-		if $extendedPrint; then echo "skript: client ended"; fi
+		if $extendedPrint; then echo "script: client ended"; fi
 	
 		#wait for ai's
 		for pid2 in "${pidAIs[@]}"
 		do
 			wait $pid
 		done
-		if $extendedPrint; then echo "skript: all AIs ended"; fi
+		if $extendedPrint; then echo "script: all AIs ended"; fi
 		
 		#get result of game
-		resultOfGame=$(awk -v groupID=5 -f ../skripts/getOwnResults.awk $outFile)
+		resultOfGame=$(awk -v groupID=5 -f ./getOwnResults.awk $outFileServer)
 		resultOfGame=$( echo "$resultOfGame" | tr ',' '.')
-		echo "skript: result: $resultOfGame"
+		echo "script: result: $resultOfGame"
 		
 		result=$(echo "$result + $resultOfGame" | bc -l )
 
@@ -181,36 +204,35 @@ do
 
 	anzMaps=${#maps[@]}
 	
-	echo "skript: sum of results: $result and sum of games played: $anzMaps"
+	echo "script: sum of results: $result and sum of games played: $anzMaps"
 	
 	result=$( echo "$result / $anzMaps" | bc -l )
-	echo "skript: average result of games: $result"
+	echo "script: average result of games: $result"
 	isOne=$( echo "$result >= 0.99" | bc -l )
-	if [ ${isOne} -eq 1 ]
-	then
-		exit
-	fi
+	if [ ${isOne} -eq 1 ]; then exit; fi
+
 
 	#check if it's a new best
 	res=$( echo "$result > $bestResult" | bc -l ) #maybe line splitting of bc is the problem
-	echo "skript: comparison: $result > $bestResult = $res"
+	echo "script: comparison: $result > $bestResult = $res"
 	if [[ ${res} -eq 1 ]]
 	then
-	  echo "skript: set best values to current values"
+	  echo "script: set best values to current values"
 		#if it is set the best values to the current ones
 		bestResult=$result
-		bestM1=$m1
-		bestM2=$m2
-		bestM3=$m3
-		bestM4=$m4
+		bestM1=("${multipliers1[@]}")
+		bestM2=("${multipliers2[@]}")
+		bestM3=("${multipliers3[@]}")
 	fi
 
-	echo "skript: Currently best results:"
-	echo "skript: result: $bestResult"
-	echo "skript: best m1: $bestM1"
-	echo "skript: best m2: $bestM2"
-	echo "skript: best m3: $bestM3"
-	echo "skript: best m4: $bestM4"
+	echo "script: Currently best results:"
+	echo "script: result: $bestResult"
+  echo "BestMultipliers1"
+  echo "${bestM1[@]}"
+  echo "BestMultipliers2"
+  echo "${bestM2[@]}"
+  echo "BestMultipliers3"
+  echo "${bestM3[@]}"
 	echo ""
 
 	i=$((i+1))
