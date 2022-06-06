@@ -472,14 +472,16 @@ public class Heuristic {
     private void setStaticInfos(){
 
         //add matrices
-        for (int y = 0; y < map.getHeight(); y++) {
-            for (int x = 0; x < map.getWidth(); x++) {
+        if (useFieldValues || useEdges) {
+            for (int y = 0; y < map.getHeight(); y++) {
+                for (int x = 0; x < map.getWidth(); x++) {
 
-                if (matrix[y][x] == Double.NEGATIVE_INFINITY) continue;
+                    if (matrix[y][x] == Double.NEGATIVE_INFINITY) continue;
 
-                if (useFieldValues) matrix[y][x] = fieldValueMatrix[y][x] * fieldValueMultiplier;
+                    if (useFieldValues) matrix[y][x] = fieldValueMatrix[y][x] * fieldValueMultiplier;
 
-                if (useEdges) matrix[y][x] *= (edgeMatrix[y][x] == 0)? 1 : edgeMultiplier;
+                    if (useEdges) matrix[y][x] *= (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
+                }
             }
         }
 
