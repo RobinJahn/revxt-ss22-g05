@@ -29,7 +29,7 @@ public class Heuristic {
 
     //multipliers
     public static final int countOfMultipliers = 5;
-    public final double[][] multiplier;
+    public double[][] multiplier;
 
     private double stoneCountMultiplier;
     private double moveCountMultiplier;
@@ -38,7 +38,7 @@ public class Heuristic {
     private double waveCount;
 
     //Staging
-    private int stageNumber = -1; //needs to be an invalid stage to trigger update of multipliers and static infos
+    private int stageNumber;
 
 
     /**
@@ -57,94 +57,75 @@ public class Heuristic {
         this.myColorI = myColor;
         this.myColorC = (char)('0'+myColor);
         matrix = new double[map.getHeight()][map.getWidth()];
-        this.multiplier = multiplier;
 
-        setMultipliers(multiplier, 1);
+        this.multiplier = multiplier;
+        stageNumber = getStage(true);
+        setMultipliers(stageNumber);
+
+        if (printOn){
+            System.out.println("Multipliers per phase");
+            System.out.println(Arrays.deepToString(this.multiplier).replace("],", "],\n"));
+        }
+
         initMatrix();
-        initEdgeMatrixAndFieldValueMatrix();
-        updateHeuristicMultipliers();
+        initEdgeMatrixAndFieldValueMatrix(); //needs multipliers
+
+        setStaticInfos(); //needs initialized matrices
     }
 
-    private void setMultipliers(double[][] multiplier, int phase) {
+    private void setMultipliers(int phase) {
         //set multiplier
 
+        //default multipliers
         if (multiplier == null) {
+            multiplier = new double[][]{
+                    {5, 5, 2, 5, 3},
+                    {8, 2, 1, 5, 2},
+                    {10, 1, 0, 5, 0}
+            };
+        }
 
-            //default multiplier
-            switch (stageNumber) {
+        //bomb phase multipliers
+        if (phase == 4){
+            stoneCountMultiplier = 1;
+            moveCountMultiplier = 0;
+            fieldValueMultiplier = 0;
+            edgeMultiplier = 0;
+            waveCount = 0;
+
+            countStones = true;
+            countMoves = false;
+            useFieldValues = false;
+            useEdges = false;
+            useWaves = false;
+            return;
+        }
+
+        //set given parameters
+        for (int i = 0; i < multiplier[phase-1].length; i++) {
+            switch (i) {
+                case 0:
+                    stoneCountMultiplier = multiplier[phase-1][i];
+                    countStones = stoneCountMultiplier != 0;
+                    break;
                 case 1:
-                    stoneCountMultiplier = 5;
-                    moveCountMultiplier = 5;
-                    fieldValueMultiplier = 2;
-                    edgeMultiplier = 5;
-                    waveCount = 3;
-
-                    //corresponding default enables
-                    countStones = true;
-                    countMoves = true;
-                    useFieldValues = true;
-                    useEdges = true;
-                    useWaves = true;
-
+                    moveCountMultiplier = multiplier[phase-1][i];
+                    countMoves = moveCountMultiplier != 0;
                     break;
                 case 2:
-                    stoneCountMultiplier = 8;
-                    moveCountMultiplier = 2;
-                    fieldValueMultiplier = 1;
-                    edgeMultiplier = 5;
-                    waveCount = 2;
-
-                    //corresponding default enables
-                    countStones = true;
-                    countMoves = true;
-                    useFieldValues = true;
-                    useEdges = true;
-                    useWaves = true;
-
+                    fieldValueMultiplier = multiplier[phase-1][i];
+                    useFieldValues = fieldValueMultiplier != 0;
                     break;
                 case 3:
-                    stoneCountMultiplier = 10;
-                    moveCountMultiplier = 1;
-                    fieldValueMultiplier = 0;
-                    edgeMultiplier = 5;
-                    waveCount = 0;
-
-                    //corresponding default enables
-                    countStones = true;
-                    countMoves = true;
-                    useFieldValues = false;
-                    useEdges = true;
-                    useWaves = false;
-
+                    edgeMultiplier = multiplier[phase-1][i];
+                    useEdges = edgeMultiplier != 0 ;
+                    break;
+                case 4:
+                    waveCount = multiplier[phase-1][i];
+                    useWaves = waveCount != 0;
                     break;
             }
-
         }
-        else{
-            //set given parameters
-            for (int i = 0; i < multiplier.length; i++) {
-                switch (i) {
-                    case 0:
-                        stoneCountMultiplier = multiplier[phase-1][i];
-                        if (stoneCountMultiplier == 0) countStones = false;
-                        break;
-                    case 1:
-                        moveCountMultiplier = multiplier[phase-1][i];
-                        if (moveCountMultiplier == 0) countMoves = false;
-                        break;
-                    case 2:
-                        fieldValueMultiplier = multiplier[phase-1][i];
-                        if (fieldValueMultiplier == 0) useFieldValues = false;
-                    case 3:
-                        edgeMultiplier = multiplier[phase-1][i];
-                        if (edgeMultiplier == 0) useEdges = false;
-                    case 4:
-                        waveCount = multiplier[phase-1][i];
-                        if (waveCount == 0) useWaves = false;
-                }
-            }
-        }
-
     }
 
     //SETTER -----------------------------------------------------------------------------------------------------------
@@ -176,16 +157,16 @@ public class Heuristic {
     /**
      * Function updates the Heuristic Multipliers according to the current GameStage
      */
-    public void updateHeuristicMultipliers()
+    public void updateHeuristicMultipliers(boolean phaseOne)
     {
-        int stageNumber = getStage();
+        int stageNumber = getStage(phaseOne);
 
         //if stage number changed
         if (this.stageNumber != stageNumber)
         {
             this.stageNumber = stageNumber;
 
-            setMultipliers(multiplier, stageNumber);
+            setMultipliers(stageNumber);
 
             setStaticInfos();
         }
@@ -213,13 +194,7 @@ public class Heuristic {
         double averageFieldValue = 0;
         double result = 0;
 
-        //set values for bomb phase
-        if (!phaseOne){
-            stoneCountMultiplier = 1;
-            countStones = true;
-            countMoves = false;
-            useFieldValues = false;
-        }
+        updateHeuristicMultipliers(phaseOne);
 
         //count stones
         if (countStones) {
@@ -243,7 +218,7 @@ public class Heuristic {
         }
 
         //add values of won fields
-        if (useFieldValues) averageFieldValue = getFieldValues(fieldValueMultiplier);
+        if (useFieldValues || useEdges) averageFieldValue = getFieldValues(fieldValueMultiplier); //If use wave is enabled alone there are no waves
 
         //out of time ?
         if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
@@ -254,7 +229,7 @@ public class Heuristic {
         //calculate result
         if (countStones) result += countOfStonesEvaluation * stoneCountMultiplier;
         if (countMoves) result += countOfMovesEvaluation * moveCountMultiplier;
-        if (useFieldValues) result += averageFieldValue;
+        if (useFieldValues || useEdges) result += averageFieldValue;
 
         //prints
         if (printOn) {
@@ -308,10 +283,17 @@ public class Heuristic {
         return 1 - ((double)placement - 1) / ((double)map.getAnzPlayers() -1);
     }
 
-    private int getStage(){
+    private int getStage(boolean phaseOne){
 
         int stageNumber = 1;
-        double fillPercentage = map.getFillPercentage();
+        double fillPercentage;
+
+        if (!phaseOne) {
+            stageNumber = 4;
+            return stageNumber;
+        }
+
+        fillPercentage = map.getFillPercentage();
 
         if(fillPercentage > 0.5 && fillPercentage < 0.8)
         {
@@ -496,9 +478,9 @@ public class Heuristic {
     private void setStaticInfos(){
 
         //add matrices
-        if (useFieldValues || useEdges) {
-            for (int y = 0; y < map.getHeight(); y++) {
-                for (int x = 0; x < map.getWidth(); x++) {
+        if (useEdges || useFieldValues) { //only gets updated when used because when it's not used the matrix don't need to be updated
+            for (int y = 1; y < map.getHeight() - 1; y++) {
+                for (int x = 1; x < map.getWidth() - 1; x++) {
 
                     if (matrix[y][x] == Double.NEGATIVE_INFINITY) continue;
 
@@ -508,6 +490,7 @@ public class Heuristic {
                 }
             }
         }
+
 
         if (extendedPrint) {
             if (useFieldValues) {
@@ -525,49 +508,41 @@ public class Heuristic {
         }
 
         //evaluate every position by its neighbours
-        if (useWaves) addWaveMatrix();
+        if (useWaves && (useEdges || useFieldValues)) addWaveMatrix();
 
-        if (extendedPrint && useWaves) {
+        if (extendedPrint && useWaves && (useEdges || useFieldValues)) {
             System.out.println("Added Waves");
             printMatrix(matrix);
         }
     }
 
     private void initEdgeMatrixAndFieldValueMatrix(){
-
-        if (!useEdges && !useFieldValues) return;
-
         //edge Matrix
         boolean[] outgoingDirections;
-        if (useEdges) {
-            edgeMatrix = new double[map.getHeight()][map.getWidth()];
-        }
+        edgeMatrix = new double[map.getHeight()][map.getWidth()];
+
 
         //field Value Matrix
         int[] reachableFields;
         int sumOfReachableFields;
-        if (useFieldValues) {
-            fieldValueMatrix = new double[map.getHeight()][map.getWidth()];
-        }
+        fieldValueMatrix = new double[map.getHeight()][map.getWidth()];
+
 
         for (int y = 1; y < map.getHeight() - 1; y++) {
             for (int x = 1; x < map.getWidth() - 1; x++) {
 
                 if (matrix[y][x] == Double.NEGATIVE_INFINITY) continue;
 
-                if (useEdges) {
-                    //edge Matrix
-                    outgoingDirections = getOutgoingDirections(new Position(x, y));
-                    edgeMatrix[y][x] = isCapturable(outgoingDirections) ? 0 : 1;
-                }
+                //edge Matrix
+                outgoingDirections = getOutgoingDirections(new Position(x, y));
+                edgeMatrix[y][x] = isCapturable(outgoingDirections) ? 0 : 1;
 
-                if (useFieldValues) {
-                    //field value matrix
-                    sumOfReachableFields = 0;
-                    reachableFields = checkReachableFields(new Position(x, y));
-                    for (int a : reachableFields) sumOfReachableFields += a;
-                    fieldValueMatrix[y][x] = (double) sumOfReachableFields / map.getCountOfReachableFields();
-                }
+
+                //field value matrix
+                sumOfReachableFields = 0;
+                reachableFields = checkReachableFields(new Position(x, y));
+                for (int a : reachableFields) sumOfReachableFields += a;
+                fieldValueMatrix[y][x] = (double) sumOfReachableFields / map.getCountOfReachableFields();
             }
         }
 

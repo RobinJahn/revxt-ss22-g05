@@ -133,6 +133,7 @@ public class Client{
 						nfe.printStackTrace();
 						printHelp();
 					}
+					break;
 
 				default: System.out.print(args[i] + " is not an option\n");
 				case "--help":
@@ -295,7 +296,6 @@ public class Client{
 					if (depth == 0) depth = Integer.MAX_VALUE;
 
 					//Staging
-					heuristic.updateHeuristicMultipliers();
 					if(printOn) System.out.println("Fill Percentage: " + String.format("%.2f",map.getFillPercentage()*100) + "%");
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
