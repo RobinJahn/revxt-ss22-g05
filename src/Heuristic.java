@@ -79,9 +79,9 @@ public class Heuristic {
         //default multipliers
         if (multiplier == null) {
             multiplier = new double[][]{
-                    {5, 5, 2, 5, 3},
-                    {8, 2, 1, 5, 2},
-                    {10, 1, 0, 5, 0}
+                    {1, 9, 4, 9, 5},
+                    {5, 2, 0, 0, 7},
+                    {2, 1, 8, 3, 2}
             };
         }
 

@@ -103,7 +103,6 @@ do
 	result=0
 	for mapName in "${maps[@]}"
 	do
-		if $extendedPrint; then echo ""; fi
 		echo "script: now Playing on: $mapName"
 		
 
