@@ -387,6 +387,7 @@ public class Client{
 								System.out.println("All overwrite Moves are correct: " + map.checkOverwriteMoves());
 								System.out.println();
 							}
+
 						}
 						else {
 							ArrayList<int[]> validMoves = null;
@@ -411,6 +412,7 @@ public class Client{
 							System.out.println("TimeoutException in Handle Move");
 							return;
 						}
+						System.out.println("Map is Terminal: " + map.isTerminal());
 						System.out.println("Value of Map is " + valueOfMap);
 					}
 					break;

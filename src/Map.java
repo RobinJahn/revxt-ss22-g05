@@ -547,6 +547,93 @@ public class Map{
         System.out.println(Arrays.deepToString(staticMap.reachableFieldMatrix).replace("],", "\n"));
     }
 
+
+    public boolean isTerminal(){
+        boolean terminal = true;
+        int currentlyPlaying = this.currentlyPlaying;
+
+        for (int playerNR = 1; playerNR<=staticMap.anzPlayers; playerNR++){
+            try {
+                if ( !Map.getValidMoves(this, false, false, false, Long.MAX_VALUE, null).isEmpty() ) terminal = false; //TODO: use timing
+                if (!terminal) break;
+            } catch (ExceptionWithMove e) {
+                System.out.println("Something went wrong - getValidMoves trew exception even if there was no time limit");
+                e.printStackTrace();
+            }
+            this.nextPlayer();
+        }
+        this.currentlyPlaying = currentlyPlaying;
+
+        return terminal;
+    }
+
+    public int[] getRandomMove() {
+
+        int x = (int) (Math.random() * (this.getWidth() - 1)); //needs to be -1 because random can be almost 1 and therefore be rounded to the multiplier
+        int y = (int) (Math.random() * (this.getHeight() - 1));
+        ArrayList<Integer> directions = new ArrayList<>() {
+            {
+                add(0);
+                add(1);
+                add(2);
+                add(3);
+                add(4);
+                add(5);
+                add(6);
+                add(7);
+            }
+        };
+        Position randomMove;
+        Position startPos = new Position(x, y);
+        int[] result;
+        char charAtPos;
+
+        while (true) {
+
+            randomMove = new Position(x, y);
+            boolean isValid = checkIfMoveIsPossible(randomMove, directions, this);
+
+            if (isValid)
+                break;
+
+            x = (int) (Math.random() * (this.getWidth() - 1));
+            y = (int) (Math.random() * (this.getHeight() - 1));
+        }
+
+
+        charAtPos = getCharAt(randomMove);
+
+        switch (charAtPos) {
+            case 'b':
+                if (Math.round(Math.random()) == 1)
+                    result = new int[]{randomMove.x, randomMove.y, 20};
+                else
+                    result = new int[]{randomMove.x, randomMove.y, 21};
+                return result;
+
+            case 'c':
+                int randomVal = (int)Math.round(Math.random()* staticMap.anzPlayers-1)+1; //-1 to create values from 0 to anzPlayer-1 and +1 to get it from 1 to anzPlayers
+                return new int[]{randomMove.x, randomMove.y, randomVal};
+
+            default:
+                return new int[]{randomMove.x, randomMove.y, 0};
+        }
+    }
+
+    public int getPlacement(int myPlayerNr){
+        int placement = 1;
+        int score;
+        int myScore = getCountOfStonesOfPlayer(myPlayerNr);
+        for (int playerNr = 1; playerNr <= staticMap.anzPlayers; playerNr++){
+            if (playerNr == myPlayerNr) continue;
+            score = getCountOfStonesOfPlayer(playerNr);
+            if (score > myScore){
+                placement++;
+            }
+        }
+        return placement;
+    }
+
     // SETTER ----------------------------------------------------------------------------------------------------------
 
     /**
@@ -1521,7 +1608,8 @@ public class Map{
     }
 
     public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit, Heuristic heuristic) throws ExceptionWithMove{
-        HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
+        HashSet<PositionAndInfo> resultMovesSetToCeckForDuplicates = new HashSet<>();
+        HashSet<PositionAndInfo> overwriteMovesSetToCeckForDuplicates = new HashSet<>();
         ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
         ArrayList<int[]> overwriteMoves = new ArrayList<>();
         int r;
@@ -1535,16 +1623,17 @@ public class Map{
         if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
             for (Position pos : map.getExpansionFields()) {
                 if (map.evaluateOverwriteMove(pos, heuristic)){
-                    everyPossibleMove.add(new PositionAndInfo(pos.x, pos.y, 0));
+                    resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(pos.x, pos.y, 0));
                     resultPosAndInfo.add(new int[]{pos.x, pos.y, 0});
                 }
                 else
+                    overwriteMovesSetToCeckForDuplicates.add(new PositionAndInfo(pos.x, pos.y, 0));
                     overwriteMoves.add(new int[]{pos.x, pos.y, 0});
             }
         }
 
         //out of time ?
-        if (!resultPosAndInfo.isEmpty() && timed && (upperTimeLimit-System.nanoTime() < 0)){ //TODO: this can lead to a null pointer exception
+        if (!resultPosAndInfo.isEmpty() && timed && (upperTimeLimit-System.nanoTime() < 0)){
             if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
             throw new ExceptionWithMove(resultPosAndInfo.get(0));
         }
@@ -1585,7 +1674,7 @@ public class Map{
                     if (Character.isDigit(currChar)){
                         // 0
                         if (currChar == '0') {
-                            wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                            wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                             if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
                             break;
                         }
@@ -1594,12 +1683,14 @@ public class Map{
                             //own or enemy stone -> overwrite move
                             if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
                                 if (map.evaluateOverwriteMove(new Position(currPos.x, currPos.y), heuristic)){
-                                    wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                                    wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                                     if (wasAdded)
                                         resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
                                 }
-                                else
-                                    overwriteMoves.add(new int[] {currPos.x, currPos.y, 0});
+                                else {
+                                    wasAdded = overwriteMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                                    if (wasAdded) overwriteMoves.add(new int[]{currPos.x, currPos.y, 0});
+                                }
                             }
                             //if it's an own stone don't go on
                             if (currChar == map.getCurrentlyPlayingC()) break;
@@ -1608,32 +1699,34 @@ public class Map{
                     // c, b, i, x
                     else {
                         if (currChar == 'i') {
-                            wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                            wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                             if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
                             break;
                         }
                         else if (currChar == 'c') {
                             for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
-                                wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
+                                wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
                                 if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, playerNr});
                             }
                             break;
                         }
                         else if (currChar == 'b'){
-                            wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 20));
+                            wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 20));
                             if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 20});
-                            wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 21));
+                            wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 21));
                             if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 21});
                             break;
                         }
+                        /*
                         else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
                             if (map.evaluateOverwriteMove(new Position(currPos.x, currPos.y), heuristic)){
-                                wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                                wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                                 if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
                             }
                             else
                                 overwriteMoves.add(new int[]{currPos.x, currPos.y, 0});
                         }
+                         */
                     }
                 }
             }
@@ -1702,6 +1795,8 @@ public class Map{
 
     private boolean evaluateOverwriteMove(Position pos, Heuristic heuristic){
 
+        if (heuristic == null) return true;
+
         if (heuristic.matrix[pos.x][pos.y] > 50)
             return true;
 
@@ -1709,34 +1804,5 @@ public class Map{
             return false;
     }
 
-    public int[] getRandomMove(){
 
-        int x = (int)Math.random()*this.getWidth();
-        int y = (int)Math.random()*this.getHeight();
-        ArrayList<Integer> directions = new ArrayList<Integer>(){
-            {
-                add(0); add(1); add(2); add(3); add(4); add(5); add(6); add(7);
-            }
-        };
-        Position randomMove;
-        Position startPos = new Position(x, y);
-
-        while (true){
-
-            randomMove = new Position(x,y);
-            boolean isValid = checkIfMoveIsPossible(randomMove, directions, this);
-
-            if(isValid == true)
-                break;
-
-            x = (int)Math.random()*this.getWidth();
-            y = (int)Math.random()*this.getHeight();
-        }
-
-        if (getCharAt(randomMove) == 'b')
-            return new int[]{randomMove.x, randomMove.y, 21};
-
-        else
-            return new int[]{randomMove.x, randomMove.y, 0};
-    }
 }

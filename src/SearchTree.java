@@ -30,6 +30,8 @@ public class SearchTree {
 
     KillerArray killerArray = new KillerArray();
 
+    MctsNode currRoot = null;
+
 
     public SearchTree(Map map, boolean printOn, boolean ServerLog, boolean extendedPrint, int myPlayerNr, boolean useAB, boolean useMS, boolean useBRS, boolean useKH, double[][] multiplier){
         this.printOn = printOn;
@@ -335,6 +337,105 @@ public class SearchTree {
 
         return validPosition;
     }
+
+
+    //MONTE CARLO TREE SEARCH
+
+    private int[] getMoveWithMCTS(Map map, boolean phaseOne){
+        MctsNode rootNode;
+        rootNode = new MctsNode(map, null, null);
+        //TODO: get child of root Node in regards wich path it took
+
+        MctsNode currV;
+        double delta;
+
+        while (upperTimeLimit - System.nanoTime() < 0) {
+            try {
+                currV = treePolicy(rootNode, phaseOne);
+                delta = defaultPolicy( currV.getMap(), phaseOne);
+                backup(currV, delta);
+            }
+            catch (TimeoutException e) {
+                e.printStackTrace();
+            }
+        }
+
+        currV = bestChild(rootNode, 0);
+        currRoot = currV;
+
+        return currV.getActionLeadingToThis();
+    }
+
+    private MctsNode treePolicy(MctsNode v, boolean phaseOne) throws TimeoutException {
+
+        double c = 1;
+
+        while (!v.isTerminal()) {
+            if (!v.isFullyExpanded()) {
+                return expand(v, phaseOne);
+            }
+            else {
+                v = bestChild(v, c);
+            }
+        }
+        return v;
+    }
+
+    private MctsNode expand(MctsNode v, boolean phaseOne) throws TimeoutException {
+
+        int[] a = v.getUntriedActionAndRemoveIt(); //call by Reference !
+
+
+        //simulate move
+        Map nextMap = simulateMove(v.getMap(), a, phaseOne);
+
+        //create Child
+        MctsNode newChild = new MctsNode(nextMap, v, a);
+
+        //add child
+        v.addChild(newChild);
+
+        return newChild;
+    }
+
+    private MctsNode bestChild(MctsNode v, double c){
+        double maxValue = Double.NEGATIVE_INFINITY;
+        double currValue;
+        MctsNode bestChild = null;
+
+        for (MctsNode vChild : v.getChilds()){
+            currValue = (vChild.getTotalReward() / vChild.getCountOfVisits()) + c * Math.sqrt( (2* Math.log(v.getCountOfVisits())) / vChild.getCountOfVisits() );
+            if (currValue > maxValue){
+                maxValue = currValue;
+                bestChild = vChild;
+            }
+        }
+
+        return bestChild;
+    }
+
+    private double defaultPolicy(Map map, boolean phaseOne) throws TimeoutException {
+        int[] a;
+        int placement;
+
+        while (!map.isTerminal()){
+            a = map.getRandomMove();
+            map = simulateMove(map, a, phaseOne);
+        }
+
+        placement = map.getPlacement(myPlayerNr);
+        return 1 - ((double)(placement - 1) / (map.getAnzPlayers() - 1)); //norms place to a value between 1 best and 0 worst
+    }
+
+    private void backup(MctsNode v, double delta) {
+        while (v != null){
+            v.increaseVisits();
+            v.updateReward(delta); //p shouldn't be neccessarry because node has Map.currentlyPlaying
+            v = v.getParent();
+        }
+    }
+
+    //END OF MONTE CARLO TREE SEARCH
 
 
     //recursive
