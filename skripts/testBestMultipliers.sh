@@ -114,7 +114,7 @@ do
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
 		sleep $sleepingTime &&
 			echo "script: started client" &&
-			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m 1 "${multipliers1[@]}" -m 2 "${multipliers1[@]}" -m 3 "${multipliers1[@]}" -c > "$outFileClient" &
+			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m "1" "${multipliers1[@]}" -m "2" "${multipliers2[@]}" -m "3" "${multipliers3[@]}" -c > "$outFileClient" &
 		pid1=$!
 
 
