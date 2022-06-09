@@ -206,6 +206,12 @@ public class Client{
 			return;
 		}
 
+		//print Multipliers
+		if ((printOn || serverLog) && multipliers != null) {
+			System.out.println(Arrays.deepToString(multipliers).replace("],","],\n"));
+			System.out.println();
+		}
+
 		//get map from server
 		//global variables
 		StaticMap sMap = serverM.getMap();

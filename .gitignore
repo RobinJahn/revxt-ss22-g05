@@ -21,3 +21,5 @@
 /serverAndAi
 /skripts/serverOut.txt
 /build
+/skripts/*.txt
+/skripts/*.csv
