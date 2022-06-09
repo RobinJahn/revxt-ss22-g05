@@ -12,7 +12,7 @@ public class Heuristic {
     private final int myColorI;
     private final char myColorC;
     //the matrix that rates the different fields
-    private double[][] matrix;
+    public double[][] matrix;
     private double[][] fieldValueMatrix;
     private double[][] waveMatrix;
     private double[][] edgeMatrix;
@@ -79,9 +79,9 @@ public class Heuristic {
         //default multipliers
         if (multiplier == null) {
             multiplier = new double[][]{
-                    {1, 9, 4, 9, 5},
-                    {5, 2, 0, 0, 7},
-                    {2, 1, 8, 3, 2}
+                    {8, 6, 5, 3, 3},
+                    {0, 9, 1, 9, 8},
+                    {9, 4, 5, 1, 5}
             };
         }
 
@@ -345,9 +345,9 @@ public class Heuristic {
             }
 
             if (myColorI == map.getCurrentlyPlayingI()) {
-                myPossibleMoves = Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size();
+                myPossibleMoves = Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit, this).size();
             } else {
-                possibleMovesOfEnemies += Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit).size(); //TODO: Make valid Moves contain all moves from beginning on
+                possibleMovesOfEnemies += Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit, this).size(); //TODO: Make valid Moves contain all moves from beginning on
             }
             map.nextPlayer();
         } //resets to currently playing
