@@ -108,7 +108,6 @@ do
 	for mapName in "${maps[@]}"
 	do
 		echo "script: now Playing on: $mapName"
-		
 
 		# start own client
 		if $extendedPrint; then echo "script: start client in 3 sec"; fi
@@ -196,7 +195,11 @@ do
 		resultOfGame=$(awk -v groupID=5 -f ./getOwnResults.awk $outFileServer)
 		resultOfGame=$( echo "$resultOfGame" | tr ',' '.')
 		echo "script: result: $resultOfGame"
-		
+
+		if (( $(echo "$resultOfGame==0" | bc -l) )); then
+		  break;
+		fi
+
 		result=$(echo "$result + $resultOfGame" | bc -l )
 
 		#sleep 4
