@@ -335,7 +335,7 @@ public class Client{
 						map.setPlayer(moveOfPlayer);
 						if(firstPhase){
 							try {
-								CSC.setClientString(map.toString_Server(Map.getValidMoves(map, false, false, false, 0)));
+								CSC.setClientString(map.toString_Server(Map.getValidMoves(map, false, false, false, 0, heuristic)));
 							}catch (ExceptionWithMove EWM)
 							{
 								EWM.printStackTrace();
@@ -356,9 +356,9 @@ public class Client{
 							ArrayList<int[]> validMovesByArrows;
 							ArrayList<int[]> validMovesByOwnColor = null;
 							//calculate possible moves
-							validMovesByArrows = map.getValidMovesByArrows(firstPhase);
+							validMovesByArrows = map.getValidMovesByArrows(firstPhase, heuristic);
 							try {
-								validMovesByOwnColor = Map.getFieldsByOwnColor(map, timed, printOn, serverLog, Long.MAX_VALUE);
+								validMovesByOwnColor = Map.getFieldsByOwnColor(map, timed, printOn, serverLog, Long.MAX_VALUE, heuristic);
 							}
 							catch (TimeoutException e){
 								System.err.println("Something went wrong - timeout exception was thrown even if no time limit was set");
@@ -369,7 +369,7 @@ public class Client{
 								System.out.println("With own color");
 								System.out.println(map.toString(validMovesByOwnColor, false, useColors));
 								System.out.println("With move carry along");
-								System.out.println(map.toString(map.getValidMovesByArrows(firstPhase), false, useColors));
+								System.out.println(map.toString(map.getValidMovesByArrows(firstPhase, heuristic), false, useColors));
 
 								//check if arrows are correct
 								System.out.println("Reference in Affected Arrows: " + map.checkForReferenceInAffectedArrows());
@@ -391,7 +391,7 @@ public class Client{
 						else {
 							ArrayList<int[]> validMoves = null;
 							try {
-								validMoves = Map.getValidMoves(map, timed, printOn, serverLog, Long.MAX_VALUE);
+								validMoves = Map.getValidMoves(map, timed, printOn, serverLog, Long.MAX_VALUE, heuristic);
 							}
 							catch (TimeoutException e){
 								System.err.println("Something went wrong - timeout exception was thrown even if no time limit was set");
@@ -492,7 +492,7 @@ public class Client{
 		//calculate possible moves
 		if (printOn) System.out.println("Get Valid Moves in make a move");
 		try {
-			validMoves = Map.getValidMoves(map, timed, printOn, serverLog, upperTimeLimit);
+			validMoves = Map.getValidMoves(map, timed, printOn, serverLog, upperTimeLimit, heuristic);
 		} catch (ExceptionWithMove e) {
 			validPosition = e.PosAndInfo;
 			//send message where to move
@@ -751,7 +751,7 @@ public class Client{
 
 		for (int[] posAndR1 : validMoves){
 			contains = false;
-			for (int[] posAndR2 : map.getValidMovesByArrows(phaseOne)){
+			for (int[] posAndR2 : map.getValidMovesByArrows(phaseOne, heuristic)){
 				if (Arrays.compare(posAndR1, posAndR2) == 0) {
 					contains = true;
 					break;
@@ -763,7 +763,7 @@ public class Client{
 			}
 		}
 
-		for (int[] posAndR1 : map.getValidMovesByArrows(phaseOne)){
+		for (int[] posAndR1 : map.getValidMovesByArrows(phaseOne, heuristic)){
 			contains = false;
 			for (int[] posAndR2 : validMoves){
 				if (Arrays.compare(posAndR1, posAndR2) == 0) {
@@ -967,7 +967,7 @@ public class Client{
 		}
 
 		//get moves for the next player
-		phaseOne = getMovesForNextPlayer(map, everyPossibleMove, phaseOne,timed,printOn, serverLog,UpperTimeLimit);
+		phaseOne = getMovesForNextPlayer(map, everyPossibleMove, phaseOne,timed,printOn, serverLog, UpperTimeLimit, heuristic);
 
 		//check if it reached the end of the game
 		if (everyPossibleMove.isEmpty()) {
@@ -982,7 +982,7 @@ public class Client{
 		return currBestValue;
 	}
 
-	private static boolean getMovesForNextPlayer(Map map, ArrayList<int[]> movesToReturn, boolean phaseOne,boolean timed,boolean printOn,boolean ServerLog,long UpperTimeLimit) throws TimeoutException{
+	private static boolean getMovesForNextPlayer(Map map, ArrayList<int[]> movesToReturn, boolean phaseOne,boolean timed,boolean printOn,boolean ServerLog,long UpperTimeLimit, Heuristic heuristic) throws TimeoutException{
 		ArrayList<int[]> everyPossibleMove;
 		int skippedPlayers = 0;
 
@@ -990,7 +990,7 @@ public class Client{
 		while (true) {
 			//get valid moves depending on stage of game
 			if (phaseOne) { //phase one
-				everyPossibleMove = Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit);
+				everyPossibleMove = Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit, heuristic);
 			}
 			else { //bomb phase
 				//if we have bombs

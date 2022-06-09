@@ -581,7 +581,7 @@ public class SearchTree {
         while (true) {
             //get valid moves depending on stage of game
             if (phaseOne) { //phase one
-                everyPossibleMove = Map.getValidMoves(map,timed,printOn,ServerLog, upperTimeLimit);
+                everyPossibleMove = Map.getValidMoves(map,timed,printOn,ServerLog, upperTimeLimit, heuristicForSimulation);
             }
             else { //bomb phase
                 //if we have bombs

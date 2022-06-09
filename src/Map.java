@@ -432,12 +432,13 @@ public class Map{
         return result;
     }
 
-    public ArrayList<int[]> getValidMovesByArrows(boolean phaseOne){
-        return getValidMovesByArrows(currentlyPlaying, phaseOne);
+    public ArrayList<int[]> getValidMovesByArrows(boolean phaseOne, Heuristic heuristic){
+        return getValidMovesByArrows(currentlyPlaying, phaseOne, heuristic);
     }
 
-    private ArrayList<int[]> getValidMovesByArrows(int playerId, boolean phaseOne){
+    private ArrayList<int[]> getValidMovesByArrows(int playerId, boolean phaseOne, Heuristic heuristic){
         ArrayList<int[]> resultList = new ArrayList<>();
+        ArrayList<int[]> overwriteMoves = new ArrayList<>();
         char currChar;
 
         if (phaseOne) {
@@ -467,13 +468,23 @@ public class Map{
             //get Overwrite Moves
             if (getOverwriteStonesForPlayer(playerId) > 0) {
                 for (Position pos : OverwriteMoves.get(playerId - 1).keySet()) {
-                    resultList.add(new int[]{pos.x, pos.y, 0});
+                    if (evaluateOverwriteMove(pos, heuristic))
+                        resultList.add(new int[]{pos.x, pos.y, 0});
+                    else
+                        overwriteMoves.add(new int[]{pos.x, pos.y, 0});
                 }
 
                 for (Position pos : expansionFields) {
-                    resultList.add(new int[]{pos.x, pos.y, 0});
+                    if (evaluateOverwriteMove(pos, heuristic))
+                        resultList.add(new int[]{pos.x, pos.y, 0});
+                    else
+                        overwriteMoves.add(new int[]{pos.x, pos.y, 0});
                 }
             }
+
+            if (resultList.isEmpty())
+                return overwriteMoves;
+
         }
 
         //if we are in the bomb Phase
@@ -1438,14 +1449,14 @@ public class Map{
      * @param map map to check for possible moves
      * @return returns an Array List of Positions
      */
-    public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws ExceptionWithMove {
+    public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit, Heuristic heuristic) throws ExceptionWithMove {
         ArrayList<int[]> everyPossibleMove;
 
         if (useArrows){
-            everyPossibleMove = map.getValidMovesByArrows(map.getCurrentlyPlayingI(), true);
+            everyPossibleMove = map.getValidMovesByArrows(map.getCurrentlyPlayingI(), true, heuristic);
         }
         else {
-            everyPossibleMove = getFieldsByOwnColor(map, timed, printOn, serverLog, upperTimeLimit);
+            everyPossibleMove = getFieldsByOwnColor(map, timed, printOn, serverLog, upperTimeLimit, heuristic);
         }
 
         return everyPossibleMove;
@@ -1467,6 +1478,9 @@ public class Map{
 
         //check if it's an expansions field
         if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) return true;
+
+        //check if it's out of the map
+        if (map.getCharAt(pos) == '-' || map.getCharAt(pos) == 't') return false;
 
         //go over every direction that needs to be checked
         for (Integer r : directions){
@@ -1506,9 +1520,10 @@ public class Map{
         return false;
     }
 
-    public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit) throws ExceptionWithMove{
+    public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit, Heuristic heuristic) throws ExceptionWithMove{
         HashSet<PositionAndInfo> everyPossibleMove = new HashSet<>();
         ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
+        ArrayList<int[]> overwriteMoves = new ArrayList<>();
         int r;
         Integer newR;
         Position currPos;
@@ -1519,8 +1534,12 @@ public class Map{
         //add x fields
         if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
             for (Position pos : map.getExpansionFields()) {
-                everyPossibleMove.add(new PositionAndInfo(pos.x, pos.y, 0));
-                resultPosAndInfo.add(new int[]{pos.x, pos.y, 0});
+                if (map.evaluateOverwriteMove(pos, heuristic)){
+                    everyPossibleMove.add(new PositionAndInfo(pos.x, pos.y, 0));
+                    resultPosAndInfo.add(new int[]{pos.x, pos.y, 0});
+                }
+                else
+                    overwriteMoves.add(new int[]{pos.x, pos.y, 0});
             }
         }
 
@@ -1574,8 +1593,13 @@ public class Map{
                         else {
                             //own or enemy stone -> overwrite move
                             if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                                wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                                if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
+                                if (map.evaluateOverwriteMove(new Position(currPos.x, currPos.y), heuristic)){
+                                    wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                                    if (wasAdded)
+                                        resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
+                                }
+                                else
+                                    overwriteMoves.add(new int[] {currPos.x, currPos.y, 0});
                             }
                             //if it's an own stone don't go on
                             if (currChar == map.getCurrentlyPlayingC()) break;
@@ -1603,15 +1627,23 @@ public class Map{
                             break;
                         }
                         else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                            wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
+                            if (map.evaluateOverwriteMove(new Position(currPos.x, currPos.y), heuristic)){
+                                wasAdded = everyPossibleMove.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                                if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
+                            }
+                            else
+                                overwriteMoves.add(new int[]{currPos.x, currPos.y, 0});
                         }
                     }
                 }
             }
         }
 
-        return resultPosAndInfo;
+        if (resultPosAndInfo.isEmpty())
+            return overwriteMoves;
+
+        else
+            return resultPosAndInfo;
     }
 
 
@@ -1668,4 +1700,43 @@ public class Map{
         return (double) myStoneCount / ((double)enemyStoneCount / (map.staticMap.anzPlayers - 1));
     }
 
+    private boolean evaluateOverwriteMove(Position pos, Heuristic heuristic){
+
+        if (heuristic.matrix[pos.x][pos.y] > 50)
+            return true;
+
+        else
+            return false;
+    }
+
+    public int[] getRandomMove(){
+
+        int x = (int)Math.random()*this.getWidth();
+        int y = (int)Math.random()*this.getHeight();
+        ArrayList<Integer> directions = new ArrayList<Integer>(){
+            {
+                add(0); add(1); add(2); add(3); add(4); add(5); add(6); add(7);
+            }
+        };
+        Position randomMove;
+        Position startPos = new Position(x, y);
+
+        while (true){
+
+            randomMove = new Position(x,y);
+            boolean isValid = checkIfMoveIsPossible(randomMove, directions, this);
+
+            if(isValid == true)
+                break;
+
+            x = (int)Math.random()*this.getWidth();
+            y = (int)Math.random()*this.getHeight();
+        }
+
+        if (getCharAt(randomMove) == 'b')
+            return new int[]{randomMove.x, randomMove.y, 21};
+
+        else
+            return new int[]{randomMove.x, randomMove.y, 0};
+    }
 }
