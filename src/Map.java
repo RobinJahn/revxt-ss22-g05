@@ -611,7 +611,7 @@ public class Map{
                     result = new int[]{randomMove.x, randomMove.y, 21};
                 return result;
 
-            case 'c':
+            case 'c': //TODO: dont swap with player without stones
                 int randomVal = (int)Math.round(Math.random()* staticMap.anzPlayers-1)+1; //-1 to create values from 0 to anzPlayer-1 and +1 to get it from 1 to anzPlayers
                 return new int[]{randomMove.x, randomMove.y, randomVal};
 
@@ -1797,7 +1797,7 @@ public class Map{
 
         if (heuristic == null) return true;
 
-        if (heuristic.matrix[pos.x][pos.y] > 50)
+        if (heuristic.matrix[pos.y][pos.x] > 50)
             return true;
 
         else

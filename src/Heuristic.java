@@ -669,7 +669,7 @@ public class Heuristic {
         return backedUpOutgoings;
     }
 
-    private int bonusFieldValue(char charAtPos){
+    private int bonusFieldValue(char charAtPos){ //TODO: delete value for overwrite move out of matrix
         switch (charAtPos){
             case 'b':
                 return 20;
