@@ -468,14 +468,14 @@ public class Map{
             //get Overwrite Moves
             if (getOverwriteStonesForPlayer(playerId) > 0) {
                 for (Position pos : OverwriteMoves.get(playerId - 1).keySet()) {
-                    if (evaluateOverwriteMove(pos, heuristic))
+                    if (heuristic.evaluateOverwriteMove(pos))
                         resultList.add(new int[]{pos.x, pos.y, 0});
                     else
                         overwriteMoves.add(new int[]{pos.x, pos.y, 0});
                 }
 
                 for (Position pos : expansionFields) {
-                    if (evaluateOverwriteMove(pos, heuristic))
+                    if (heuristic.evaluateOverwriteMove(pos))
                         resultList.add(new int[]{pos.x, pos.y, 0});
                     else
                         overwriteMoves.add(new int[]{pos.x, pos.y, 0});
@@ -589,7 +589,6 @@ public class Map{
         char charAtPos;
 
         while (true) {
-
             randomMove = new Position(x, y);
             boolean isValid = checkIfMoveIsPossible(randomMove, directions, this);
 
@@ -611,8 +610,12 @@ public class Map{
                     result = new int[]{randomMove.x, randomMove.y, 21};
                 return result;
 
-            case 'c': //TODO: dont swap with player without stones
+            case 'c':
                 int randomVal = (int)Math.round(Math.random()* staticMap.anzPlayers-1)+1; //-1 to create values from 0 to anzPlayer-1 and +1 to get it from 1 to anzPlayers
+                while(getCountOfStonesOfPlayer(randomVal) == 0)
+                {
+                    randomVal = ++randomVal % staticMap.anzPlayers;
+                }
                 return new int[]{randomMove.x, randomMove.y, randomVal};
 
             default:
@@ -1622,7 +1625,7 @@ public class Map{
         //add x fields
         if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
             for (Position pos : map.getExpansionFields()) {
-                if (map.evaluateOverwriteMove(pos, heuristic)){
+                if (heuristic.evaluateOverwriteMove(pos)){
                     resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(pos.x, pos.y, 0));
                     resultPosAndInfo.add(new int[]{pos.x, pos.y, 0});
                 }
@@ -1682,7 +1685,7 @@ public class Map{
                         else {
                             //own or enemy stone -> overwrite move
                             if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                                if (map.evaluateOverwriteMove(new Position(currPos.x, currPos.y), heuristic)){
+                                if (heuristic.evaluateOverwriteMove(new Position(currPos.x, currPos.y))){
                                     wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                                     if (wasAdded)
                                         resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
@@ -1792,17 +1795,4 @@ public class Map{
 
         return (double) myStoneCount / ((double)enemyStoneCount / (map.staticMap.anzPlayers - 1));
     }
-
-    private boolean evaluateOverwriteMove(Position pos, Heuristic heuristic){
-
-        if (heuristic == null) return true;
-
-        if (heuristic.matrix[pos.y][pos.x] > 50)
-            return true;
-
-        else
-            return false;
-    }
-
-
 }

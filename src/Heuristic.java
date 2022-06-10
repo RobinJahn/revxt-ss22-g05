@@ -307,6 +307,10 @@ public class Heuristic {
         return stageNumber;
     }
 
+    public boolean evaluateOverwriteMove(Position pos) {
+        return false;
+    }
+
     //PRINT ------------------------------------------------------------------------------------------------------------
 
     /**
@@ -487,6 +491,8 @@ public class Heuristic {
                     if (useFieldValues) matrix[y][x] = fieldValueMatrix[y][x] * fieldValueMultiplier;
 
                     if (useEdges) matrix[y][x] *= (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
+
+                    matrix[y][x] += bonusFieldValue(map.getCharAt(x,y));
                 }
             }
         }
@@ -672,7 +678,8 @@ public class Heuristic {
     private int bonusFieldValue(char charAtPos){ //TODO: delete value for overwrite move out of matrix
         switch (charAtPos){
             case 'b':
-                return 20;
+
+                return 100;
             case 'c':
                 return 40;
             case 'i':
