@@ -26,8 +26,8 @@ public class MctsNode {
         }
     }
 
-    public boolean isTerminal(){
-        return map.isTerminal();
+    public boolean isTerminal(Heuristic heuristic){
+        return map.isTerminal(heuristic);
     }
 
     public boolean isFullyExpanded(){

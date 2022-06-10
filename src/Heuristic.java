@@ -311,6 +311,15 @@ public class Heuristic {
         return false;
     }
 
+    public int selectBombOrOverwrite(){
+        if (map.getExplosionRadius() > 4){
+            return 20;
+        }
+        else {
+            return 21;
+        }
+    }
+
     //PRINT ------------------------------------------------------------------------------------------------------------
 
     /**
@@ -678,8 +687,7 @@ public class Heuristic {
     private int bonusFieldValue(char charAtPos){ //TODO: delete value for overwrite move out of matrix
         switch (charAtPos){
             case 'b':
-
-                return 100;
+                return 1000;
             case 'c':
                 return 40;
             case 'i':

@@ -130,7 +130,7 @@ do
 			if $extendedPrint; then echo "script: start ai $ii"; fi
 			sleep $sleepingTime &&
 				echo "script: started ai" &&
-				../serverAndAi/ai_trivial -q &> /dev/null &
+				../serverAndAi/ai_trivial -q &> /dev/null & #use bestter clients
 			pidAIs+=(ii)
 			ii=$((ii+1))
 		done

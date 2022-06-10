@@ -548,13 +548,13 @@ public class Map{
     }
 
 
-    public boolean isTerminal(){
+    public boolean isTerminal(Heuristic heuristic){
         boolean terminal = true;
         int currentlyPlaying = this.currentlyPlaying;
 
         for (int playerNR = 1; playerNR<=staticMap.anzPlayers; playerNR++){
             try {
-                if ( !Map.getValidMoves(this, false, false, false, Long.MAX_VALUE, null).isEmpty() ) terminal = false; //TODO: use timing
+                if ( !Map.getValidMoves(this, false, false, false, Long.MAX_VALUE, heuristic).isEmpty() ) terminal = false; //TODO: use timing
                 if (!terminal) break;
             } catch (ExceptionWithMove e) {
                 System.out.println("Something went wrong - getValidMoves trew exception even if there was no time limit");
@@ -1623,7 +1623,7 @@ public class Map{
 
 
         //add x fields
-        if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
+            if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
             for (Position pos : map.getExpansionFields()) {
                 if (heuristic.evaluateOverwriteMove(pos)){
                     resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(pos.x, pos.y, 0));
@@ -1631,18 +1631,18 @@ public class Map{
                 }
                 else
                     overwriteMovesSetToCeckForDuplicates.add(new PositionAndInfo(pos.x, pos.y, 0));
-                    overwriteMoves.add(new int[]{pos.x, pos.y, 0});
+                overwriteMoves.add(new int[]{pos.x, pos.y, 0});
             }
         }
 
         //out of time ?
-        if (!resultPosAndInfo.isEmpty() && timed && (upperTimeLimit-System.nanoTime() < 0)){
+            if (!resultPosAndInfo.isEmpty() && timed && (upperTimeLimit-System.nanoTime() < 0)){
             if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
             throw new ExceptionWithMove(resultPosAndInfo.get(0));
         }
 
         //goes over every position of the current player and checks in all directions if a move is possible
-        for (Position pos : map.getStonesOfPlayer(map.getCurrentlyPlayingI())){
+            for (Position pos : map.getStonesOfPlayer(map.getCurrentlyPlayingI())){
 
             for (r = 0; r <= 7; r++){
 
@@ -1714,33 +1714,32 @@ public class Map{
                             break;
                         }
                         else if (currChar == 'b'){
-                            wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 20));
-                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 20});
-                            wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 21));
-                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 21});
+                            int bombOrOverwrite = heuristic.selectBombOrOverwrite();
+                            wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, bombOrOverwrite));
+                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, bombOrOverwrite});
                             break;
                         }
-                        /*
-                        else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                            if (map.evaluateOverwriteMove(new Position(currPos.x, currPos.y), heuristic)){
-                                wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                                if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
+                            /*
+                            else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
+                                if (map.evaluateOverwriteMove(new Position(currPos.x, currPos.y), heuristic)){
+                                    wasAdded = resultMovesSetToCeckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                                    if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
+                                }
+                                else
+                                    overwriteMoves.add(new int[]{currPos.x, currPos.y, 0});
                             }
-                            else
-                                overwriteMoves.add(new int[]{currPos.x, currPos.y, 0});
-                        }
-                         */
+                             */
                     }
                 }
             }
         }
 
         if (resultPosAndInfo.isEmpty())
-            return overwriteMoves;
+                return overwriteMoves;
 
         else
-            return resultPosAndInfo;
-    }
+                return resultPosAndInfo;
+}
 
 
     public static double getStoneCountAfterMove(Map map, int playerNr, int[] posToMoveTo){

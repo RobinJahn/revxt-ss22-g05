@@ -28,7 +28,7 @@ public class SearchTree {
     long upperTimeLimit;
     long timeForLastDepth1 = 0;
 
-    KillerArray killerArray = new KillerArray();
+    ArrayList<KillerArray> killerArrays;
 
     MctsNode currRoot = null;
 
@@ -55,6 +55,8 @@ public class SearchTree {
         this.upperTimeLimit = upperTimeLimit;
 
         int[] moveToMake = new int[]{-1, -1, -1};
+
+        killerArrays = new ArrayList<>();
 
         Statistic statistic;
 
@@ -107,7 +109,7 @@ public class SearchTree {
 
         //sort index list
         if (useMS) sortMove(indexList, validMoves, true, map, phaseOne);
-        if (useKH) useKillerheuristic(indexList, validMoves);
+        if (useKH) useKillerheuristic(indexList, validMoves, depth);
 
         // Out of Time ?
         if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
@@ -213,7 +215,8 @@ public class SearchTree {
             if (cutoff){
                 //Killer Heuristic
                 if (useKH) {
-                    killerArray.add( new PositionAndInfo(posAndInfo), validMoves.size()-i);
+                    if (killerArrays.size()-1 < depth) killerArrays.add(new KillerArray());
+                    killerArrays.get(depth).add(new PositionAndInfo( validMoves.get(currIndex) ), validMoves.size()-i);
                 }
                 break;
             }
@@ -370,7 +373,7 @@ public class SearchTree {
 
         double c = 1;
 
-        while (!v.isTerminal()) {
+        while (!v.isTerminal(heuristicForSimulation)) {
             if (!v.isFullyExpanded()) {
                 return expand(v, phaseOne);
             }
@@ -418,7 +421,7 @@ public class SearchTree {
         int[] a;
         int placement;
 
-        while (!map.isTerminal()){
+        while (!map.isTerminal(heuristicForSimulation)){
             a = map.getRandomMove();
             map = simulateMove(map, a, phaseOne);
         }
@@ -484,7 +487,7 @@ public class SearchTree {
 
         //SORT MOVES
         if (useMS) mapList = sortMove(indexList, validMoves, isMax, map, phaseOne); //changes index List
-        if (useKH) useKillerheuristic(indexList, validMoves);
+        if (useKH) useKillerheuristic(indexList, validMoves, depth);
         if (useBRS) {
             indexList = useBRS1(indexList, isMax, brsCount);
             if (indexList.size() == 1) isPhiMove = true;
@@ -607,7 +610,10 @@ public class SearchTree {
             if (cutoff) {
                 //Killer Heuristic
                 if (useKH) {
-                    killerArray.add(new PositionAndInfo( validMoves.get(currIndex) ), validMoves.size()-i);
+                    while (killerArrays.size()-1 < depth) {
+                        killerArrays.add(new KillerArray());
+                    }
+                    killerArrays.get(depth).add(new PositionAndInfo( validMoves.get(currIndex) ), validMoves.size()-i);
                 }
                 break;
             }
@@ -878,9 +884,11 @@ public class SearchTree {
     }
 
     //Killer Heuristic
-    private void useKillerheuristic(ArrayList<Integer> indexList, ArrayList<int[]> validMoves) throws TimeoutException{
+    private void useKillerheuristic(ArrayList<Integer> indexList, ArrayList<int[]> validMoves, int depth) throws TimeoutException{
 
-        for(int i = 0; i < killerArray.getLength(); i++)
+        if (killerArrays.size()-1 < depth) return;
+
+        for(int i = killerArrays.get(depth).getLength()-1; i >= 0; i--)
         {
             //Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
@@ -893,12 +901,10 @@ public class SearchTree {
                 int[] positionAndInfo = validMoves.get(j);
 
                 //If We found a Move which cuts off we place it in front
-                if(Arrays.equals(killerArray.getPositionAndInfo(i), positionAndInfo))
+                if(Arrays.equals(killerArrays.get(depth).getPositionAndInfo(i), positionAndInfo))
                 {
-                    if(j < indexList.size()) {
-                        indexList.remove((Integer) j); //the cast to Integer need to be there because otherwise it would remove the element at the index j
-                        indexList.add(0, j);
-                    }
+                    indexList.remove((Integer) j); //the cast to Integer need to be there because otherwise it would remove the element at the index j
+                    indexList.add(0, j);
                 }
             }
         }
