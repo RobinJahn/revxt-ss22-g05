@@ -18,6 +18,9 @@ public class SearchTree {
     final private boolean useMS;
     final private boolean useBRS;
     final private boolean useKH;
+    final private boolean useRM = true;
+
+    final private boolean useZH = true;
 
     //change
     private  boolean timed;
@@ -30,8 +33,14 @@ public class SearchTree {
 
     ArrayList<KillerArray> killerArrays;
 
+    int[] returnedMove;
+
     MctsNode currRoot = null;
 
+    ZobristHashing ZH;
+    TranspositionTable TT;
+
+    int totalDepth = 0;
 
     public SearchTree(Map map, boolean printOn, boolean ServerLog, boolean extendedPrint, int myPlayerNr, boolean useAB, boolean useMS, boolean useBRS, boolean useKH, double[][] multiplier){
         this.printOn = printOn;
@@ -45,6 +54,10 @@ public class SearchTree {
         this.useKH = useKH;
 
         heuristicForSimulation = new Heuristic(map, myPlayerNr, false, false, multiplier);
+
+        //Zobrist Hashing
+        ZH = new ZobristHashing(map.getHeight(), map.getWidth(), myPlayerNr);
+        TT = new TranspositionTable(50000);
     }
 
     public int[] getMove(Map map, boolean timed, int depth, boolean phaseOne, ArrayList<int[]> validMoves, long upperTimeLimit, int moveCounter){
@@ -78,9 +91,15 @@ public class SearchTree {
         if(serverLog) {
             System.out.println("Search tree: For Move: " + moveCounter + ", Depth: " + (this.depth-1) + ", Move: " + Arrays.toString(moveToMake));
             System.out.println();
+            totalDepth+=(this.depth-1);
         }
 
         return moveToMake;
+    }
+
+    public int getTotalDepth()
+    {
+        return  totalDepth;
     }
 
     private int[] getMoveByDepth(Map map, boolean phaseOne, ArrayList<int[]> validMoves, Statistic statistic) throws TimeoutException{
@@ -110,6 +129,7 @@ public class SearchTree {
         //sort index list
         if (useMS) sortMove(indexList, validMoves, true, map, phaseOne);
         if (useKH) useKillerheuristic(indexList, validMoves, depth);
+        if (useRM) useReturnedMove(indexList, validMoves, returnedMove);
 
         // Out of Time ?
         if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
@@ -183,11 +203,30 @@ public class SearchTree {
                 //if the next node would be a leaf
                 if (depth >= this.depth - 1) {
                     heuristicForSimulation.updateMap(nextMap);
-                    evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, serverLog, upperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
+                    if(useZH)
+                    {
+                        evaluation = Zobrist(nextMap);
+                    }
+                    else {
+                        evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, serverLog, upperTimeLimit);
+                    }
                 }
                 else {
                     //recursive call
-                    evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth+1, statistic, alphaAndBeta.clone(), brsCount + 1);
+                    if(useZH)
+                    {
+                        evaluation = TT.lookUp(ZH.hash(nextMap),depth);
+                        if(evaluation == Double.MIN_VALUE+1)
+                        {
+                            long hash = ZH.hash(nextMap);
+                            evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth+1, statistic, alphaAndBeta.clone(), brsCount + 1);
+                            TT.add(hash,depth,evaluation);
+                        }
+                    }
+                    else
+                    {
+                        evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth+1, statistic, alphaAndBeta.clone(), brsCount + 1);
+                    }
                 }
             }
 
@@ -252,12 +291,16 @@ public class SearchTree {
 
         double totalNodesToGoOver;
 
-
+        //Resets the returned Move for the next Move
+        returnedMove = null;
         //iterative deepening
         for (depth = 1; (upperTimeLimit - System.nanoTime() - timeNextDepth > 0); depth++) {
 
             //reset statistic
             statistic = new Statistic(depth);
+
+            //reset Transposition Table
+            TT.empty();
 
             //print
             if (printOn || serverLog) System.out.println("DEPTH: " + depth);
@@ -293,6 +336,9 @@ public class SearchTree {
 
             //if we got a valid Position without running out of time - update it
             validPosition = currMove;
+
+            //Store the Move
+            if(useRM){ returnedMove = validPosition;}
 
             //time comparison prints
             if (printOn) System.out.println("Expected Time needed for this depth: " + timeNextDepth/ 1_000_000 + "ms");
@@ -565,15 +611,35 @@ public class SearchTree {
 
                 //if the next node would be a leaf
                 if (depth >= this.depth - 1) {
-                    heuristicForSimulation.updateMap(nextMap);
-                    evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, serverLog, upperTimeLimit); //computing-intensive // Here TIME LEAK !!!!!!!
+                    if(useZH)
+                    {
+                        evaluation = Zobrist(nextMap);
+                    }
+                    else
+                    {
+                        heuristicForSimulation.updateMap(nextMap);
+                        evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, serverLog, upperTimeLimit); //computing-intensive
+                    }
                 }
                 else {
                     if (isPhiMove) nextBrsCount = brsCount;
                     else nextBrsCount = brsCount + 1;
 
                     //recursive call
-                    evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth + 1, statistic, alphaAndBeta.clone(), nextBrsCount);
+                    if(useZH)
+                    {
+                        evaluation = TT.lookUp(ZH.hash(nextMap),depth);
+                        if(evaluation == Double.MIN_VALUE+1)
+                        {
+                            long hash = ZH.hash(nextMap);
+                            evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth + 1, statistic, alphaAndBeta.clone(), nextBrsCount);
+                            TT.add(hash,depth,evaluation);
+                        }
+                    }
+                    else
+                    {
+                        evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth + 1, statistic, alphaAndBeta.clone(), nextBrsCount);
+                    }
                 }
             }
 
@@ -631,6 +697,22 @@ public class SearchTree {
         return currBestValue;
     }
 
+    private double Zobrist(Map map) throws TimeoutException{
+
+        long hash = ZH.hash(map);
+        double value = TT.lookUp(hash,depth);
+        if(value != Double.MIN_VALUE+1)
+        {
+            return value;
+        }
+        else
+        {
+            heuristicForSimulation.updateMap(map);
+            value = heuristicForSimulation.evaluate(true, timed, serverLog, upperTimeLimit); //computing-intensive
+            TT.add(hash,depth,value);
+        }
+        return value;
+    }
 
     //Helper functions for getValueForNode()
 
@@ -907,6 +989,15 @@ public class SearchTree {
                     indexList.add(0, j);
                 }
             }
+        }
+    }
+
+    private void useReturnedMove(ArrayList<Integer> indexList, ArrayList<int[]> validMoves, int[] returnedMove)
+    {
+        if(returnedMove != null)
+        {
+            indexList.remove((Integer) validMoves.indexOf(returnedMove));
+            indexList.add(0,validMoves.indexOf(returnedMove));
         }
     }
 }
