@@ -506,8 +506,15 @@ public class StaticMap {
 
         reachableFieldMatrix = map;
 
-        return countOfReachableFields;
+        for(int y = 0; y < reachableFieldMatrix.length; y++){
+            for (int x = 0; x < reachableFieldMatrix[0].length; x++){
+                if (reachableFieldMatrix[y][x] != '-' && reachableFieldMatrix[y][x] != 'R' && reachableFieldMatrix[y][x] != 't' ){
+                    this.map[y][x] = '-';
+                }
+            }
+        }
 
+        return countOfReachableFields;
     }
 
 }
