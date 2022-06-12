@@ -61,8 +61,8 @@ public class SearchTree {
         Statistic statistic;
 
         if (timed){
-            this.upperTimeLimit = Long.MAX_VALUE;
-            moveToMake = getMoveWithMCTS(map, phaseOne, validMoves);
+            //this.upperTimeLimit = Long.MAX_VALUE;
+            //moveToMake = getMoveWithMCTS(map, phaseOne, validMoves);
 
             moveToMake = getMoveByTime(map, phaseOne, validMoves);
         }
