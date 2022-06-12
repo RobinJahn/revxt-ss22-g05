@@ -204,7 +204,7 @@ public class Client{
 		try {
 			serverM = new ServerMessenger(ip,port, groupNumberAddition);
 			if (printOn) System.out.println("Client Successfully connected to server");
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.err.println("Couldn't connect to server");
 			return;
 		}
@@ -218,7 +218,6 @@ public class Client{
 		//get map from server
 		//global variables
 		StaticMap sMap = serverM.getMap();
-		map = new Map(sMap);
 
 		//check if it imported correctly
 		if(sMap == null || !sMap.wasImportedCorrectly()) {
@@ -228,6 +227,8 @@ public class Client{
 		else {
 			if (printOn) System.out.println("Map was loaded correctly");
 		}
+
+		map = new Map(sMap);
 
 		//get own player number
 		myPlayerNr = serverM.getPlayerNumber();

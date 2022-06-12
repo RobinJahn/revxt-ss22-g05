@@ -443,12 +443,12 @@ public class StaticMap {
         int countOfReachableFields = 0;
         //Fill Queue with Starting Positions
 
-        if(initialOverwriteStones > 0) {
-            for (Position p : initialExpansionFields) {
-                map[p.y][p.x] = 'R';
-                Queue.add(p.x*100+p.y);
-            }
+        //TODO: check for initial overwrite stones and bonusFields
+        for (Position p : initialExpansionFields) {
+            map[p.y][p.x] = 'R';
+            Queue.add(p.x*100+p.y);
         }
+
 
         for(int i = 0;i<anzPlayers;i++)
         {
@@ -508,7 +508,7 @@ public class StaticMap {
 
         for(int y = 0; y < reachableFieldMatrix.length; y++){
             for (int x = 0; x < reachableFieldMatrix[0].length; x++){
-                if (reachableFieldMatrix[y][x] != '-' && reachableFieldMatrix[y][x] != 'R' && reachableFieldMatrix[y][x] != 't' ){
+                if (reachableFieldMatrix[y][x] != '-' && reachableFieldMatrix[y][x] != 'R' && reachableFieldMatrix[y][x] != 't'){
                     this.map[y][x] = '-';
                 }
             }

@@ -792,7 +792,7 @@ public class Heuristic {
         }
     }
 
-    //  waves
+    //  waves //TODO: waves don't work with transitions
 
     private void setFieldsWithHighValues(){
         double percentageOfValues = 0.05;
