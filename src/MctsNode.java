@@ -11,23 +11,23 @@ public class MctsNode {
     private int countOfVisits;
     private double reward;
     private ArrayList<int[]> possibleMoves = null;
+    private boolean phaseOne;
+    private boolean terminal;
 
-    public MctsNode(Map map, MctsNode parent, int[] posAndInfoLeadingToThis){
+    public MctsNode(Map map, MctsNode parent, int[] posAndInfoLeadingToThis, ArrayList<int[]> possibleMoves, boolean phaseOne){
         this.map = map;
         this.parent = parent;
         actionLeadingToThis = posAndInfoLeadingToThis;
         countOfVisits = 0;
         reward = 0;
-        try { //TODO: maybe only get them when needed
-            possibleMoves = Map.getValidMoves(map, false, false, false, Long.MAX_VALUE, null); //TODO: use time
-        } catch (ExceptionWithMove e) {
-            System.out.println("Something went wrong - getValidMoves trew exception even if there was no time limit");
-            e.printStackTrace();
-        }
+        this.possibleMoves = possibleMoves;
+        this.phaseOne = phaseOne;
+        if (possibleMoves.isEmpty()) terminal = true;
+        else terminal = false;
     }
 
     public boolean isTerminal(Heuristic heuristic){
-        return map.isTerminal(heuristic);
+        return terminal;
     }
 
     public boolean isFullyExpanded(){
@@ -80,6 +80,10 @@ public class MctsNode {
 
     public int[] getActionLeadingToThis(){
         return actionLeadingToThis;
+    }
+
+    public boolean isPhaseOne(){
+        return phaseOne;
     }
 
 }

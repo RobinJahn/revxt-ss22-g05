@@ -61,6 +61,9 @@ public class SearchTree {
         Statistic statistic;
 
         if (timed){
+            this.upperTimeLimit = Long.MAX_VALUE;
+            moveToMake = getMoveWithMCTS(map, phaseOne, validMoves);
+
             moveToMake = getMoveByTime(map, phaseOne, validMoves);
         }
         else {
@@ -344,23 +347,25 @@ public class SearchTree {
 
     //MONTE CARLO TREE SEARCH
 
-    private int[] getMoveWithMCTS(Map map, boolean phaseOne){
+    private int[] getMoveWithMCTS(Map map, boolean phaseOne, ArrayList<int[]> validMoves){
         MctsNode rootNode;
-        rootNode = new MctsNode(map, null, null);
-        //TODO: get child of root Node in regards wich path it took
-
+        rootNode = new MctsNode(map, null, null, validMoves, phaseOne);
+        //TODO: get child of root Node in regards which path it took
         MctsNode currV;
         double delta;
+        int loopCount = 0;
 
-        while (upperTimeLimit - System.nanoTime() < 0) {
+        while (upperTimeLimit - System.nanoTime() > 0 || loopCount > 1000) {
             try {
-                currV = treePolicy(rootNode, phaseOne);
+                currV = treePolicy(rootNode);
                 delta = defaultPolicy( currV.getMap(), phaseOne);
                 backup(currV, delta);
             }
             catch (TimeoutException e) {
                 e.printStackTrace();
+                break;
             }
+            loopCount++;
         }
 
         currV = bestChild(rootNode, 0);
@@ -369,13 +374,13 @@ public class SearchTree {
         return currV.getActionLeadingToThis();
     }
 
-    private MctsNode treePolicy(MctsNode v, boolean phaseOne) throws TimeoutException {
+    private MctsNode treePolicy(MctsNode v) throws TimeoutException {
 
         double c = 1;
 
         while (!v.isTerminal(heuristicForSimulation)) {
             if (!v.isFullyExpanded()) {
-                return expand(v, phaseOne);
+                return expand(v);
             }
             else {
                 v = bestChild(v, c);
@@ -384,16 +389,19 @@ public class SearchTree {
         return v;
     }
 
-    private MctsNode expand(MctsNode v, boolean phaseOne) throws TimeoutException {
-
+    private MctsNode expand(MctsNode v) throws TimeoutException {
+        ArrayList<int[]> validMovesForNext = new ArrayList<>();
+        boolean phaseOneAfterNextMove;
         int[] a = v.getUntriedActionAndRemoveIt(); //call by Reference !
-
+        boolean phaseOne = v.isPhaseOne();
 
         //simulate move
+        //TODO: can it be that expand gets called on a node where the player cant play because he has no bombs
         Map nextMap = simulateMove(v.getMap(), a, phaseOne);
+        phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, serverLog);
 
         //create Child
-        MctsNode newChild = new MctsNode(nextMap, v, a);
+        MctsNode newChild = new MctsNode(nextMap, v, a, validMovesForNext, phaseOneAfterNextMove);
 
         //add child
         v.addChild(newChild);
@@ -421,8 +429,15 @@ public class SearchTree {
         int[] a;
         int placement;
 
+        //first phase
         while (!map.isTerminal(heuristicForSimulation)){
             a = map.getRandomMove();
+            map = simulateMove(map, a, phaseOne);
+        }
+        //second phase
+        phaseOne = false;
+        while (!map.isTerminalSecondPhase()){
+            a = map.getRandomBombMove();
             map = simulateMove(map, a, phaseOne);
         }
 
@@ -433,7 +448,7 @@ public class SearchTree {
     private void backup(MctsNode v, double delta) {
         while (v != null){
             v.increaseVisits();
-            v.updateReward(delta); //p shouldn't be neccessarry because node has Map.currentlyPlaying
+            v.updateReward(delta); //p shouldn't be necessary because node has Map.currentlyPlaying
             v = v.getParent();
         }
     }
@@ -692,7 +707,7 @@ public class SearchTree {
             }
             else { //bomb phase
                 //if we have bombs
-                if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) > 0) everyPossibleMove = Client.getPositionsToSetABomb(map);
+                if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) > 0) everyPossibleMove = Map.getPositionsToSetABomb(map);
                 //if not
                 else everyPossibleMove = new ArrayList<>(); //empty list
             }

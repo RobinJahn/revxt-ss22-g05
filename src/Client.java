@@ -416,7 +416,6 @@ public class Client{
 							System.out.println("TimeoutException in Handle Move");
 							return;
 						}
-						System.out.println("Map is Terminal: " + map.isTerminal(heuristic));
 						System.out.println("Value of Map is " + valueOfMap);
 					}
 					break;
@@ -653,7 +652,7 @@ public class Client{
 		final boolean pickARandom = false;
 
 		map.setPlayer(myPlayerNr);
-		validMoves = getPositionsToSetABomb(map);
+		validMoves = Map.getPositionsToSetABomb(map);
 
 		if (validMoves.isEmpty()) {
 			System.err.println("Something's wrong - Positions to set a Bomb are empty but server says they're not");
@@ -708,44 +707,6 @@ public class Client{
 
 		//send the move
 		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, 0, myPlayerNr);
-	}
-
-	public static ArrayList<int[]> getPositionsToSetABomb(Map map) {
-		ArrayList<int[]> validMoves = new ArrayList<>();
-		char fieldValue;
-		int accuracy = 2; //TODO: set accurracy by fill Percentage
-
-		//if player has no bomb's return empty array
-		if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) {
-			System.err.println("Something's wrong - Player has no Bombs but server wants player to place one");
-			return validMoves; //returns empty array
-		}
-
-
-		//gets the possible positions to set a bomb at
-		for (int y = 0; y < map.getHeight(); y += accuracy) {
-			for (int x = 0; x < map.getWidth(); x += accuracy) {
-				fieldValue = map.getCharAt(x, y);
-				if (fieldValue != '-' && fieldValue != 't') {
-					validMoves.add(new int[]{x, y});
-				}
-			}
-		}
-
-		if (validMoves.isEmpty()){
-			accuracy = 1;
-
-			//gets the possible positions to set a bomb at
-			for (int y = 0; y < map.getHeight(); y += accuracy) {
-				for (int x = 0; x < map.getWidth(); x += accuracy) {
-					fieldValue = map.getCharAt(x, y);
-					if (fieldValue != '-' && fieldValue != 't') {
-						validMoves.add(new int[]{x, y});
-					}
-				}
-			}
-		}
-		return validMoves;
 	}
 
 	private boolean compareValidMoves(boolean phaseOne, ArrayList<int[]> validMoves) {
@@ -1000,7 +961,7 @@ public class Client{
 			}
 			else { //bomb phase
 				//if we have bombs
-				if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) > 0) everyPossibleMove = getPositionsToSetABomb(map);
+				if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) > 0) everyPossibleMove = Map.getPositionsToSetABomb(map);
 				//if not
 				else everyPossibleMove = new ArrayList<>(); //empty list
 			}

@@ -325,6 +325,7 @@ public class Heuristic {
     }
 
     public boolean evaluateOverwriteMove(Position pos) {
+        //return true;
         return fieldsForOverwriteMoves.contains(pos);
     }
 

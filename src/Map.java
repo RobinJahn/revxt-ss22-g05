@@ -549,28 +549,32 @@ public class Map{
 
 
     public boolean isTerminal(Heuristic heuristic){
-        boolean terminal = true;
-        int currentlyPlaying = this.currentlyPlaying;
-
         for (int playerNR = 1; playerNR<=staticMap.anzPlayers; playerNR++){
             try {
-                if ( !Map.getValidMoves(this, false, false, false, Long.MAX_VALUE, heuristic).isEmpty() ) terminal = false; //TODO: use timing
-                if (!terminal) break;
+                //if getValidMovesByColor is called it returns when it found one move. If getValidMovesByArrow is called it returns the list.
+                if (!Map.getValidMoves(this, true, false, false, 0, heuristic).isEmpty()) {
+                    return false;
+                }
             } catch (ExceptionWithMove e) {
-                System.out.println("Something went wrong - getValidMoves trew exception even if there was no time limit");
-                e.printStackTrace();
+                return false;
             }
-            this.nextPlayer();
+            nextPlayer();
         }
-        this.currentlyPlaying = currentlyPlaying;
+        return true;
+    }
 
-        return terminal;
+    public boolean isTerminalSecondPhase(){
+        for (int playerNR = 1; playerNR<=staticMap.anzPlayers; playerNR++){
+            if (getBombsForPlayer(getCurrentlyPlayingI()) > 0) return false;
+            nextPlayer();
+        }
+        return true;
     }
 
     public int[] getRandomMove() {
 
-        int x = (int) (Math.random() * (this.getWidth() - 1)); //needs to be -1 because random can be almost 1 and therefore be rounded to the multiplier
-        int y = (int) (Math.random() * (this.getHeight() - 1));
+        int x;
+        int y;
         ArrayList<Integer> directions = new ArrayList<>() {
             {
                 add(0);
@@ -584,19 +588,18 @@ public class Map{
             }
         };
         Position randomMove;
-        Position startPos = new Position(x, y);
         int[] result;
         char charAtPos;
+        boolean isValid;
 
         while (true) {
+            x = 1 + (int) (Math.random() * (this.getWidth() - 2)); //needs to be -1 because random can be almost 1 and therefore be rounded to the multiplier
+            y = 1 + (int) (Math.random() * (this.getHeight() - 2));
             randomMove = new Position(x, y);
-            boolean isValid = checkIfMoveIsPossible(randomMove, directions, this);
 
-            if (isValid)
-                break;
+            isValid = checkIfMoveIsPossible(randomMove, directions, this);
 
-            x = (int) (Math.random() * (this.getWidth() - 1));
-            y = (int) (Math.random() * (this.getHeight() - 1));
+            if (isValid) break;
         }
 
 
@@ -621,6 +624,18 @@ public class Map{
             default:
                 return new int[]{randomMove.x, randomMove.y, 0};
         }
+    }
+
+    public int[] getRandomBombMove(){
+        int x;
+        int y;
+
+        do {
+            x = 1 + (int) (Math.random() * (this.getWidth() - 2)); //needs to be -1 because random can be almost 1 and therefore be rounded to the multiplier //-1 because we have an edge of invalid positions
+            y = 1 + (int) (Math.random() * (this.getHeight() - 2));
+        } while (getCharAt(x,y) == '-' || getCharAt(x,y) == 't');
+
+        return new int[]{x, y, 0};
     }
 
     public int getPlacement(int myPlayerNr){
@@ -1552,6 +1567,45 @@ public class Map{
         return everyPossibleMove;
     }
 
+    public static ArrayList<int[]> getPositionsToSetABomb(Map map) {
+        ArrayList<int[]> validMoves = new ArrayList<>();
+        char fieldValue;
+        int accuracy = 2; //TODO: set accuracy by fill Percentage
+
+        //if player has no bomb's return empty array
+        if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) {
+            System.err.println("Something's wrong - Player has no Bombs but server wants player to place one");
+            return validMoves; //returns empty array
+        }
+
+
+        //gets the possible positions to set a bomb at
+        for (int y = 0; y < map.getHeight(); y += accuracy) {
+            for (int x = 0; x < map.getWidth(); x += accuracy) {
+                fieldValue = map.getCharAt(x, y);
+                if (fieldValue != '-' && fieldValue != 't') {
+                    validMoves.add(new int[]{x, y});
+                }
+            }
+        }
+
+        if (validMoves.isEmpty()){
+            accuracy = 1;
+
+            //gets the possible positions to set a bomb at
+            for (int y = 0; y < map.getHeight(); y += accuracy) {
+                for (int x = 0; x < map.getWidth(); x += accuracy) {
+                    fieldValue = map.getCharAt(x, y);
+                    if (fieldValue != '-' && fieldValue != 't') {
+                        validMoves.add(new int[]{x, y});
+                    }
+                }
+            }
+        }
+        return validMoves;
+    }
+
+
     /**
      * goes in every specified direction to check if it's possible to set a keystone at the specified position
      * @param pos pos the keystone would be placed
@@ -1564,13 +1618,17 @@ public class Map{
         Position currPos;
         Integer newR;
         boolean wasFirstStep;
-        char currChar;
+        char currChar = map.getCharAt(pos);
 
-        //check if it's an expansions field
-        if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) return true;
 
         //check if it's out of the map
-        if (map.getCharAt(pos) == '-' || map.getCharAt(pos) == 't') return false;
+        if (currChar == '-' || currChar == 't') return false;
+
+        //check if it's an expansions field
+        if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) return true;
+
+        //check if it is an overwrite-move and if we have enough overwrite stones
+        if (currChar != '0' && Character.isDigit(currChar) && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) <= 0) return false;
 
         //go over every direction that needs to be checked
         for (Integer r : directions){
@@ -1640,7 +1698,7 @@ public class Map{
         }
 
         //out of time ?
-        if (  !(resultMovesSet.isEmpty() && overwriteMovesSet.isEmpty()) && timed && (upperTimeLimit-System.nanoTime() < 0)){
+        if (  !(resultMovesSet.isEmpty() && overwriteMovesSet.isEmpty()) && timed && upperTimeLimit-System.nanoTime() < 0){
             if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
             throw new ExceptionWithMove( resultMovesSet.iterator().next().toIntArray() );
         }
@@ -1651,7 +1709,7 @@ public class Map{
             for (r = 0; r <= 7; r++){
 
                 //out of time ?
-                if ( !(resultMovesSet.isEmpty() && overwriteMovesSet.isEmpty()) && timed && (upperTimeLimit-System.nanoTime() < 0)){
+                if ( !(resultMovesSet.isEmpty() && overwriteMovesSet.isEmpty()) && timed && upperTimeLimit-System.nanoTime() < 0){
                     if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
                     if (saveElement != null){
                         throw new ExceptionWithMove(saveElement);
