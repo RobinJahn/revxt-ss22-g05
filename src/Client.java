@@ -261,12 +261,13 @@ public class Client{
 		boolean gameOngoing = true;
 		boolean firstPhase = true;
 		int[] timeAndDepth;
-		String map_For_Comparison = "";
 		ClientServerComparator CSC = new ClientServerComparator();
 		moveCounter = 0;
 		long timeOffset;
 		long upperTimeLimit;
 		long startTime;
+
+		int countOfOwnMoves = 0;
 
 		if (extendedPrint) System.out.println(map.toString(null,true,useColors));
 
@@ -314,6 +315,7 @@ public class Client{
 					} else {
 						setABomb(upperTimeLimit);
 					}
+					countOfOwnMoves++;
 					break;
 				}
 
@@ -465,6 +467,11 @@ public class Client{
 							e.printStackTrace();
 						}
 					}
+
+					if (printOn || serverLog) {
+						System.out.println("Average Depth hit: " + (searchTree.getTotalDepth()/(double) countOfOwnMoves) );
+					}
+
 					break;
 				}
 
@@ -755,7 +762,6 @@ public class Client{
 		}
 		return true;
 	}
-
 
 	//Functions to calculate the best next move
 	private int[] getMoveTimeDepth(boolean phaseOne, ArrayList<int[]> everyPossibleMove) {
