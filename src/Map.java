@@ -1611,35 +1611,38 @@ public class Map{
     }
 
     public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit, Heuristic heuristic) throws ExceptionWithMove{
-        HashSet<PositionAndInfo> resultMovesSetToCheckForDuplicates = new HashSet<>();
-        HashSet<PositionAndInfo> overwriteMovesSetToCheckForDuplicates = new HashSet<>();
+        HashSet<PositionAndInfo> resultMovesSet = new HashSet<>();
+        HashSet<PositionAndInfo> overwriteMovesSet = new HashSet<>();
+
         ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
         ArrayList<int[]> overwriteMoves = new ArrayList<>();
+
+        int[] saveElement = null;
+
+        PositionAndInfo posAndInfo;
         int r;
         Integer newR;
         Position currPos;
         char currChar;
-        boolean wasAdded;
+        int bombOrOverwrite;
 
 
         //add x fields
         if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
             for (Position pos : map.getExpansionFields()) {
                 if (heuristic.evaluateOverwriteMove(pos)){
-                    resultMovesSetToCheckForDuplicates.add(new PositionAndInfo(pos.x, pos.y, 0));
-                    resultPosAndInfo.add(new int[]{pos.x, pos.y, 0});
+                    resultMovesSet.add(new PositionAndInfo(pos.x, pos.y, 0));
                 }
                 else {
-                    overwriteMovesSetToCheckForDuplicates.add(new PositionAndInfo(pos.x, pos.y, 0));
-                    overwriteMoves.add(new int[]{pos.x, pos.y, 0});
+                    overwriteMovesSet.add(new PositionAndInfo(pos.x, pos.y, 0));
                 }
             }
         }
 
         //out of time ?
-        if (!resultPosAndInfo.isEmpty() && timed && (upperTimeLimit-System.nanoTime() < 0)){
+        if (  !(resultMovesSet.isEmpty() && overwriteMovesSet.isEmpty()) && timed && (upperTimeLimit-System.nanoTime() < 0)){
             if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
-            throw new ExceptionWithMove(resultPosAndInfo.get(0));
+            throw new ExceptionWithMove( resultMovesSet.iterator().next().toIntArray() );
         }
 
         //goes over every position of the current player and checks in all directions if a move is possible
@@ -1648,9 +1651,22 @@ public class Map{
             for (r = 0; r <= 7; r++){
 
                 //out of time ?
-                if (!resultPosAndInfo.isEmpty() && timed && (upperTimeLimit-System.nanoTime() < 0)){
+                if ( !(resultMovesSet.isEmpty() && overwriteMovesSet.isEmpty()) && timed && (upperTimeLimit-System.nanoTime() < 0)){
                     if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
-                    throw new ExceptionWithMove(resultPosAndInfo.get(resultPosAndInfo.size()-1 ));
+                    if (saveElement != null){
+                        throw new ExceptionWithMove(saveElement);
+                    }
+                    else {
+                        //one of them is filled otherwise it wouldn't get in the if
+                        if (!resultMovesSet.isEmpty()){
+                            throw new ExceptionWithMove( resultMovesSet.iterator().next().toIntArray() );
+                        }
+                        else {
+                            throw new ExceptionWithMove( overwriteMovesSet.iterator().next().toIntArray() );
+                        }
+                    }
+
+
                 }
 
                 newR = r;
@@ -1662,6 +1678,7 @@ public class Map{
                 currChar = map.getCharAt(currPos); //check what's there
                 if (currChar == 'c' || currChar == 'b' || currChar == 'i' || currChar == '0' || currChar == map.getCurrentlyPlayingC()) continue; //if it's c, b, i, 0, myColor
 
+                //take more steps
                 while (true){
                     newR = map.doAStep(currPos, newR);
                     if (newR == null) break; //if the step wasn't possible
@@ -1670,7 +1687,7 @@ public class Map{
                     currChar = map.getCharAt(currPos);
 
                     //detect loop //TODO: check with test Server Log
-                    if (currPos.equals(pos)){
+                    if (currPos.equals(pos)){ //only needs to detect the position because it will go in every direction anyway
                         break;
                     }
 
@@ -1678,66 +1695,79 @@ public class Map{
                     if (Character.isDigit(currChar)){
                         // 0
                         if (currChar == '0') {
-                            wasAdded = resultMovesSetToCheckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
+                            posAndInfo = new PositionAndInfo(currPos.x, currPos.y, 0);
+                            saveElement = posAndInfo.toIntArray();
+                            resultMovesSet.add(posAndInfo);
                             break;
                         }
                         //player
                         else {
                             //own or enemy stone -> overwrite move
                             if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
+                                posAndInfo = new PositionAndInfo(currPos.x, currPos.y, 0);
+                                saveElement = posAndInfo.toIntArray();
                                 if (heuristic.evaluateOverwriteMove(new Position(currPos.x, currPos.y))){
-                                    wasAdded = resultMovesSetToCheckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                                    if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
+                                    resultMovesSet.add(posAndInfo);
                                 }
                                 else {
-                                    wasAdded = overwriteMovesSetToCheckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                                    if (wasAdded) overwriteMoves.add(new int[]{currPos.x, currPos.y, 0});
+                                    overwriteMovesSet.add(posAndInfo);
                                 }
                             }
                             //if it's an own stone don't go on
                             if (currChar == map.getCurrentlyPlayingC()) break;
                         }
                     }
-                    // c, b, i, x
+                    // c, b, i
                     else {
                         if (currChar == 'i') {
-                            wasAdded = resultMovesSetToCheckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
+                            posAndInfo = new PositionAndInfo(currPos.x, currPos.y, 0);
+                            saveElement = posAndInfo.toIntArray();
+                            resultMovesSet.add(posAndInfo);
                             break;
                         }
                         else if (currChar == 'c') {
                             for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
-                                wasAdded = resultMovesSetToCheckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, playerNr));
-                                if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, playerNr});
+                                posAndInfo = new PositionAndInfo(currPos.x, currPos.y, playerNr);
+                                saveElement = posAndInfo.toIntArray();
+                                resultMovesSet.add(posAndInfo);
                             }
                             break;
                         }
                         else if (currChar == 'b'){
-                            int bombOrOverwrite = heuristic.selectBombOrOverwrite();
-                            wasAdded = resultMovesSetToCheckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, bombOrOverwrite));
-                            if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, bombOrOverwrite});
+                            bombOrOverwrite = heuristic.selectBombOrOverwrite();
+                            posAndInfo = new PositionAndInfo(currPos.x, currPos.y, bombOrOverwrite);
+                            saveElement = posAndInfo.toIntArray();
+                            resultMovesSet.add(posAndInfo);
                             break;
                         }
                         /*
                         else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
                             if (map.evaluateOverwriteMove(new Position(currPos.x, currPos.y), heuristic)){
-                                wasAdded = resultMovesSetToCheckForDuplicates.add(new PositionAndInfo(currPos.x, currPos.y, 0));
+                                wasAdded = resultMovesSet.add(new PositionAndInfo(currPos.x, currPos.y, 0));
                                 if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
                             }
                             else
                                 overwriteMoves.add(new int[]{currPos.x, currPos.y, 0});
-                        }
-                         */
+                        }*/
                     }
+                    //x nothing happens
                 }
             }
         }
 
-        if (resultPosAndInfo.isEmpty()) return overwriteMoves;
-
-        else return resultPosAndInfo;
-}
+        if (!resultMovesSet.isEmpty()) {
+            for (PositionAndInfo posAndInfo2 : resultMovesSet) {
+                resultPosAndInfo.add(posAndInfo2.toIntArray());
+            }
+            return  resultPosAndInfo;
+        }
+        else {
+            for (PositionAndInfo posAndInfo2 : overwriteMovesSet) {
+                overwriteMoves.add(posAndInfo2.toIntArray());
+            }
+            return overwriteMoves;
+        }
+    }
 
 
     public static double getStoneCountAfterMove(Map map, int playerNr, int[] posToMoveTo){

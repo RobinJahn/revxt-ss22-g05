@@ -8,14 +8,18 @@ public class Heuristic {
     private final boolean extendedPrint;
 
     private Map map; //is automatically updated because of the reference here
-    //the color of the player for which the map is rated
+    //the color of the player for which the map is being evaluated
     private final int myColorI;
     private final char myColorC;
+
     //the matrix that rates the different fields
     public double[][] matrix;
     private double[][] fieldValueMatrix;
     private double[][] waveMatrix;
     private double[][] edgeMatrix;
+
+    private ArrayList<Position> fieldsWithHighValues = new ArrayList<>();
+    private ArrayList<Position> fieldsForOverwriteMoves = new ArrayList<>();
 
     //heuristic values
     private final int base = 3;
@@ -79,7 +83,7 @@ public class Heuristic {
         //default multipliers
         if (multiplier == null) {
             multiplier = new double[][]{
-                    {6, 4, 5, 6, 6},
+                    {6, 4, 5, 6, 1},
                     {3, 3, 5, 3, 8},
                     {3, 1, 1, 9, 1}
             };
@@ -126,6 +130,13 @@ public class Heuristic {
                     break;
             }
         }
+
+        //check if useWaves isn't disabled by edges and fieldValues
+        if (!useEdges && !useFieldValues) {
+            waveCount = 0;
+            useWaves = false;
+        }
+
     }
 
     //SETTER -----------------------------------------------------------------------------------------------------------
@@ -168,7 +179,7 @@ public class Heuristic {
 
             setMultipliers(stageNumber);
 
-            setStaticInfos();
+            setStaticInfos(); //TODO: set static infos gets called over and over in the search tree because there the maps are constantly set
         }
     }
 
@@ -192,6 +203,7 @@ public class Heuristic {
         double countOfStonesEvaluation = 0;
         double countOfMovesEvaluation = 0;
         double averageFieldValue = 0;
+        double overwriteStonesAndBombsEval = 0;
         double result = 0;
 
         updateHeuristicMultipliers(phaseOne);
@@ -218,7 +230,7 @@ public class Heuristic {
         }
 
         //add values of won fields
-        if (useFieldValues || useEdges) averageFieldValue = getFieldValues(fieldValueMultiplier); //If use wave is enabled alone there are no waves
+        if (useFieldValues || useEdges) averageFieldValue = getFieldValues(); //If useWave is enabled alone there are no waves
 
         //out of time ?
         if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
@@ -226,16 +238,21 @@ public class Heuristic {
             throw new TimeoutException();
         }
 
+        overwriteStonesAndBombsEval = getOverwriteAndBombCount();
+
+
         //calculate result
         if (countStones) result += countOfStonesEvaluation * stoneCountMultiplier;
         if (countMoves) result += countOfMovesEvaluation * moveCountMultiplier;
         if (useFieldValues || useEdges) result += averageFieldValue;
+        result += overwriteStonesAndBombsEval;
 
         //prints
         if (printOn) {
             System.out.println("Value for stone count = " + countOfStonesEvaluation * stoneCountMultiplier);
             System.out.println("Value for move count = " + countOfMovesEvaluation * moveCountMultiplier);
             System.out.println("Value for field Values = " + averageFieldValue);
+            System.out.println("Value for Overwrite Stones and Bombs = " + overwriteStonesAndBombsEval);
         }
 
         //value
@@ -308,7 +325,7 @@ public class Heuristic {
     }
 
     public boolean evaluateOverwriteMove(Position pos) {
-        return false;
+        return fieldsForOverwriteMoves.contains(pos);
     }
 
     public int selectBombOrOverwrite(){
@@ -461,16 +478,24 @@ public class Heuristic {
         return erg;
     }
 
-    private double getFieldValues(double fieldValueMultiplier) {
+    private double getFieldValues() {
         double averageFieldValue = 0;
 
         if (map.getCountOfStonesOfPlayer(myColorI) == 0) return averageFieldValue;
 
         for (Position pos :  map.getStonesOfPlayer(myColorI)) {
             averageFieldValue += matrix[pos.y][pos.x];
+            if (useWaves) averageFieldValue += getValueForWaves(pos);
         }
 
         return averageFieldValue/map.getCountOfStonesOfPlayer(myColorI); //calculates the average stone value
+    }
+
+    private double getOverwriteAndBombCount(){
+        double result = 0;
+        result += map.getOverwriteStonesForPlayer(myColorI) * edgeMultiplier;
+        result += map.getBombsForPlayer(myColorI) * edgeMultiplier;
+        return result;
     }
 
 
@@ -499,9 +524,12 @@ public class Heuristic {
 
                     if (useFieldValues) matrix[y][x] = fieldValueMatrix[y][x] * fieldValueMultiplier;
 
-                    if (useEdges) matrix[y][x] *= (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
+                    if (useEdges) {
+                        if (useFieldValues) matrix[y][x] *= (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
+                        else matrix[y][x] =  (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
+                    }
 
-                    matrix[y][x] += bonusFieldValue(map.getCharAt(x,y));
+                    //matrix[y][x] += bonusFieldValue(map.getCharAt(x,y));
                 }
             }
         }
@@ -523,12 +551,23 @@ public class Heuristic {
         }
 
         //evaluate every position by its neighbours
-        if (useWaves && (useEdges || useFieldValues)) addWaveMatrix();
+        if (useWaves) setFieldsWithHighValues();
 
-        if (extendedPrint && useWaves && (useEdges || useFieldValues)) {
-            System.out.println("Added Waves");
-            printMatrix(matrix);
+        if (extendedPrint && useWaves){
+            System.out.println("Fields with highest values that create waves:");
+            System.out.println(Arrays.deepToString(fieldsWithHighValues.toArray()));
+
+            System.out.println("Wave Matrix");
+            for(int y = 0; y < matrix.length; y++){
+                for (int x = 0; x < matrix[0].length; x++){
+                    System.out.printf("%8s", String.format("%4.2f", getValueForWaves(new Position(x,y))) );
+                }
+                System.out.println();
+            }
+            System.out.println();
         }
+
+        setFieldsForOverwriteMoves();
     }
 
     private void initEdgeMatrixAndFieldValueMatrix(){
@@ -605,7 +644,7 @@ public class Heuristic {
             if (useFieldValues) result *= edgeMultiplier;
             else result += edgeMultiplier;
         }
-        result += bonusFieldValue(charAtPos);
+        //result += bonusFieldValue(charAtPos);
 
         return result;
     }
@@ -687,7 +726,7 @@ public class Heuristic {
     private int bonusFieldValue(char charAtPos){ //TODO: delete value for overwrite move out of matrix
         switch (charAtPos){
             case 'b':
-                return 1000;
+                return 100;
             case 'c':
                 return 40;
             case 'i':
@@ -698,7 +737,134 @@ public class Heuristic {
     }
 
 
-    //  waves
+    private void setFieldsForOverwriteMoves(){
+        if (!useEdges && !useFieldValues) return;
+
+        double percentageOfValues = 0.05;
+        int i = 0;
+        double lastValue;
+        int currIndex;
+        Position pos;
+        double currValue = 0;
+
+        fieldsForOverwriteMoves = new ArrayList<>();
+
+        ArrayList<Position> posList = new ArrayList<>();
+        ArrayList<Double> valueList = new ArrayList<>();
+        ArrayList<Integer> indexList = new ArrayList<>();
+
+        for (int y = 1; y < map.getHeight()-1; y++) {
+            for (int x = 1; x < map.getWidth()-1; x++) {
+                posList.add(new Position(x,y));
+
+                //for the value only use edges and fieldValues
+                if (useFieldValues) currValue = fieldValueMatrix[y][x] * fieldValueMultiplier;
+                if (useEdges) {
+                    if (useFieldValues) currValue *= (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
+                    else currValue =  (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
+                }
+
+                valueList.add(currValue);
+                indexList.add(i);
+                i++;
+            }
+        }
+
+        indexList.sort(new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                Double d1 = valueList.get(o1);
+                Double d2 = valueList.get(o2);
+                return Double.compare(d2,d1);
+            }
+        });
+
+        lastValue = valueList.get( indexList.get( (int)(indexList.size() * percentageOfValues) ) ); //gets the value of the last element defined by percentage
+
+        for (i = 0; i < indexList.size(); i++) {
+            currIndex = indexList.get(i);
+
+            if (valueList.get(currIndex) < lastValue) break; //goes until the value is smaller than the lastValue
+
+            pos = posList.get(currIndex);
+
+            fieldsForOverwriteMoves.add(pos);
+        }
+    }
+
+    //  waves //TODO: waves don't work with transitions
+
+    private void setFieldsWithHighValues(){
+        double percentageOfValues = 0.05;
+        int i = 0;
+        double lastValue;
+        int currIdnex;
+        Position pos;
+
+        fieldsWithHighValues = new ArrayList<>();
+
+        ArrayList<Position> posList = new ArrayList<>();
+        ArrayList<Double> valueList = new ArrayList<>();
+        ArrayList<Integer> indexList = new ArrayList<>();
+
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+                posList.add(new Position(x,y));
+                valueList.add(matrix[y][x]);
+                indexList.add(i);
+                i++;
+            }
+        }
+
+        indexList.sort(new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                Double d1 = valueList.get(o1);
+                Double d2 = valueList.get(o2);
+                return Double.compare(d2,d1);
+            }
+        });
+
+        lastValue = valueList.get( indexList.get( (int)(indexList.size() * percentageOfValues) ) ); //gets the value of the last element defined by percentage
+
+        for (i = 0; i < indexList.size(); i++) {
+            currIdnex = indexList.get(i);
+
+            if (valueList.get(currIdnex) < lastValue) break; //goes until the value is smaller than the lastValue
+
+            pos = posList.get(currIdnex);
+
+            fieldsWithHighValues.add(pos);
+        }
+
+    }
+
+    private double getValueForWaves(Position currPos){
+        if (fieldsWithHighValues.contains(currPos)) return 0;
+
+        int distance;
+        double result = 0;
+
+        for (Position highValPos : fieldsWithHighValues){
+
+            //if the position is captured deactivate the waves for it
+            if (map.getCharAt(highValPos) != '0' && Character.isDigit(map.getCharAt(highValPos))){ // a player holds the position
+                continue;
+            }
+
+            distance = Math.max( Math.abs(highValPos.x - currPos.x), Math.abs(highValPos.y - currPos.y) );
+            if (distance > waveCount) continue;
+
+            if (distance % 2 == 0) { //even
+                result += matrix[highValPos.y][highValPos.x] / Math.pow(base, distance);
+            }
+            else { //odd
+                result -= matrix[highValPos.y][highValPos.x] / Math.pow(base, distance);
+            }
+
+        }
+        return result;
+    }
 
     /**
      * takes the greater values of the matrix and creates waves/ rings of alternating negative and positive decreasing values around it
@@ -706,7 +872,6 @@ public class Heuristic {
     private void addWaveMatrix(){
         //adjustable values
         double percentageOfValues = 0.1; //percentage of the highest rated positions to create waves
-        int maxWaveCount = 1;
         int divisor = base;
         //variables
         waveMatrix = new double[map.getHeight()][map.getWidth()];
@@ -744,7 +909,7 @@ public class Heuristic {
 
             pos = posList.get(currIdnex);
 
-            createWave(pos, maxWaveCount, divisor); //changes wave matrix
+            createWave(pos, divisor); //changes wave matrix
         }
 
         //print of waves
@@ -764,7 +929,7 @@ public class Heuristic {
      * creates the waves around one position
      * @param pos the position around which the waves are created
      */
-    private void createWave(Position pos, int maxWaveCount, int divisor){
+    private void createWave(Position pos, int divisor){
         int x1, x2, y1, y2;
         x1 = pos.x;
         x2 = pos.x;
@@ -774,7 +939,7 @@ public class Heuristic {
         double value = matrix[pos.y][pos.x]/divisor; //sets value to value of field/divisor to start
         int waveCount = 1;
 
-        while(waveCount <= maxWaveCount) {
+        while(waveCount <= this.waveCount) {
             x1-=1;
             x2+=1;
             y1-=1;

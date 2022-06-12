@@ -164,6 +164,9 @@ public class Client{
 		for (int i = 1; i <= Heuristic.countOfMultipliers; i++) helpString.append("m").append(i).append(" ");
 		helpString.append(">\n");
 		helpString.append("\t\t\t\t\t\t\t\t\t Sets the values given as multipliers for the Heuristic (m1 = stone count, m2 = move count, m3 = field Value, m4 = edge multiplier, m5 = wave count)\n");
+		helpString.append("\t\t\t\t\t\t\t\t\t Special cases:\n");
+		helpString.append("\t\t\t\t\t\t\t\t\t\tIf field Value and edge Multiplier arnt set wave count -> 0\n");
+		helpString.append("\t\t\t\t\t\t\t\t\t\tAn Edge Multiplier of 1 makes no sense\n");
 
 		helpString.append("-ab or --alpha-beta \t\t\t\t Disables Alpha-BetaPruning\n");
 		helpString.append("-ua or --useArrows \t\t\t\t\t Activates usage of arrows\n");
@@ -201,7 +204,7 @@ public class Client{
 		try {
 			serverM = new ServerMessenger(ip,port, groupNumberAddition);
 			if (printOn) System.out.println("Client Successfully connected to server");
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.err.println("Couldn't connect to server");
 			return;
 		}
@@ -215,7 +218,6 @@ public class Client{
 		//get map from server
 		//global variables
 		StaticMap sMap = serverM.getMap();
-		map = new Map(sMap);
 
 		//check if it imported correctly
 		if(sMap == null || !sMap.wasImportedCorrectly()) {
@@ -225,6 +227,8 @@ public class Client{
 		else {
 			if (printOn) System.out.println("Map was loaded correctly");
 		}
+
+		map = new Map(sMap);
 
 		//get own player number
 		myPlayerNr = serverM.getPlayerNumber();
