@@ -267,6 +267,8 @@ public class Client{
 		long upperTimeLimit;
 		long startTime;
 
+		int countOfOwnMoves = 0;
+
 		if (extendedPrint) System.out.println(map.toString(null,true,useColors));
 
 		while (gameOngoing) {
@@ -313,6 +315,7 @@ public class Client{
 					} else {
 						setABomb(upperTimeLimit);
 					}
+					countOfOwnMoves++;
 					break;
 				}
 
@@ -467,11 +470,7 @@ public class Client{
 					}
 
 					if (printOn || serverLog) {
-						if(moveCounter == 0)
-						{
-							moveCounter = 1;
-						}
-						System.out.println("Average Depth hit: " + (searchTree.getTotalDepth()/(double) moveCounter) );
+						System.out.println("Average Depth hit: " + (searchTree.getTotalDepth()/(double) countOfOwnMoves) );
 					}
 
 					break;

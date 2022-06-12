@@ -19,8 +19,8 @@ public class SearchTree {
     final private boolean useBRS;
     final private boolean useKH;
     final private boolean useRM = true;
-
     final private boolean useZH = true;
+    final private boolean useAW = true;
 
     //change
     private  boolean timed;
@@ -39,6 +39,9 @@ public class SearchTree {
 
     ZobristHashing ZH;
     TranspositionTable TT;
+    AspirationWindow AW;
+
+    double valueOfMove;
 
     int totalDepth = 0;
 
@@ -57,7 +60,9 @@ public class SearchTree {
 
         //Zobrist Hashing
         ZH = new ZobristHashing(map.getHeight(), map.getWidth(), myPlayerNr);
-        TT = new TranspositionTable(50000);
+        TT = new TranspositionTable(64000);
+        //Aspiration Window
+        AW = new AspirationWindow(Double.MIN_VALUE,Double.MAX_VALUE,1000);
     }
 
     public int[] getMove(Map map, boolean timed, int depth, boolean phaseOne, ArrayList<int[]> validMoves, long upperTimeLimit, int moveCounter){
@@ -89,7 +94,7 @@ public class SearchTree {
         }
 
         if(serverLog) {
-            System.out.println("Search tree: For Move: " + moveCounter + ", Depth: " + (this.depth-1) + ", Move: " + Arrays.toString(moveToMake));
+            System.out.println("Search tree: For Move: " + moveCounter + ", Depth: " + (this.depth-1) + ", Move: " + Arrays.toString(moveToMake) + ",Value: " + valueOfMove);
             System.out.println();
             totalDepth+=(this.depth-1);
         }
@@ -109,7 +114,7 @@ public class SearchTree {
         double currBestValue = Double.NEGATIVE_INFINITY;
         double evaluation;
         int indexOfBest = 0;
-        double[] alphaAndBeta = new double[]{Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY};
+        double[] alphaAndBeta;
         boolean cutoff;
         int depth = 0;
 
@@ -120,6 +125,13 @@ public class SearchTree {
         int brsCount = 0;
 
         statistic.addNodes(validMoves.size(), depth);
+
+        if (useAW) {
+            alphaAndBeta = AW.getWindow();
+        }
+        else {
+            alphaAndBeta = new double[]{Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY};
+        }
 
         //fill index List
         for (int i = 0; i < validMoves.size(); i++){
@@ -248,6 +260,8 @@ public class SearchTree {
             if (evaluation > currBestValue) {
                 currBestValue = evaluation;
                 indexOfBest = currIndex;
+
+                valueOfMove = currBestValue;
             }
 
             cutoff = useAlphaBetaPruning(alphaAndBeta, true, currBestValue, statistic, validMoves, i);
@@ -330,6 +344,7 @@ public class SearchTree {
                 }
                 if (printOn){
                     System.out.println(Arrays.toString(te.getStackTrace()).replace(", ","\n"));
+                    if(map.getCurrentlyPlayingI() == myPlayerNr) AW.printAlphaAndBeta();
                 }
                 return validPosition;
             }
@@ -383,7 +398,7 @@ public class SearchTree {
                 System.out.println();
             }
         }
-
+        if(printOn) AW.printAlphaAndBeta();
         return validPosition;
     }
 
@@ -393,7 +408,7 @@ public class SearchTree {
     private int[] getMoveWithMCTS(Map map, boolean phaseOne){
         MctsNode rootNode;
         rootNode = new MctsNode(map, null, null);
-        //TODO: get child of root Node in regards wich path it took
+        //TODO: get child of root Node in regards which path it took
 
         MctsNode currV;
         double delta;
@@ -662,12 +677,20 @@ public class SearchTree {
                 //get highest value
                 if (evaluation > currBestValue) {
                     currBestValue = evaluation;
+                    if(useAW) {
+                        AW.setAlphaAndBeta(alphaAndBeta[0],alphaAndBeta[1]);
+                        if(!AW.insideWindow(evaluation)) AW.resetWindow();
+                    }
                 }
             }
             else {
                 //get lowest value
                 if (evaluation < currBestValue) {
                     currBestValue = evaluation;
+                    if(useAW){
+                        AW.setAlphaAndBeta(alphaAndBeta[0],alphaAndBeta[1]);
+                        if(!AW.insideWindow(evaluation)) AW.resetWindow();
+                    }
                 }
             }
 
