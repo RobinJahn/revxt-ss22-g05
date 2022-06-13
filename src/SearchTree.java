@@ -79,9 +79,8 @@ public class SearchTree {
         Statistic statistic;
 
         if (timed){
-            //this.upperTimeLimit = Long.MAX_VALUE;
             //moveToMake = getMoveWithMCTS(map, phaseOne, validMoves);
-
+            //System.out.println("MCTS Move: " + Arrays.toString(moveToMake));
             moveToMake = getMoveByTime(map, phaseOne, validMoves);
         }
         else {
@@ -410,24 +409,27 @@ public class SearchTree {
 
     private int[] getMoveWithMCTS(Map map, boolean phaseOne, ArrayList<int[]> validMoves){
         MctsNode rootNode;
-        rootNode = new MctsNode(map, null, null, validMoves, phaseOne);
+        rootNode = new MctsNode(map, null, null, (ArrayList<int[]>) validMoves.clone(), phaseOne, myPlayerNr);
         //TODO: get child of root Node in regards which path it took
         MctsNode currV;
         double delta;
         int loopCount = 0;
 
-        while (upperTimeLimit - System.nanoTime() > 0 || loopCount > 1000) {
+        this.currRoot = rootNode;
+
+        while (upperTimeLimit - System.nanoTime() > 0 && loopCount < 1000000) {
             try {
                 currV = treePolicy(rootNode);
                 delta = defaultPolicy( currV.getMap(), phaseOne);
                 backup(currV, delta);
             }
             catch (TimeoutException e) {
-                e.printStackTrace();
                 break;
             }
             loopCount++;
         }
+
+        System.out.println("MCTS loops: " + loopCount);
 
         currV = bestChild(rootNode, 0);
         currRoot = currV;
@@ -439,7 +441,7 @@ public class SearchTree {
 
         double c = 1;
 
-        while (!v.isTerminal(heuristicForSimulation)) {
+        while (!v.isTerminal()) {
             if (!v.isFullyExpanded()) {
                 return expand(v);
             }
@@ -461,8 +463,12 @@ public class SearchTree {
         Map nextMap = simulateMove(v.getMap(), a, phaseOne);
         phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, serverLog);
 
+        /*if ( v.getMap().getCurrentlyPlayingI() == nextMap.getCurrentlyPlayingI() && !validMovesForNext.isEmpty() ){
+            System.out.println("Can happen sometimes - player of previous map is the same as player of the current map");
+        }*/
+
         //create Child
-        MctsNode newChild = new MctsNode(nextMap, v, a, validMovesForNext, phaseOneAfterNextMove);
+        MctsNode newChild = new MctsNode(nextMap, v, a, validMovesForNext, phaseOneAfterNextMove, nextMap.getCurrentlyPlayingI());
 
         //add child
         v.addChild(newChild);
@@ -490,6 +496,7 @@ public class SearchTree {
         int[] a;
         int placement;
 
+        map = new Map(map, phaseOne);
         //first phase
         while (!map.isTerminal(heuristicForSimulation)){
             a = map.getRandomMove();
@@ -829,7 +836,7 @@ public class SearchTree {
             skippedPlayers++;
 
             //if no player can make a move
-            if (skippedPlayers >= map.getAnzPlayers()-1){ //shouldn't be greater - just for safety
+            if (skippedPlayers >= map.getAnzPlayers()){ //shouldn't be greater - just for safety
                 //if no player can make a move in phase 1 switch to phase 2
                 if (phaseOne) {
                     phaseOne = false; //end of phase 1
