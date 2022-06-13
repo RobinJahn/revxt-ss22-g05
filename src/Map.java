@@ -1700,7 +1700,14 @@ public class Map{
         //out of time ?
         if (  !(resultMovesSet.isEmpty() && overwriteMovesSet.isEmpty()) && timed && upperTimeLimit-System.nanoTime() < 0){
             if (printOn || serverLog) System.out.println("Out of time - get Fields by own color");
-            throw new ExceptionWithMove( resultMovesSet.iterator().next().toIntArray() );
+
+            //one of them is filled otherwise it wouldn't get in the if
+            if (!resultMovesSet.isEmpty()){
+                throw new ExceptionWithMove( resultMovesSet.iterator().next().toIntArray() );
+            }
+            else {
+                throw new ExceptionWithMove( overwriteMovesSet.iterator().next().toIntArray() );
+            }
         }
 
         //goes over every position of the current player and checks in all directions if a move is possible
@@ -1723,8 +1730,6 @@ public class Map{
                             throw new ExceptionWithMove( overwriteMovesSet.iterator().next().toIntArray() );
                         }
                     }
-
-
                 }
 
                 newR = r;
