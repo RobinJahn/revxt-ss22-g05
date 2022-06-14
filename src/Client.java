@@ -22,6 +22,7 @@ public class Client{
 	final private boolean useMS;
 	final private boolean useBRS = true;
 	final private boolean useKH = true;
+	final private boolean useMCTS;
 
 	private boolean timed = true;
 
@@ -45,11 +46,13 @@ public class Client{
 	public static void main(String[] args) {
 		boolean printOn = false;
 		boolean useColors = true;
-		boolean compare_to_Server = false;
 		boolean extendedPrint = false;
+		boolean compare_to_Server = false;
+
 
 		boolean useAB = true;
 		boolean useMS = true;
+		boolean useMCTS = true;
 
 		//variables for the server
 		String ip = "127.0.0.1";
@@ -73,26 +76,29 @@ public class Client{
 				case "--quiet":
 				case "-q": printOn = false; extendedPrint = false; break;
 
-				case "--extendedPrint":
-				case "-ep": extendedPrint = true; printOn = true; break;
-
-				case "--colour":
-				case "-c": useColors = false; break;
-
-				case "--server":
-				case "-s": compare_to_Server = true; break;
-
-				case "--alpha-beta":
-				case "-ab": useAB = false; break;
-
-				case "--no-sorting":
-				case "-n": useMS = false; break;
-
 				case "--output":
 				case "-o": printOn = true; break;
 
-				case "--useArrows":
+				case "--extended-print":
+				case "-ep": extendedPrint = true; printOn = true; break;
+
+				case "--disable-colour":
+				case "-C": useColors = false; break;
+
+				case "--compare-to-server":
+				case "-cts": compare_to_Server = true; break;
+
+				case "--disable-alpha-beta":
+				case "-AB": useAB = false; break;
+
+				case "--disable-sorting":
+				case "-ds": useMS = false; break;
+
+				case "--use-arrows":
 				case "-ua": Map.useArrows = true; break;
+
+				case "--deactivate-mcts":
+				case "-MCTS": useMCTS = false; break;
 
 				case "--group-number-addition":
 				case "-gna":
@@ -144,21 +150,23 @@ public class Client{
 		}
 
 		//run client
-		new Client(ip, port, multipliers, useAB, printOn, useColors, compare_to_Server,extendedPrint,useMS, groupNumberAddition);
+		new Client(ip, port, multipliers, useAB, printOn, useColors, compare_to_Server, extendedPrint, useMS, useMCTS, groupNumberAddition);
 	}
 
 	private static void printHelp(){
 		StringBuilder helpString = new StringBuilder();
 		helpString.append("java -jar client05.jar accepts the following optional options:\n");
-		helpString.append("-i or --ip <IP Address>\t\t\t\t Applies this IP\n");
-		helpString.append("-p or --port <Port Number>\t\t\t Applies this Port Number\n");
-		helpString.append("-q or --quiet \t\t\t\t\t\t Disables Console Output\n");
-		helpString.append("-ep or --extendedPrint\t\t\t\tEnables Print and Extended Print\n");
-		helpString.append("-c or --colour\t\t\t\t\t\t Disables Coloured Output for the IntelliJ-IDE\n");
-		helpString.append("-s or --server\t\t\t\t\t\t Enables the Output for Map Comparison with the Server\n");
-		helpString.append("-h or --help\t\t\t\t\t\t show this blob\n");
-		helpString.append("-n or --no-sorting \t\t\t\t\t Disables Move-sorting\n");
-		helpString.append("-o or --output \t\t\t\t\t\t Activates output\n");
+		helpString.append("-i or --ip <IP Address>\t\t\t\tApplies this IP\n");
+		helpString.append("-p or --port <Port Number>\t\t\tApplies this Port Number\n");
+		helpString.append("-q or --quiet\t\t\t\t\t\tDisables Console Output\n");
+		helpString.append("-o or --output\t\t\t\t\t\tActivates output\n");
+		helpString.append("-ep or --extended-print\t\t\t\tEnables Print and Extended Print\n");
+		helpString.append("-C or --disable-colour\t\t\t\tDisables Coloured Output for the IntelliJ-IDE\n");
+		helpString.append("-cts or --compare-to-server\t\t\tEnables the Output for Map Comparison with the Server\n");
+		helpString.append("-AB or --disable-alpha-beta\t\t\tDisables alpha beta pruning\n");
+		helpString.append("-ds or --disable-sorting\t\t\tDisables move sorting\n");
+		helpString.append("-ua or --use-arrows\t\t\t\t\tEnables Arrows\n");
+		helpString.append("-gna or --group-number-addition\t\tchanges the group number to 50 + the given number\n");
 
 		helpString.append("-m or --multiplier <phase number> <");
 		for (int i = 1; i <= Heuristic.countOfMultipliers; i++) helpString.append("m").append(i).append(" ");
@@ -168,9 +176,7 @@ public class Client{
 		helpString.append("\t\t\t\t\t\t\t\t\t\tIf field Value and edge Multiplier arnt set wave count -> 0\n");
 		helpString.append("\t\t\t\t\t\t\t\t\t\tAn Edge Multiplier of 1 makes no sense\n");
 
-		helpString.append("-ab or --alpha-beta \t\t\t\t Disables Alpha-BetaPruning\n");
-		helpString.append("-ua or --useArrows \t\t\t\t\t Activates usage of arrows\n");
-		helpString.append("-gna or --group-number-addition \t changes the group number to 50 + the given number \n");
+		helpString.append("-h or --help\t\t\t\t\t\tshow this blob\n");
 
 		System.out.println(helpString);
 	}
@@ -192,6 +198,7 @@ public class Client{
 				  boolean compare_to_Server,
 				  boolean extendedPrint,
 				  boolean useMS,
+				  boolean useMCTS,
 				  int groupNumberAddition)
 	{
 		this.printOn = printOn;
@@ -200,6 +207,8 @@ public class Client{
 		this.useAB = useAB;
 		this.extendedPrint = extendedPrint;
 		this.useMS = useMS;
+		this.useMCTS = useMCTS;
+
 		//try to connect with server
 		try {
 			serverM = new ServerMessenger(ip,port, groupNumberAddition);
@@ -237,7 +246,7 @@ public class Client{
 		//set variables after map was imported
 		heuristic = new Heuristic(map, myPlayerNr, printOn, extendedPrint, multipliers); // mark
 		heuristicForSimulation = new Heuristic(map, myPlayerNr,false,false,multipliers);
-		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, multipliers);
+		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, useMCTS, multipliers);
 
 		//Staging Preparations
 

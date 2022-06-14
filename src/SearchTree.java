@@ -21,6 +21,7 @@ public class SearchTree {
     final private boolean useRM = true;
     final private boolean useZH = true;
     final private boolean useAW = true;
+    final private boolean useMCTS;
 
     //change
     private  boolean timed;
@@ -45,7 +46,17 @@ public class SearchTree {
 
     int totalDepth = 0;
 
-    public SearchTree(Map map, boolean printOn, boolean ServerLog, boolean extendedPrint, int myPlayerNr, boolean useAB, boolean useMS, boolean useBRS, boolean useKH, double[][] multiplier){
+    public SearchTree(Map map,
+                      boolean printOn,
+                      boolean ServerLog,
+                      boolean extendedPrint,
+                      int myPlayerNr,
+                      boolean useAB,
+                      boolean useMS,
+                      boolean useBRS,
+                      boolean useKH,
+                      boolean useMCTS,
+                      double[][] multiplier){
         this.printOn = printOn;
         this.serverLog = ServerLog;
         this.myPlayerNr = myPlayerNr;
@@ -55,6 +66,7 @@ public class SearchTree {
         this.useMS = useMS;
         this.useBRS = useBRS;
         this.useKH = useKH;
+        this.useMCTS = useMCTS;
 
         heuristicForSimulation = new Heuristic(map, myPlayerNr, false, false, multiplier);
 
@@ -79,9 +91,13 @@ public class SearchTree {
         Statistic statistic;
 
         if (timed){
-            moveToMake = getMoveWithMCTS(map, phaseOne, validMoves);
-            System.out.println("MCTS Move: " + Arrays.toString(moveToMake));
-            //moveToMake = getMoveByTime(map, phaseOne, validMoves);
+            if (useMCTS) {
+                moveToMake = getMoveWithMCTS(map, phaseOne, validMoves);
+                System.out.println("MCTS Move: " + Arrays.toString(moveToMake));
+            }
+            else {
+                moveToMake = getMoveByTime(map, phaseOne, validMoves);
+            }
         }
         else {
             statistic = new Statistic(depth);
