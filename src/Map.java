@@ -1746,13 +1746,13 @@ public class Map{
                     newR = map.doAStep(currPos, newR);
                     if (newR == null) break; //if the step wasn't possible
 
-                    //check what's there
-                    currChar = map.getCharAt(currPos);
-
                     //detect loop //TODO: check with test Server Log
                     if (currPos.equals(pos)){ //only needs to detect the position because it will go in every direction anyway
                         break;
                     }
+
+                    //check what's there
+                    currChar = map.getCharAt(currPos);
 
                     //player or 0
                     if (Character.isDigit(currChar)){
@@ -1782,38 +1782,32 @@ public class Map{
                     }
                     // c, b, i
                     else {
-                        if (currChar == 'i') {
-                            posAndInfo = new PositionAndInfo(currPos.x, currPos.y, 0);
-                            saveElement = posAndInfo.toIntArray();
-                            resultMovesSet.add(posAndInfo);
-                            break;
-                        }
-                        else if (currChar == 'c') {
-                            for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
-                                posAndInfo = new PositionAndInfo(currPos.x, currPos.y, playerNr);
+                        switch (currChar){
+                            case 'i': {
+                                posAndInfo = new PositionAndInfo(currPos.x, currPos.y, 0);
                                 saveElement = posAndInfo.toIntArray();
                                 resultMovesSet.add(posAndInfo);
+                                break;
                             }
-                            break;
-                        }
-                        else if (currChar == 'b'){
-                            bombOrOverwrite = heuristic.selectBombOrOverwrite();
-                            posAndInfo = new PositionAndInfo(currPos.x, currPos.y, bombOrOverwrite);
-                            saveElement = posAndInfo.toIntArray();
-                            resultMovesSet.add(posAndInfo);
-                            break;
-                        }
-                        /*
-                        else if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-                            if (map.evaluateOverwriteMove(new Position(currPos.x, currPos.y), heuristic)){
-                                wasAdded = resultMovesSet.add(new PositionAndInfo(currPos.x, currPos.y, 0));
-                                if (wasAdded) resultPosAndInfo.add(new int[]{currPos.x, currPos.y, 0});
+                            case 'c': {
+                                for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
+                                    posAndInfo = new PositionAndInfo(currPos.x, currPos.y, playerNr);
+                                    saveElement = posAndInfo.toIntArray();
+                                    resultMovesSet.add(posAndInfo);
+                                }
+                                break;
                             }
-                            else
-                                overwriteMoves.add(new int[]{currPos.x, currPos.y, 0});
-                        }*/
+                            case 'b': {
+                                bombOrOverwrite = heuristic.selectBombOrOverwrite();
+                                posAndInfo = new PositionAndInfo(currPos.x, currPos.y, bombOrOverwrite);
+                                saveElement = posAndInfo.toIntArray();
+                                resultMovesSet.add(posAndInfo);
+                                break;
+                            }
+                        }
+                        break;
+                        //x nothing happens
                     }
-                    //x nothing happens
                 }
             }
         }

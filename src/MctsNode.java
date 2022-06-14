@@ -13,9 +13,8 @@ public class MctsNode {
     private ArrayList<int[]> possibleMoves = null;
     private boolean phaseOne;
     private boolean terminal;
-    private int currentlyPlaying;
 
-    public MctsNode(Map map, MctsNode parent, int[] posAndInfoLeadingToThis, ArrayList<int[]> possibleMoves, boolean phaseOne, int currentlyPlaying){
+    public MctsNode(Map map, MctsNode parent, int[] posAndInfoLeadingToThis, ArrayList<int[]> possibleMoves, boolean phaseOne){
         this.map = map;
         this.parent = parent;
         actionLeadingToThis = posAndInfoLeadingToThis;
@@ -25,7 +24,6 @@ public class MctsNode {
         this.phaseOne = phaseOne;
         if (possibleMoves.isEmpty()) terminal = true;
         else terminal = false;
-        this.currentlyPlaying = currentlyPlaying;
     }
 
     public boolean isTerminal(){

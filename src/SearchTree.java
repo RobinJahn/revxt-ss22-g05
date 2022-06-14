@@ -79,9 +79,9 @@ public class SearchTree {
         Statistic statistic;
 
         if (timed){
-            //moveToMake = getMoveWithMCTS(map, phaseOne, validMoves);
-            //System.out.println("MCTS Move: " + Arrays.toString(moveToMake));
-            moveToMake = getMoveByTime(map, phaseOne, validMoves);
+            moveToMake = getMoveWithMCTS(map, phaseOne, validMoves);
+            System.out.println("MCTS Move: " + Arrays.toString(moveToMake));
+            //moveToMake = getMoveByTime(map, phaseOne, validMoves);
         }
         else {
             statistic = new Statistic(depth);
@@ -408,8 +408,11 @@ public class SearchTree {
     //MONTE CARLO TREE SEARCH
 
     private int[] getMoveWithMCTS(Map map, boolean phaseOne, ArrayList<int[]> validMoves){
+
+        int[] saveMove = map.getRandomMove();
+
         MctsNode rootNode;
-        rootNode = new MctsNode(map, null, null, (ArrayList<int[]>) validMoves.clone(), phaseOne, myPlayerNr);
+        rootNode = new MctsNode(map, null, null, (ArrayList<int[]>) validMoves.clone(), phaseOne);
         //TODO: get child of root Node in regards which path it took
         MctsNode currV;
         double delta;
@@ -435,7 +438,12 @@ public class SearchTree {
         currV = bestChild(rootNode, 0);
         currRoot = currV;
 
-        return currV.getActionLeadingToThis();
+        if (currV != null) {
+            return currV.getActionLeadingToThis();
+        }
+        else {
+            return saveMove;
+        }
     }
 
     private MctsNode treePolicy(MctsNode v) throws TimeoutException {
@@ -464,12 +472,8 @@ public class SearchTree {
         Map nextMap = simulateMove(v.getMap(), a, phaseOne);
         phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, serverLog);
 
-        /*if ( v.getMap().getCurrentlyPlayingI() == nextMap.getCurrentlyPlayingI() && !validMovesForNext.isEmpty() ){
-            System.out.println("Can happen sometimes - player of previous map is the same as player of the current map");
-        }*/
-
         //create Child
-        MctsNode newChild = new MctsNode(nextMap, v, a, validMovesForNext, phaseOneAfterNextMove, nextMap.getCurrentlyPlayingI());
+        MctsNode newChild = new MctsNode(nextMap, v, a, validMovesForNext, phaseOneAfterNextMove);
 
         //add child
         v.addChild(newChild);
@@ -514,6 +518,7 @@ public class SearchTree {
 
         placement = map.getPlacement(myPlayerNr);
         return 1 - ((double)(placement - 1) / (map.getAnzPlayers() - 1)); //norms place to a value between 1 best and 0 worst
+        //TODO: maybe not linear 6, 7, 8 of 8 player games should be 0
     }
 
     private void backup(MctsNode v, double delta) {
