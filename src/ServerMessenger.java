@@ -99,7 +99,7 @@ public class ServerMessenger {
         }
     }
 
-    public StaticMap getMap(){
+    public StaticMap getMap(boolean serverLog){
         int readByte;
         byte[] readByteArray;
         StringBuilder lengthStr = new StringBuilder();
@@ -122,7 +122,7 @@ public class ServerMessenger {
             //read the whole map sting
             readByteArray = in.readNBytes(length);
             //create a map with it
-            sMap = new StaticMap(readByteArray);
+            sMap = new StaticMap(readByteArray, serverLog);
 
         }
         catch (SocketException e){

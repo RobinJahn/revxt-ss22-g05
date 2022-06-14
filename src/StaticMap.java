@@ -28,13 +28,13 @@ public class StaticMap {
     private HashSet<Position> initialExpansionFields = new HashSet<>();
 
 
-    public StaticMap(byte[] mapByteArray){
+    public StaticMap(byte[] mapByteArray, boolean serverLog){
         importedCorrectly = importMap(mapByteArray);
         if (!importedCorrectly) {
             System.err.println("Map didn't import correctly.");
         }
         //countOfReachableFields = (height-2)*(width-2); //approximation
-        countOfReachableFields = getCountOfReachableFields();
+        countOfReachableFields = findReachableFields(serverLog);
 
     }
 
@@ -430,9 +430,7 @@ public class StaticMap {
 
     //Helper
 
-
-    //@ToDO
-    private int getCountOfReachableFields()
+    private int findReachableFields(boolean serverLog)
     {
         char[][] map = new char[height][width];
         for (int i = 0; i < height; i++){
@@ -506,10 +504,12 @@ public class StaticMap {
 
         reachableFieldMatrix = map;
 
-        for(int y = 0; y < reachableFieldMatrix.length; y++){
-            for (int x = 0; x < reachableFieldMatrix[0].length; x++){
-                if (reachableFieldMatrix[y][x] != '-' && reachableFieldMatrix[y][x] != 'R' && reachableFieldMatrix[y][x] != 't'){
-                    this.map[y][x] = '-';
+        if(!serverLog) {
+            for (int y = 0; y < reachableFieldMatrix.length; y++) {
+                for (int x = 0; x < reachableFieldMatrix[0].length; x++) {
+                    if (reachableFieldMatrix[y][x] != '-' && reachableFieldMatrix[y][x] != 'R' && reachableFieldMatrix[y][x] != 't') {
+                        this.map[y][x] = '-';
+                    }
                 }
             }
         }

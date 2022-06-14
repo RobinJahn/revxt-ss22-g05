@@ -226,7 +226,7 @@ public class Client{
 
 		//get map from server
 		//global variables
-		StaticMap sMap = serverM.getMap();
+		StaticMap sMap = serverM.getMap(serverLog);
 
 		//check if it imported correctly
 		if(sMap == null || !sMap.wasImportedCorrectly()) {
@@ -347,10 +347,12 @@ public class Client{
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
 
 					if (compare_to_Server) {
+						ArrayList<int[]> validMoves;
 						map.setPlayer(moveOfPlayer);
 						if(firstPhase){
 							try {
-								CSC.setClientString(map.toString_Server(Map.getValidMoves(map, false, false, false, 0, heuristic)));
+								validMoves = Map.getValidMoves(map, false, false, false, 0, null);
+								CSC.setClientString(map.toString_Server(validMoves));
 							}catch (ExceptionWithMove EWM)
 							{
 								EWM.printStackTrace();
@@ -359,7 +361,9 @@ public class Client{
 						else {
 							CSC.setClientString(map.toString_Server(null));
 						}
-						CSC.compare(moveCounter-1);
+						boolean areEqual = CSC.compare(moveCounter-1);
+						System.out.println("Server and Client found the same moves: " + areEqual);
+						if (!areEqual) return;
 					}
 
 					//Handle Move
@@ -405,7 +409,8 @@ public class Client{
 
 						}
 						else {
-							ArrayList<int[]> validMoves = null;
+							ArrayList<int[]> validMoves;
+							validMoves = null;
 							try {
 								validMoves = Map.getValidMoves(map, timed, printOn, serverLog, Long.MAX_VALUE, heuristic);
 							}

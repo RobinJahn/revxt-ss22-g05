@@ -1688,7 +1688,7 @@ public class Map{
         //add x fields
         if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
             for (Position pos : map.getExpansionFields()) {
-                if (heuristic.evaluateOverwriteMove(pos)){
+                if (heuristic != null && heuristic.evaluateOverwriteMove(pos)){
                     resultMovesSet.add(new PositionAndInfo(pos.x, pos.y, 0));
                 }
                 else {
@@ -1769,7 +1769,7 @@ public class Map{
                             if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
                                 posAndInfo = new PositionAndInfo(currPos.x, currPos.y, 0);
                                 saveElement = posAndInfo.toIntArray();
-                                if (heuristic.evaluateOverwriteMove(new Position(currPos.x, currPos.y))){
+                                if (heuristic != null && heuristic.evaluateOverwriteMove(new Position(currPos.x, currPos.y))){
                                     resultMovesSet.add(posAndInfo);
                                 }
                                 else {
@@ -1798,7 +1798,7 @@ public class Map{
                                 break;
                             }
                             case 'b': {
-                                bombOrOverwrite = heuristic.selectBombOrOverwrite();
+                                bombOrOverwrite = (heuristic == null)? 21 : heuristic.selectBombOrOverwrite();
                                 posAndInfo = new PositionAndInfo(currPos.x, currPos.y, bombOrOverwrite);
                                 saveElement = posAndInfo.toIntArray();
                                 resultMovesSet.add(posAndInfo);
@@ -1810,6 +1810,10 @@ public class Map{
                     }
                 }
             }
+        }
+
+        if (heuristic == null){
+            resultMovesSet.addAll(overwriteMovesSet);
         }
 
         if (!resultMovesSet.isEmpty()) {
