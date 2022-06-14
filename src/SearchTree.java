@@ -426,6 +426,7 @@ public class SearchTree {
             catch (TimeoutException e) {
                 break;
             }
+            //TODO: Add an additional break in while so that if we got the whole tree it stops
             loopCount++;
         }
 
@@ -498,9 +499,11 @@ public class SearchTree {
 
         map = new Map(map, phaseOne);
         //first phase
-        while (!map.isTerminal(heuristicForSimulation)){
-            a = map.getRandomMove();
-            map = simulateMove(map, a, phaseOne);
+        if (phaseOne) {
+            while (!map.isTerminal(heuristicForSimulation)) {
+                a = map.getRandomMove();
+                map = simulateMove(map, a, phaseOne);
+            }
         }
         //second phase
         phaseOne = false;

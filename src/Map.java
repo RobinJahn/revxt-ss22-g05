@@ -614,7 +614,7 @@ public class Map{
                 return result;
 
             case 'c':
-                int randomVal = (int)Math.round(Math.random()* staticMap.anzPlayers-1)+1; //-1 to create values from 0 to anzPlayer-1 and +1 to get it from 1 to anzPlayers
+                int randomVal = (int)Math.round(Math.random()* (staticMap.anzPlayers-1)) + 1; //-1 to create values from 0 to anzPlayer-1 and +1 to get it from 1 to anzPlayers
                 while(getCountOfStonesOfPlayer(randomVal) == 0)
                 {
                     randomVal = ++randomVal % staticMap.anzPlayers;
