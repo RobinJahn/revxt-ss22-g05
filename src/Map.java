@@ -326,6 +326,117 @@ public class Map{
         return mapString.toString();
     }
 
+    public static String toString(String mapAsString, boolean useColors){
+        final String ANSI_RESET = "\u001B[0m";
+        final String ANSI_BLACK = "\u001B[30m";
+        final String ANSI_RED = "\u001B[31m";
+        final String ANSI_GREEN = "\u001B[32m";
+        final String ANSI_YELLOW = "\u001B[33m";
+        final String ANSI_BLUE = "\u001B[34m";
+        final String ANSI_PURPLE = "\u001B[35m";
+        final String ANSI_BRIGHT_CYAN = "\u001B[96m";
+        final String ANSI_WHITE = "\u001B[37m";
+        final String ANSI_BRIGHT_YELLOW = "\u001B[93m";
+        final String ANSI_BRIGHT_GREEN = "\u001B[92m";
+
+        final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
+        final String ANSI_RED_BACKGROUND = "\u001B[41m";
+        final String ANSI_GREEN_BACKGROUND = "\u001B[42m";
+        final String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
+        final String ANSI_BLUE_BACKGROUND = "\u001B[44m";
+        final String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
+        final String ANSI_CYAN_BACKGROUND = "\u001B[46m";
+        final String ANSI_WHITE_BACKGROUND = "\u001B[47m";
+
+        StringBuilder mapString = new StringBuilder();
+        String bufferString;
+        String[] mapLines = mapAsString.split("\n");
+        char currChar;
+
+        // print numbers for columns
+        for (int i = -1 ; i < mapLines[0].replaceAll(" ","").replaceAll("'", "").length(); i++) mapString.append(i).append("\t");
+        mapString.append("\n");
+
+        //print map
+        for (int y = 0; y < mapLines.length; y++){
+
+            //print row number
+            mapString.append(y).append("\t");
+
+            //print row of map
+            for (int x = 0; x < mapLines[y].length(); x++){
+                currChar = mapLines[y].charAt(x);
+
+                if (currChar == ' ') continue;
+
+                bufferString = "";
+                //get color for the char at the position
+                if (useColors) {
+                    switch (currChar){
+                        case '1':
+                            bufferString += ANSI_RED;
+                            break;
+                        case '2':
+                            bufferString += ANSI_BLUE;
+                            break;
+                        case '3':
+                            bufferString += ANSI_GREEN;
+                            break;
+                        case '4':
+                            bufferString += ANSI_YELLOW;
+                            break;
+                        case '5':
+                            bufferString += ANSI_BRIGHT_CYAN;
+                            break;
+                        case '6':
+                            bufferString += ANSI_PURPLE;
+                            break;
+                        case '7':
+                            bufferString += ANSI_BRIGHT_YELLOW;
+                            break;
+                        case '8':
+                            bufferString += ANSI_BRIGHT_GREEN;
+                            break;
+                        case 'b':
+                            bufferString += ANSI_BLACK;
+                            bufferString += ANSI_GREEN_BACKGROUND;
+                            break;
+                        case 'i':
+                            bufferString += ANSI_BLACK;
+                            bufferString += ANSI_PURPLE_BACKGROUND;
+                            break;
+                        case 'c':
+                            bufferString += ANSI_BLACK;
+                            bufferString += ANSI_CYAN_BACKGROUND;
+                            break;
+                        case 'x':
+                            bufferString += ANSI_BLACK;
+                            bufferString += ANSI_WHITE_BACKGROUND;
+                            break;
+                    }
+                }
+
+                //add char itself
+                bufferString += currChar;
+
+                //reset color
+                if (useColors) bufferString += ANSI_RESET;
+
+                //add ' if a move can be made to this position
+                if (x+1 < mapLines[y].length() && mapLines[y].charAt(x+1) == '\''){
+                    bufferString += "'";
+                    x++;
+                }
+
+                //add display of position to map String
+                mapString.append(bufferString).append("\t");
+            }
+            mapString.append("\n");
+        }
+
+        return mapString.toString();
+    }
+
     private void appendMapInfosForStringBuilder(StringBuilder mapString) {
         mapString.append("Player count: ").append(staticMap.anzPlayers).append("   ");
         mapString.append("Explosion radius: ").append(staticMap.explosionRadius).append("   ");

@@ -275,7 +275,7 @@ public class Client{
 		long upperTimeLimit;
 		long startTime;
 		ClientServerComparator CSC = null;
-		if (compare_to_Server) CSC = new ClientServerComparator();
+		if (compare_to_Server) CSC = new ClientServerComparator(map.getWidth());
 
 		int countOfOwnMoves = 0;
 
@@ -348,23 +348,33 @@ public class Client{
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
 
 					if (compare_to_Server) {
-						ArrayList<int[]> validMoves;
+						ArrayList<int[]> validMoves = null;
+						boolean areEqual;
 						map.setPlayer(moveOfPlayer);
 						if(firstPhase){
 							try {
 								validMoves = Map.getValidMoves(map, false, false, false, 0, null);
 								CSC.setClientString(map.toString_Server(validMoves));
-							}catch (ExceptionWithMove EWM)
-							{
+							}
+							catch (ExceptionWithMove EWM) {
 								EWM.printStackTrace();
 							}
 						}
 						else {
 							CSC.setClientString(map.toString_Server(null));
 						}
-						boolean areEqual = CSC.compare(moveCounter-1);
+						areEqual = CSC.compare(moveCounter-1);
 						System.out.println("Server and Client found the same moves: " + areEqual);
-						if (!areEqual) return;
+
+						if (!areEqual) {
+							System.out.println("Map of Client:");
+							System.out.println(map.toString(validMoves, false, true));
+
+							System.out.println("Map of Server:");
+							System.out.println(Map.toString(CSC.getMapFromServer(moveCounter-1), true));
+
+							return;
+						}
 					}
 
 					//Handle Move

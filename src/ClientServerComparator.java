@@ -11,8 +11,10 @@ public class ClientServerComparator {
     private BufferedReader br;
     ArrayList<String> ServerLines = new ArrayList<>();
     ArrayList<String> ClientLines = new ArrayList<>();
+    int width;
 
-    public ClientServerComparator() {
+    public ClientServerComparator(int width) {
+        this.width = width-2;
         try {
             File IDE = new File("./serverAndAi/Server_View.txt"); //IDE Version
             //File script = new File("../serverAndAi/Server_View.txt"); //Script Version
@@ -45,10 +47,23 @@ public class ClientServerComparator {
             }
             if (line == null) break;
 
-            if(!line.isEmpty() && line.contains("|"))
-            {
-                currLine = line.substring( line.lastIndexOf("|") + 1 ).trim();
-                ServerLines.add(currLine);
+            try {
+                if(!line.isEmpty() && line.contains("|"))
+                {
+                    br.mark(2*width);
+
+                    currLine = line.substring( line.lastIndexOf("|") + 1 ).trim();
+
+                    if (currLine.length() < width) {
+                        br.reset();
+                        TimeUnit.MILLISECONDS.sleep(10);
+                        continue;
+                    }
+
+                    ServerLines.add(currLine);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
     }
@@ -92,4 +107,17 @@ public class ClientServerComparator {
             return false;
         }
     }
+
+    public String getMapFromServer(int moveCounter){
+        int indexInServer;
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < ClientLines.size(); i++){
+            indexInServer = i + ClientLines.size() * moveCounter;
+            sb.append( ServerLines.get(indexInServer) ).append("\n");
+        }
+
+        return sb.toString();
+    }
+
 }
