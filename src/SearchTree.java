@@ -450,12 +450,7 @@ public class SearchTree {
         }
 
         System.out.println("MCTS loops: " + loopCount);
-
-        try {
-            currV = bestChild(rootNode, 0);
-        } catch (TimeoutException e) {
-            throw new RuntimeException(e);
-        }
+        currV = bestChild(rootNode, 0);
 
         if (currV != null) {
             return currV.getActionLeadingToThis();
@@ -520,7 +515,7 @@ public class SearchTree {
         return newChild;
     }
 
-    private MctsNode bestChild(MctsNode v, double c) throws TimeoutException{
+    private MctsNode bestChild(MctsNode v, double c){
         double maxValue = Double.NEGATIVE_INFINITY;
         double currValue;
         MctsNode bestChild = null;
@@ -531,13 +526,6 @@ public class SearchTree {
                 maxValue = currValue;
                 bestChild = vChild;
             }
-
-            // Out of Time ?
-            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-                if (printOn|| serverLog) System.out.println("Out of time - in Best Child");
-                throw new TimeoutException();
-            }
-
         }
 
         return bestChild;
