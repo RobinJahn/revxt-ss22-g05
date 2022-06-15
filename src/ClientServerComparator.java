@@ -70,10 +70,15 @@ public class ClientServerComparator {
         {
             indexInServer = i + ClientLines.length * moveCounter;
 
-            if (indexInServer >= ServerLines.length){
+            while (indexInServer >= ServerLines.length){
                 readServer();
                 ServerLines = Server.split("\n");
                 ClientLines = Client.split("\n");
+                try {
+                    TimeUnit.MICROSECONDS.sleep(10);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
             if(!ServerLines[ indexInServer ].equalsIgnoreCase( ClientLines[i].trim() ))

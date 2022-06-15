@@ -11,6 +11,9 @@ if [[ ! -f "$mapName" ]]; then
 	exit
 fi
 
+echo "time: $time"
+echo "depth: $depth"
+
 #	get anzPlayer
 anzPlayer=$(awk '(NR==1){printf("%d",$1)}' "$mapName")
 
@@ -40,7 +43,7 @@ then
 else
   if [ $depth -eq 0 ]; then
     echo "./server_nogl -m $mapName -t $time"
-    ./server_nogl -C -m $mapName -t time | tee Server_View.txt
+    ./server_nogl -C -m $mapName -t $time | tee Server_View.txt
   else
     echo "./server_nogl -m $mapName -d $depth -t $time"
     ./server_nogl -C -m $mapName -d $depth -t $time | tee Server_View.txt
