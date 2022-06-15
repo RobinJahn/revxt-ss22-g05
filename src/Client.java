@@ -270,11 +270,12 @@ public class Client{
 		boolean gameOngoing = true;
 		boolean firstPhase = true;
 		int[] timeAndDepth;
-		ClientServerComparator CSC = new ClientServerComparator();
 		moveCounter = 0;
 		long timeOffset;
 		long upperTimeLimit;
 		long startTime;
+		ClientServerComparator CSC = null;
+		if (compare_to_Server) CSC = new ClientServerComparator();
 
 		int countOfOwnMoves = 0;
 
@@ -466,12 +467,12 @@ public class Client{
 					serverM.readRestOfNextPhase();
 					gameOngoing = false;
 
-					if(compare_to_Server)
+					if(compare_to_Server && CSC != null)
 					{
 						try {
-							FileWriter FW = new FileWriter("ErrorCounts.txt",true);
+							FileWriter FW = new FileWriter("ErrorCounts.txt", true);
 							BufferedWriter BW = new BufferedWriter(FW);
-							String toAdd = "ErrorCount: " + CSC.getErrorCount() +"\n";
+							String toAdd = "ErrorCount: " + CSC.getErrorCount() + "\n";
 							BW.write(toAdd);
 							BW.close();
 							FW.close();
