@@ -1786,8 +1786,9 @@ public class Map{
                             if (currChar == map.getCurrentlyPlayingC()) break;
                         }
                     }
+
                     // c, b, i
-                    else {
+                    else if (currChar != 'x') { //x nothing happens
                         switch (currChar){
                             case 'i': {
                                 posAndInfo = new PositionAndInfo(currPos.x, currPos.y, 0);
@@ -1812,7 +1813,6 @@ public class Map{
                             }
                         }
                         break;
-                        //x nothing happens
                     }
                 }
             }

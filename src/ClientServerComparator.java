@@ -28,8 +28,13 @@ public class ClientServerComparator {
 
     private void readServer()
     {
-        String[] toAdd;
         String currLine;
+
+        try {
+            TimeUnit.MILLISECONDS.sleep(10);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         while (true)
         {
@@ -59,8 +64,6 @@ public class ClientServerComparator {
 
     public boolean compare(int moveCounter){
 
-        readServer();
-
         int indexInServer;
 
         for(int i = 0;i< ClientLines.size();i++)
@@ -69,11 +72,6 @@ public class ClientServerComparator {
 
             while (indexInServer >= ServerLines.size()){
                 readServer();
-                try {
-                    TimeUnit.MICROSECONDS.sleep(10);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
             }
 
             if(!ServerLines.get(indexInServer).equalsIgnoreCase( ClientLines.get(i).trim() ))
