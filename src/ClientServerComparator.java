@@ -7,10 +7,10 @@ import java.util.concurrent.TimeUnit;
 public class ClientServerComparator {
 
     private String line;
-    private String Server = "";
-    private String Client ="";
     private int ErrorCount = 0;
     private BufferedReader br;
+    ArrayList<String> ServerLines = new ArrayList<>();
+    ArrayList<String> ClientLines = new ArrayList<>();
 
     public ClientServerComparator() {
         try {
@@ -29,6 +29,7 @@ public class ClientServerComparator {
     private void readServer()
     {
         String[] toAdd;
+        String currLine;
 
         while (true)
         {
@@ -41,15 +42,14 @@ public class ClientServerComparator {
 
             if(!line.isEmpty() && line.contains("|"))
             {
-
-                toAdd = line.split("[|]");
-                Server += toAdd[1].trim() + "\n";
+                currLine = line.substring( line.lastIndexOf("|") + 1 ).trim();
+                ServerLines.add(currLine);
             }
         }
     }
 
     public void setClientString(String clientString){
-        this.Client = clientString;
+        ClientLines = new ArrayList<>( List.of(clientString.split("\n")) );
     }
 
     public int getErrorCount()
@@ -61,19 +61,14 @@ public class ClientServerComparator {
 
         readServer();
 
-        String[] ServerLines = Server.split("\n");;
-        String[] ClientLines = Client.split("\n");
-
         int indexInServer;
 
-        for(int i = 0;i< ClientLines.length;i++)
+        for(int i = 0;i< ClientLines.size();i++)
         {
-            indexInServer = i + ClientLines.length * moveCounter;
+            indexInServer = i + ClientLines.size() * moveCounter;
 
-            while (indexInServer >= ServerLines.length){
+            while (indexInServer >= ServerLines.size()){
                 readServer();
-                ServerLines = Server.split("\n");
-                ClientLines = Client.split("\n");
                 try {
                     TimeUnit.MICROSECONDS.sleep(10);
                 } catch (InterruptedException e) {
@@ -81,10 +76,10 @@ public class ClientServerComparator {
                 }
             }
 
-            if(!ServerLines[ indexInServer ].equalsIgnoreCase( ClientLines[i].trim() ))
+            if(!ServerLines.get(indexInServer).equalsIgnoreCase( ClientLines.get(i).trim() ))
             {
-                System.out.println("Server ("+i+"): " + ServerLines[i]);
-                System.out.println("Client ("+i+"): " + ClientLines[i]);
+                System.out.println("Server ("+i+"): " + ServerLines.get(indexInServer));
+                System.out.println("Client ("+i+"): " + ClientLines.get(i));
                 ErrorCount++;
             }
         }
