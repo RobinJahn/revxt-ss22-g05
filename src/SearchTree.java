@@ -430,7 +430,7 @@ public class SearchTree {
         MctsNode rootNode;
         rootNode = new MctsNode(map, null, null, (ArrayList<int[]>) validMoves.clone(), phaseOne);
         //TODO: get child of root Node in regards which path it took
-        MctsNode currV;
+        MctsNode currV = null;
         double delta;
         int loopCount = 0;
 
@@ -451,8 +451,11 @@ public class SearchTree {
 
         System.out.println("MCTS loops: " + loopCount);
 
-        currV = bestChild(rootNode, 0);
-        currRoot = currV;
+        try {
+            currV = bestChild(rootNode, 0);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
 
         if (currV != null) {
             return currV.getActionLeadingToThis();
@@ -473,6 +476,13 @@ public class SearchTree {
             else {
                 v = bestChild(v, c);
             }
+
+            // Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                if (printOn|| serverLog) System.out.println("Out of time - in tree policy");
+                throw new TimeoutException();
+            }
+
         }
         return v;
     }
@@ -486,7 +496,20 @@ public class SearchTree {
         //simulate move
         //TODO: can it be that expand gets called on a node where the player cant play because he has no bombs
         Map nextMap = simulateMove(v.getMap(), a, phaseOne);
+
+        // Out of Time ?
+        if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+            if (printOn|| serverLog) System.out.println("Out of time - in expand after simulate move");
+            throw new TimeoutException();
+        }
+
         phaseOneAfterNextMove = getMovesForNextPlayer(nextMap, validMovesForNext, phaseOne, timed, printOn, serverLog);
+
+        // Out of Time ?
+        if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+            if (printOn|| serverLog) System.out.println("Out of time - in expand After getting the next moves");
+            throw new TimeoutException();
+        }
 
         //create Child
         MctsNode newChild = new MctsNode(nextMap, v, a, validMovesForNext, phaseOneAfterNextMove);
@@ -497,7 +520,7 @@ public class SearchTree {
         return newChild;
     }
 
-    private MctsNode bestChild(MctsNode v, double c){
+    private MctsNode bestChild(MctsNode v, double c) throws TimeoutException{
         double maxValue = Double.NEGATIVE_INFINITY;
         double currValue;
         MctsNode bestChild = null;
@@ -508,6 +531,13 @@ public class SearchTree {
                 maxValue = currValue;
                 bestChild = vChild;
             }
+
+            // Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                if (printOn|| serverLog) System.out.println("Out of time - in Best Child");
+                throw new TimeoutException();
+            }
+
         }
 
         return bestChild;
@@ -523,6 +553,13 @@ public class SearchTree {
             while (!map.isTerminal(heuristicForSimulation)) {
                 a = map.getRandomMove();
                 map = simulateMove(map, a, phaseOne);
+
+                // Out of Time ?
+                if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                    if (printOn|| serverLog) System.out.println("Out of time - in default policy first phase");
+                    throw new TimeoutException();
+                }
+
             }
         }
         //second phase
@@ -530,6 +567,13 @@ public class SearchTree {
         while (!map.isTerminalSecondPhase()){
             a = map.getRandomBombMove();
             map = simulateMove(map, a, phaseOne);
+
+            // Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                if (printOn|| serverLog) System.out.println("Out of time - in default policy second phase");
+                throw new TimeoutException();
+            }
+
         }
 
         placement = map.getPlacement(myPlayerNr);
@@ -537,11 +581,18 @@ public class SearchTree {
         //TODO: maybe not linear 6, 7, 8 of 8 player games should be 0
     }
 
-    private void backup(MctsNode v, double delta) {
+    private void backup(MctsNode v, double delta) throws TimeoutException{
         while (v != null){
             v.increaseVisits();
             v.updateReward(delta); //p shouldn't be necessary because node has Map.currentlyPlaying
             v = v.getParent();
+
+            // Out of Time ?
+            if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
+                if (printOn|| serverLog) System.out.println("Out of time - in backup");
+                throw new TimeoutException();
+            }
+
         }
     }
 
