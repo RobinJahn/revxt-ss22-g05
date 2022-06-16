@@ -686,7 +686,7 @@ public class Map{
     }
 
     public ArrayList<Position> getStonesOfPlayer(int playerNr){
-        if (playerNr < 0 || playerNr > staticMap.anzPlayers) {
+        if (playerNr < 1 || playerNr > staticMap.anzPlayers) {
             System.err.println("Player with that number isn't in the Game");
             return null;
         }
@@ -1217,7 +1217,7 @@ public class Map{
             }
             else {
                 if (AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer-1][posAndR[2]] == oldArrow) {
-                    AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer - 1][posAndR[2]] = null;
+                    AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer-1][posAndR[2]] = null;
                 }
             }
 
@@ -1257,7 +1257,7 @@ public class Map{
             }
             else {
                 if (AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer-1][posAndR[2]] == oldArrow) {
-                    AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer - 1][posAndR[2]] = copyOfArrow;
+                    AffectedArrows[posAndR[1]][posAndR[0]][arrowOfPlayer-1][posAndR[2]] = copyOfArrow;
                 }
             }
         }
@@ -2186,7 +2186,7 @@ public class Map{
             }
         }
 
-        for (int enemyNr = 1; enemyNr < map.getAnzPlayers(); enemyNr++){
+        for (int enemyNr = 1; enemyNr <= map.getAnzPlayers(); enemyNr++){
             if (enemyNr == playerNr) continue;
             enemyStoneCount += map.getCountOfStonesOfPlayer(enemyNr);
         }
