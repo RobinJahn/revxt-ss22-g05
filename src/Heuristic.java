@@ -265,7 +265,7 @@ public class Heuristic {
         int enemyStoneCount = 0;
         double result;
 
-        for (int playerNr = 1; playerNr < map.getAnzPlayers(); playerNr++){
+        for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++){
             if (playerNr == myPlayerNr) continue;
             enemyStoneCount += map.getCountOfStonesOfPlayer(playerNr);
         }
@@ -367,7 +367,7 @@ public class Heuristic {
         double countOfMovesEvaluation;
 
         //gets possible moves of all players and adds them to the corresponding move counter
-        for (int i = 1; i <= map.getAnzPlayers(); i++) {
+        for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
 
             //out of time ?
             if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
