@@ -77,35 +77,62 @@ public class ClientServerComparator {
         return ErrorCount;
     }
 
-    public boolean compare(int moveCounter){
+    public ArrayList<Position> compare(int moveCounter){
 
-        int indexInServer;
+        int yIndexInServer;
+        String currServerLine;
+        String currClientLine;
+        String currFieldServer;
+        String currFieldClient;
+        int xIndexServer;
+        int xIndexClient;
+        ArrayList<Position> differentPositions = new ArrayList<>();
 
-        for(int i = 0;i< ClientLines.size();i++)
+        for(int y = 0; y < ClientLines.size(); y++)
         {
-            indexInServer = i + ClientLines.size() * moveCounter;
+            yIndexInServer = y + ClientLines.size() * moveCounter;
 
-            while (indexInServer >= ServerLines.size()){
+            while (yIndexInServer >= ServerLines.size()){
                 readServer();
             }
 
-            if(!ServerLines.get(indexInServer).equalsIgnoreCase( ClientLines.get(i).trim() ))
+            currServerLine = ServerLines.get(yIndexInServer);
+            currClientLine = ClientLines.get(y).trim();
+
+            if(!currServerLine.equalsIgnoreCase( currClientLine ))
             {
-                System.out.println("Server ("+i+"): " + ServerLines.get(indexInServer));
-                System.out.println("Client ("+i+"): " + ClientLines.get(i));
-                ErrorCount++;
+                System.out.println("Server ("+y+"): " + ServerLines.get(yIndexInServer));
+                System.out.println("Client ("+y+"): " + ClientLines.get(y));
+
+                //get concrete Position where the error is
+                xIndexClient = 0;
+                xIndexServer = 0;
+                for (int x = 0; x < width; x++){
+                    currFieldClient = "" + currClientLine.charAt(xIndexClient);
+                    currFieldServer = "" + currServerLine.charAt(xIndexServer);
+
+
+                    if (xIndexClient + 1 < currClientLine.length() && currClientLine.charAt(xIndexClient + 1) == '\'') {
+                        currFieldClient += '\'';
+                    }
+
+                    if (xIndexServer + 1 < currServerLine.length() && currServerLine.charAt(xIndexServer + 1) == '\'') {
+                        currFieldServer += '\'';
+                    }
+
+                    if (!currFieldClient.equals(currFieldServer)) {
+                        differentPositions.add(new Position(x+1,y+1)); //index shift for client
+                    }
+
+                    //skip space and '
+                    xIndexServer+=2;
+                    xIndexClient+=2;
+
+                }
             }
         }
 
-        if(ErrorCount == 0)
-        {
-            return true;
-        }
-        else
-        {
-            System.err.println("In ClientServerComparator found " + ErrorCount + " errors");
-            return false;
-        }
+        return differentPositions;
     }
 
     public String getMapFromServer(int moveCounter){

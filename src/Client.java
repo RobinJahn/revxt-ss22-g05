@@ -52,7 +52,7 @@ public class Client{
 
 		boolean useAB = true;
 		boolean useMS = true;
-		boolean useMCTS = true;
+		boolean useMCTS = false;
 
 		//variables for the server
 		String ip = "127.0.0.1";
@@ -97,8 +97,8 @@ public class Client{
 				case "--use-arrows":
 				case "-ua": Map.useArrows = true; break;
 
-				case "--deactivate-mcts":
-				case "-MCTS": useMCTS = false; break;
+				case "--activate-mcts":
+				case "-mcts": useMCTS = true; break;
 
 				case "--group-number-addition":
 				case "-gna":
@@ -166,6 +166,7 @@ public class Client{
 		helpString.append("-AB or --disable-alpha-beta\t\t\tDisables alpha beta pruning\n");
 		helpString.append("-ds or --disable-sorting\t\t\tDisables move sorting\n");
 		helpString.append("-ua or --use-arrows\t\t\t\t\tEnables Arrows\n");
+		helpString.append("-mcts or --activate-mcts\t\t\t\t\tEnables Monte carlo Tree search\n");
 		helpString.append("-gna or --group-number-addition\t\tchanges the group number to 50 + the given number\n");
 
 		helpString.append("-m or --multiplier <phase number> <");
@@ -349,7 +350,7 @@ public class Client{
 
 					if (compare_to_Server) {
 						ArrayList<int[]> validMoves = null;
-						boolean areEqual;
+						ArrayList<Position> differentPositions;
 						map.setPlayer(moveOfPlayer);
 						if(firstPhase){
 							try {
@@ -363,11 +364,21 @@ public class Client{
 						else {
 							CSC.setClientString(map.toString_Server(null));
 						}
-						areEqual = CSC.compare(moveCounter-1);
-						System.out.println("Server and Client found the same moves: " + areEqual);
+						differentPositions = CSC.compare(moveCounter-1);
+						System.out.println("Server and Client found the same moves: " + differentPositions.isEmpty());
 
-						if (!areEqual) {
-							System.out.println("Map of Client:");
+						if (!differentPositions.isEmpty()) {
+							System.out.println("received Move");
+							System.out.println("Move: " + moveCounter);
+							System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
+
+							System.out.println("Different Positions:");
+							System.out.println(Arrays.toString(differentPositions.toArray()));
+
+							System.out.println("Map of Client colored:");
+							System.out.println(map.toString(validMoves, false, differentPositions));
+
+							System.out.println("Map of Client normal:");
 							System.out.println(map.toString(validMoves, false, true));
 
 							System.out.println("Map of Server:");

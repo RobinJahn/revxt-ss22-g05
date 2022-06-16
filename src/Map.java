@@ -1,8 +1,32 @@
 package src;
 
 import java.util.*;
+import java.util.List;
 
 public class Map{
+
+    private static class Colors {
+        final static String ANSI_RESET = "\u001B[0m";
+        final static String ANSI_BLACK = "\u001B[30m";
+        final static String ANSI_RED = "\u001B[31m";
+        final static String ANSI_GREEN = "\u001B[32m";
+        final static String ANSI_YELLOW = "\u001B[33m";
+        final static String ANSI_BLUE = "\u001B[34m";
+        final static String ANSI_PURPLE = "\u001B[35m";
+        final static String ANSI_BRIGHT_CYAN = "\u001B[96m";
+        final static String ANSI_WHITE = "\u001B[37m";
+        final static String ANSI_BRIGHT_YELLOW = "\u001B[93m";
+        final static String ANSI_BRIGHT_GREEN = "\u001B[92m";
+
+        final static String ANSI_BLACK_BACKGROUND = "\u001B[40m";
+        final static String ANSI_RED_BACKGROUND = "\u001B[41m";
+        final static String ANSI_GREEN_BACKGROUND = "\u001B[42m";
+        final static String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
+        final static String ANSI_BLUE_BACKGROUND = "\u001B[44m";
+        final static String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
+        final static String ANSI_CYAN_BACKGROUND = "\u001B[46m";
+        final static String ANSI_WHITE_BACKGROUND = "\u001B[47m";
+    }
 
     static boolean useArrows = false; //needs to stay false because it can bes set by parameter
     final static private boolean checkIfAllArrowsAreCorrect = false;
@@ -207,26 +231,6 @@ public class Map{
     }
 
     public String toString(List<int[]> everyPossibleMove, boolean showTransitions, boolean useColors){
-        final String ANSI_RESET = "\u001B[0m";
-        final String ANSI_BLACK = "\u001B[30m";
-        final String ANSI_RED = "\u001B[31m";
-        final String ANSI_GREEN = "\u001B[32m";
-        final String ANSI_YELLOW = "\u001B[33m";
-        final String ANSI_BLUE = "\u001B[34m";
-        final String ANSI_PURPLE = "\u001B[35m";
-        final String ANSI_BRIGHT_CYAN = "\u001B[96m";
-        final String ANSI_WHITE = "\u001B[37m";
-        final String ANSI_BRIGHT_YELLOW = "\u001B[93m";
-        final String ANSI_BRIGHT_GREEN = "\u001B[92m";
-
-        final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
-        final String ANSI_RED_BACKGROUND = "\u001B[41m";
-        final String ANSI_GREEN_BACKGROUND = "\u001B[42m";
-        final String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
-        final String ANSI_BLUE_BACKGROUND = "\u001B[44m";
-        final String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
-        final String ANSI_CYAN_BACKGROUND = "\u001B[46m";
-        final String ANSI_WHITE_BACKGROUND = "\u001B[47m";
 
         StringBuilder mapString = new StringBuilder();
         String bufferString;
@@ -261,44 +265,44 @@ public class Map{
                 if (useColors) {
                     switch (currChar){
                         case '1':
-                            bufferString += ANSI_RED;
+                            bufferString += Colors.ANSI_RED;
                             break;
                         case '2':
-                            bufferString += ANSI_BLUE;
+                            bufferString += Colors.ANSI_BLUE;
                             break;
                         case '3':
-                            bufferString += ANSI_GREEN;
+                            bufferString += Colors.ANSI_GREEN;
                             break;
                         case '4':
-                            bufferString += ANSI_YELLOW;
+                            bufferString += Colors.ANSI_YELLOW;
                             break;
                         case '5':
-                            bufferString += ANSI_BRIGHT_CYAN;
+                            bufferString += Colors.ANSI_BRIGHT_CYAN;
                             break;
                         case '6':
-                            bufferString += ANSI_PURPLE;
+                            bufferString += Colors.ANSI_PURPLE;
                             break;
                         case '7':
-                            bufferString += ANSI_BRIGHT_YELLOW;
+                            bufferString += Colors.ANSI_BRIGHT_YELLOW;
                             break;
                         case '8':
-                            bufferString += ANSI_BRIGHT_GREEN;
+                            bufferString += Colors.ANSI_BRIGHT_GREEN;
                             break;
                         case 'b':
-                            bufferString += ANSI_BLACK;
-                            bufferString += ANSI_GREEN_BACKGROUND;
+                            bufferString += Colors.ANSI_BLACK;
+                            bufferString += Colors.ANSI_GREEN_BACKGROUND;
                             break;
                         case 'i':
-                            bufferString += ANSI_BLACK;
-                            bufferString += ANSI_PURPLE_BACKGROUND;
+                            bufferString += Colors.ANSI_BLACK;
+                            bufferString += Colors.ANSI_PURPLE_BACKGROUND;
                             break;
                         case 'c':
-                            bufferString += ANSI_BLACK;
-                            bufferString += ANSI_CYAN_BACKGROUND;
+                            bufferString += Colors.ANSI_BLACK;
+                            bufferString += Colors.ANSI_CYAN_BACKGROUND;
                             break;
                         case 'x':
-                            bufferString += ANSI_BLACK;
-                            bufferString += ANSI_WHITE_BACKGROUND;
+                            bufferString += Colors.ANSI_BLACK;
+                            bufferString += Colors.ANSI_WHITE_BACKGROUND;
                             break;
                     }
                 }
@@ -307,7 +311,7 @@ public class Map{
                 bufferString += currChar;
 
                 //reset color
-                if (useColors) bufferString += ANSI_RESET;
+                if (useColors) bufferString += Colors.ANSI_RESET;
 
                 //add ' if a move can be made to this position
                 if (possibleMoves != null && possibleMoves.contains(new Position(x,y))) bufferString += "'";
@@ -326,45 +330,212 @@ public class Map{
         return mapString.toString();
     }
 
+    public String toString(List<int[]> everyPossibleMove, boolean showTransitions, ArrayList<Position> positionsToMark){
+        boolean backGroundSet;
+        int spaces = 6;
+        int sizeOfBufferString;
+        StringBuilder mapString = new StringBuilder();
+        String bufferString;
+
+        char currChar;
+
+        ArrayList<Position> possibleMoves = null;
+        if (everyPossibleMove != null) {
+            possibleMoves = new ArrayList<>();
+            for (int[] posAndInfo : everyPossibleMove) {
+                possibleMoves.add(new Position(posAndInfo[0], posAndInfo[1]));
+            }
+        }
+
+        Position currPos;
+        Integer newR;
+        PositionAndInfo posAndInfo;
+        LinkedHashMap<PositionAndInfo, Integer> reachablePositions = new LinkedHashMap<>();
+        int stepCounter;
+        for (Position pos : positionsToMark) {
+            for (int direction = 0; direction < 8; direction++){
+                stepCounter = 0;
+                currPos = pos.clone();
+                newR = direction;
+                while (true) {
+                    newR = doAStep(currPos, newR);
+                    if (newR == null || currPos.equals(pos)) break;
+                    posAndInfo = new PositionAndInfo(currPos.x, currPos.y, direction);
+                    reachablePositions.put(posAndInfo, stepCounter);
+                    stepCounter++;
+                }
+            }
+        }
+
+
+        appendMapInfosForStringBuilder(mapString);
+
+        // print numbers for columns
+        for (int i = -1 ; i < staticMap.width; i++) {
+            mapString.append(i);
+            //add spaces
+            mapString.append(" ".repeat(spaces - Integer.toString(i).length() + 1));
+        }
+        mapString.append("\n");
+
+        //print map
+        for (int y = 0; y < staticMap.height; y++){
+
+            //print row number
+            mapString.append(y);
+            //add spaces
+            mapString.append(" ".repeat(spaces - Integer.toString(y).length() + 1));
+
+            //print row of map
+            for (int x = 0; x < staticMap.width; x++){
+                currChar = map[y][x];
+                bufferString = "";
+                sizeOfBufferString = 0;
+
+                backGroundSet = false;
+
+                for (int direction = 0; direction < 8; direction++) {
+                    posAndInfo = new PositionAndInfo(x, y, direction);
+                    if (reachablePositions.containsKey(posAndInfo)) {
+                        switch (direction){
+                            case 0:
+                                bufferString += Colors.ANSI_RED_BACKGROUND;
+                                break;
+                            case 1:
+                                bufferString += Colors.ANSI_BLUE_BACKGROUND;
+                                break;
+                            case 2:
+                                bufferString += Colors.ANSI_CYAN_BACKGROUND;
+                                break;
+                            case 3:
+                                bufferString += Colors.ANSI_GREEN_BACKGROUND;
+                                break;
+                            case 4:
+                                bufferString += Colors.ANSI_PURPLE_BACKGROUND;
+                                break;
+                            case 5:
+                                bufferString += Colors.ANSI_WHITE_BACKGROUND;
+                                break;
+                            case 6:
+                                bufferString += Colors.ANSI_YELLOW_BACKGROUND;
+                                break;
+                            case 7:
+                                bufferString += Colors.ANSI_BLACK_BACKGROUND;
+                                break;
+                        }
+                        bufferString += reachablePositions.get(posAndInfo);
+                        bufferString += Colors.ANSI_RESET;
+
+                        sizeOfBufferString += reachablePositions.get(posAndInfo).toString().length();
+                        backGroundSet = true;
+                    }
+                }
+
+                //get color for the char at the position
+
+                switch (currChar){
+                    case '1':
+                        bufferString += Colors.ANSI_RED;
+                        break;
+                    case '2':
+                        bufferString += Colors.ANSI_BLUE;
+                        break;
+                    case '3':
+                        bufferString += Colors.ANSI_GREEN;
+                        break;
+                    case '4':
+                        bufferString += Colors.ANSI_YELLOW;
+                        break;
+                    case '5':
+                        bufferString += Colors.ANSI_BRIGHT_CYAN;
+                        break;
+                    case '6':
+                        bufferString += Colors.ANSI_PURPLE;
+                        break;
+                    case '7':
+                        bufferString += Colors.ANSI_BRIGHT_YELLOW;
+                        break;
+                    case '8':
+                        bufferString += Colors.ANSI_BRIGHT_GREEN;
+                        break;
+                    case 'b':
+                        bufferString += Colors.ANSI_BLACK;
+                        bufferString += Colors.ANSI_GREEN_BACKGROUND;
+                        break;
+                    case 'i':
+                        bufferString += Colors.ANSI_BLACK;
+                        bufferString += Colors.ANSI_PURPLE_BACKGROUND;
+                        break;
+                    case 'c':
+                        bufferString += Colors.ANSI_BLACK;
+                        bufferString += Colors.ANSI_CYAN_BACKGROUND;
+                        break;
+                    case 'x':
+                        bufferString += Colors.ANSI_BLACK;
+                        bufferString += Colors.ANSI_WHITE_BACKGROUND;
+                        break;
+                }
+
+
+                //add char itself
+                bufferString += currChar;
+                sizeOfBufferString++;
+
+                //reset color
+                bufferString += Colors.ANSI_RESET;
+
+                //add ' if a move can be made to this position
+                if (possibleMoves != null && possibleMoves.contains(new Position(x,y))) {
+                    bufferString += "'";
+                    sizeOfBufferString++;
+                }
+
+                //add display of position to map String
+                mapString.append(bufferString);
+
+                //add spaces
+                mapString.append(" ".repeat(Math.max(0, spaces - sizeOfBufferString + 1)));
+            }
+            mapString.append("\n");
+        }
+
+        if (showTransitions) {
+            mapString.append('\n');
+            mapString.append(Transitions.AllToString(staticMap.transitions));
+        }
+
+        return mapString.toString();
+    }
+
     public static String toString(String mapAsString, boolean useColors){
-        final String ANSI_RESET = "\u001B[0m";
-        final String ANSI_BLACK = "\u001B[30m";
-        final String ANSI_RED = "\u001B[31m";
-        final String ANSI_GREEN = "\u001B[32m";
-        final String ANSI_YELLOW = "\u001B[33m";
-        final String ANSI_BLUE = "\u001B[34m";
-        final String ANSI_PURPLE = "\u001B[35m";
-        final String ANSI_BRIGHT_CYAN = "\u001B[96m";
-        final String ANSI_WHITE = "\u001B[37m";
-        final String ANSI_BRIGHT_YELLOW = "\u001B[93m";
-        final String ANSI_BRIGHT_GREEN = "\u001B[92m";
-
-        final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
-        final String ANSI_RED_BACKGROUND = "\u001B[41m";
-        final String ANSI_GREEN_BACKGROUND = "\u001B[42m";
-        final String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
-        final String ANSI_BLUE_BACKGROUND = "\u001B[44m";
-        final String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
-        final String ANSI_CYAN_BACKGROUND = "\u001B[46m";
-        final String ANSI_WHITE_BACKGROUND = "\u001B[47m";
-
         StringBuilder mapString = new StringBuilder();
         String bufferString;
         String[] mapLines = mapAsString.split("\n");
         char currChar;
+        int widthOfServer = mapLines[0].replaceAll(" ","").replaceAll("'", "").length();
 
         // print numbers for columns
-        for (int i = -1 ; i < mapLines[0].replaceAll(" ","").replaceAll("'", "").length(); i++) mapString.append(i).append("\t");
+        for (int i = -1 ; i < widthOfServer+2; i++) mapString.append(i).append("\t");
         mapString.append("\n");
 
         //print map
-        for (int y = 0; y < mapLines.length; y++){
+        for (int y = -1; y < mapLines.length+1; y++){
 
             //print row number
-            mapString.append(y).append("\t");
+            mapString.append(y+1).append("\t");
 
+            if (y == -1 || y == mapLines.length){
+                mapString.append("-\t".repeat(widthOfServer+2)).append("\n");
+                continue;
+            }
             //print row of map
-            for (int x = 0; x < mapLines[y].length(); x++){
+            for (int x = -1; x < mapLines[y].length()+1; x++) {
+
+                if (x == -1 || x == mapLines[y].length()){
+                    mapString.append("-").append("\t");
+                    continue;
+                }
+
                 currChar = mapLines[y].charAt(x);
 
                 if (currChar == ' ') continue;
@@ -372,46 +543,46 @@ public class Map{
                 bufferString = "";
                 //get color for the char at the position
                 if (useColors) {
-                    switch (currChar){
+                    switch (currChar) {
                         case '1':
-                            bufferString += ANSI_RED;
+                            bufferString += Colors.ANSI_RED;
                             break;
                         case '2':
-                            bufferString += ANSI_BLUE;
+                            bufferString += Colors.ANSI_BLUE;
                             break;
                         case '3':
-                            bufferString += ANSI_GREEN;
+                            bufferString += Colors.ANSI_GREEN;
                             break;
                         case '4':
-                            bufferString += ANSI_YELLOW;
+                            bufferString += Colors.ANSI_YELLOW;
                             break;
                         case '5':
-                            bufferString += ANSI_BRIGHT_CYAN;
+                            bufferString += Colors.ANSI_BRIGHT_CYAN;
                             break;
                         case '6':
-                            bufferString += ANSI_PURPLE;
+                            bufferString += Colors.ANSI_PURPLE;
                             break;
                         case '7':
-                            bufferString += ANSI_BRIGHT_YELLOW;
+                            bufferString += Colors.ANSI_BRIGHT_YELLOW;
                             break;
                         case '8':
-                            bufferString += ANSI_BRIGHT_GREEN;
+                            bufferString += Colors.ANSI_BRIGHT_GREEN;
                             break;
                         case 'b':
-                            bufferString += ANSI_BLACK;
-                            bufferString += ANSI_GREEN_BACKGROUND;
+                            bufferString += Colors.ANSI_BLACK;
+                            bufferString += Colors.ANSI_GREEN_BACKGROUND;
                             break;
                         case 'i':
-                            bufferString += ANSI_BLACK;
-                            bufferString += ANSI_PURPLE_BACKGROUND;
+                            bufferString += Colors.ANSI_BLACK;
+                            bufferString += Colors.ANSI_PURPLE_BACKGROUND;
                             break;
                         case 'c':
-                            bufferString += ANSI_BLACK;
-                            bufferString += ANSI_CYAN_BACKGROUND;
+                            bufferString += Colors.ANSI_BLACK;
+                            bufferString += Colors.ANSI_CYAN_BACKGROUND;
                             break;
                         case 'x':
-                            bufferString += ANSI_BLACK;
-                            bufferString += ANSI_WHITE_BACKGROUND;
+                            bufferString += Colors.ANSI_BLACK;
+                            bufferString += Colors.ANSI_WHITE_BACKGROUND;
                             break;
                     }
                 }
@@ -420,10 +591,10 @@ public class Map{
                 bufferString += currChar;
 
                 //reset color
-                if (useColors) bufferString += ANSI_RESET;
+                if (useColors) bufferString += Colors.ANSI_RESET;
 
                 //add ' if a move can be made to this position
-                if (x+1 < mapLines[y].length() && mapLines[y].charAt(x+1) == '\''){
+                if (x + 1 < mapLines[y].length() && mapLines[y].charAt(x + 1) == '\'') {
                     bufferString += "'";
                     x++;
                 }
@@ -1600,18 +1771,29 @@ public class Map{
      * @param map the map on which it is placed
      */
     public static void colorMap(Position pos, Map map){
-        Position StartingPos;
-        Position currPos;
-        Integer newR;
-        boolean wasFirstStep;
-        boolean foundEnd;
-        char currChar;
-        LinkedHashSet<Position> positionsToColor = new LinkedHashSet<>(); //doesn't store duplicates
-        ArrayList<Position> positionsAlongOneDirection;
+        Set<Position> positionsToColor; //doesn't store duplicates
 
         if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
             map.setCharAt(pos.x, pos.y, map.getCurrentlyPlayingC());
         }
+
+        positionsToColor = getPositionsToColor(pos, map);
+
+        //colors the positions
+        for (Position posToColor : positionsToColor) {
+            map.setCharAt(posToColor.x, posToColor.y, map.getCurrentlyPlayingC());
+        }
+    }
+
+    private static Set<Position> getPositionsToColor(Position pos, Map map) {
+        LinkedHashSet<Position> positionsToColor = new LinkedHashSet<>();
+        Position StartingPos;
+        char currChar;
+        boolean wasFirstStep;
+        Position currPos;
+        ArrayList<Position> positionsAlongOneDirection;
+        Integer newR;
+        boolean foundEnd;
 
         //checks every direction for a connection and adds the positions in between to color them later
         for (int r = 0; r <= 7; r++){
@@ -1630,19 +1812,25 @@ public class Map{
                 newR = map.doAStep(currPos, newR); //currPos is changed here
                 if (newR == null) break; //if the step wasn't possible
 
+                //detect loop
                 if(currPos.equals(StartingPos)) break;
 
                 //check what's there
                 currChar = map.getCharAt(currPos);
+
                 //check for blank
                 if (currChar == '0' || currChar == 'i' || currChar == 'c' ||currChar == 'b') break;
+
                 //check for players
+
                 //if it's the first move - finding an own keystone isn't a connection but cancels the search in that direction
                 if (wasFirstStep) {
                     //if there is a keystone of your own, and it's the first step
                     if (currChar == map.getCurrentlyPlayingC()) break;
+                    //if there's another player
                     wasFirstStep = false;
                 }
+
                 //if it's not the first move - finding an own keystone is a connection
                 else {
                     //if there is a keystone of your own, and it's not the first step
@@ -1658,10 +1846,7 @@ public class Map{
             if (foundEnd) positionsToColor.addAll(positionsAlongOneDirection); //doesn't add duplicates because of LinkedHashSet
         }
 
-        //colors the positions
-        for (Position posToColor : positionsToColor) {
-            map.setCharAt(posToColor.x, posToColor.y, map.getCurrentlyPlayingC());
-        }
+        return positionsToColor;
     }
 
     //  functions to calculate all possible moves
@@ -1792,6 +1977,8 @@ public class Map{
         ArrayList<int[]> resultPosAndInfo = new ArrayList<>();
         ArrayList<int[]> overwriteMoves = new ArrayList<>();
 
+        HashSet<Position> posVisited;
+
         int[] saveElement = null;
 
         PositionAndInfo posAndInfo;
@@ -1851,19 +2038,32 @@ public class Map{
 
                 newR = r;
                 currPos = pos.clone();
+                posVisited = new HashSet<>();
+
+                posVisited.add(currPos.clone()); //add to visited positions
 
                 //do the first step
                 newR = map.doAStep(currPos, newR);
                 if (newR == null) continue; //if the step wasn't possible
-                currChar = map.getCharAt(currPos); //check what's there
+
+                //detect loop
+                if (currPos.equals(pos)){ //only needs to detect the position because it will go in every direction anyway
+                    break;
+                }
+
+                //check what's there
+                currChar = map.getCharAt(currPos);
                 if (currChar == 'c' || currChar == 'b' || currChar == 'i' || currChar == '0' || currChar == map.getCurrentlyPlayingC()) continue; //if it's c, b, i, 0, myColor
+
+                posVisited.add(currPos.clone()); //add to visited positions
+
 
                 //take more steps
                 while (true){
                     newR = map.doAStep(currPos, newR);
                     if (newR == null) break; //if the step wasn't possible
 
-                    //detect loop //TODO: check with test Server Log
+                    //detect loop
                     if (currPos.equals(pos)){ //only needs to detect the position because it will go in every direction anyway
                         break;
                     }
@@ -1883,7 +2083,7 @@ public class Map{
                         //player
                         else {
                             //own or enemy stone -> overwrite move
-                            if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
+                            if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0 && !posVisited.contains(currPos)) {
                                 posAndInfo = new PositionAndInfo(currPos.x, currPos.y, 0);
                                 saveElement = posAndInfo.toIntArray();
                                 if (heuristic != null && heuristic.evaluateOverwriteMove(new Position(currPos.x, currPos.y))){
@@ -1925,6 +2125,9 @@ public class Map{
                         }
                         break;
                     }
+
+                    posVisited.add(currPos.clone()); //add to visited positions
+
                 }
             }
         }
@@ -2001,3 +2204,5 @@ public class Map{
         return (double) myStoneCount / ((double)enemyStoneCount / (map.staticMap.anzPlayers - 1));
     }
 }
+
+
