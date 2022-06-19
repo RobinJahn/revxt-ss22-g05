@@ -82,9 +82,9 @@ public class Heuristic {
         //default multipliers
         if (multiplier == null) {
             multiplier = new double[][]{
-                    {6, 4, 5, 6, 2},
-                    {3, 3, 5, 3, 8},
-                    {3, 1, 1, 9, 1}
+                    {3, 2, 9, 5, 5},
+                    {9, 0, 9, 3, 2},
+                    {5, 7, 7, 2, 9}
             };
         }
 
@@ -207,6 +207,12 @@ public class Heuristic {
 
         updateHeuristicMultipliers(phaseOne);
 
+        //out of time ?
+        if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
+            if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After update of multipliers)");
+            throw new TimeoutException();
+        }
+
         //count stones
         if (countStones) {
             if (phaseOne) countOfStonesEvaluation = countStones();
@@ -215,7 +221,7 @@ public class Heuristic {
 
         //out of time ?
         if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-            if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get countStones)");
+            if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After count stones)");
             throw new TimeoutException();
         }
 
@@ -224,7 +230,7 @@ public class Heuristic {
 
         //out of time ?
         if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-            if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get count Moves)");
+            if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After count Moves)");
             throw new TimeoutException();
         }
 
@@ -233,7 +239,7 @@ public class Heuristic {
 
         //out of time ?
         if(timed && (UpperTimeLimit - System.nanoTime()<0)) {
-            if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After get FieldValue)");
+            if (printOn||ServerLog) System.out.println("Out of time (Heuristic.evaluate - After field value)");
             throw new TimeoutException();
         }
 

@@ -190,7 +190,7 @@ public class SearchTree {
 
             // Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
-                if (printOn || serverLog) System.out.println("Out of time - in getMoveByDepth at beginnin of for");
+                if (printOn || serverLog) System.out.println("Out of time - in getMoveByDepth at beginning of for");
                 throw new TimeoutException();
             }
 
@@ -809,6 +809,13 @@ public class SearchTree {
 
         long hash = ZH.hash(map);
         double value = TT.lookUp(hash,depth);
+
+        //Out of Time ?
+        if(timed && (upperTimeLimit - System.nanoTime()<0)) {
+            if (printOn || serverLog) System.out.println("Out of Time - in zobrist after lookup");
+            throw new TimeoutException();
+        }
+
         if(value != Double.MIN_VALUE+1)
         {
             return value;
