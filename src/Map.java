@@ -28,7 +28,7 @@ public class Map{
         final static String ANSI_WHITE_BACKGROUND = "\u001B[47m";
     }
 
-    static boolean useArrows = false; //needs to stay false because it can bes set by parameter
+    static boolean useArrows = false; //needs to stay false because it can be set by parameter
     final static private boolean checkIfAllArrowsAreCorrect = false;
 
     //static Map
@@ -1716,11 +1716,9 @@ public class Map{
 
         //for transitions
         Integer newR;
-        char transitionEnd1;
-        Character transitionEnd2;
 
         //first element
-        map.setCharAt(x, y, '+');
+        map.setCharAt(x, y, '+'); //TODO: check if + can be removed so only - is used
         posQ.add(new int[]{x,y, counterForExpRad});
 
         while (!posQ.isEmpty()){
@@ -1735,7 +1733,7 @@ public class Map{
                 //check what's there
                 charAtPos = map.getCharAt(posAfterStep);
 
-                //if there's a transition go through and delete it (not the char though)
+                //if there's a transition go through (not the char though)
                 if (charAtPos == 't') {
                     //go one step back because we need to come from where the transition points
                     posAfterStep = Position.goInR(posAfterStep, (r + 4) % 8);

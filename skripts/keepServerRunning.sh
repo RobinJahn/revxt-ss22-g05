@@ -40,18 +40,19 @@ do
 	then
 		if [ $depth -eq 0 ]; then
 			echo "./server_nogl -m $mapName"
-			./server_nogl -m $mapName
+			./server_nogl -m $mapName # --moves "replay.txt"
 		else
 			echo "./server_nogl -m $mapName -d $depth"
-			./server_nogl -m $mapName -d $depth
+			./server_nogl -m $mapName -d $depth # --moves "replay.txt"
 		fi
 	else
 		if [ $depth -eq 0 ]; then
 			echo "./server_nogl -m $mapName -t $time"
-			./server_nogl -m $mapName -t $time
+			./server_nogl -m $mapName -t $time # --moves "replay.txt"
+
 		else
-		       	echo "./server_nogl -m $mapName -d $depth -t $time"
-		       	./server_nogl -m $mapName -d $depth -t $time
+      echo "./server_nogl -m $mapName -d $depth -t $time"
+      ./server_nogl -m $mapName -d $depth -t $time # --moves "replay.txt"
 		fi
 	fi
 
