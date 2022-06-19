@@ -23,9 +23,6 @@ public class Heuristic {
     private ArrayList<Position> specialFields = new ArrayList<>();
     private ArrayList<Position> fieldsForOverwriteMoves = new ArrayList<>();
 
-    //heuristic values
-    private final int base = 4;
-
     //booleans to enable or disable certain elements of the heuristic
     private boolean countStones;
     private boolean countMoves;

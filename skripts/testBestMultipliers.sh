@@ -63,7 +63,12 @@ if [ -n "$map" ]; then
   maps=("$map")
 else
   #get all Maps
-  maps=($(find ./MapsForTesting/*\.map -printf "$PWD/MapsForTesting/%f\n"))
+  #read -r -a maps "$(find ./MapsForTesting/*\.map -printf "$PWD/MapsForTesting/%f\n")"
+  maps=()
+  while IFS=  read -r; do
+      maps+=("$REPLY")
+  done < <(find ./MapsForTesting/*\.map -printf "$PWD/MapsForTesting/%f\n")
+
 fi
 
 #print maps
@@ -110,10 +115,10 @@ do
 		echo "script: now Playing on: $mapName"
 
 		# start own client
-		if $extendedPrint; then echo "script: start client in 3 sec"; fi
+		if $extendedPrint; then echo "script: start client in $sleepingTime sec"; fi
 		sleep $sleepingTime &&
 			echo "script: started client" &&
-			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m "1" "${multipliers1[@]}" -m "2" "${multipliers2[@]}" -m "3" "${multipliers3[@]}" -c > "$outFileClient" &
+			java -jar ../bin/client05.jar -i 127.0.0.1 -p 7777 -m "1" "${multipliers1[@]}" -m "2" "${multipliers2[@]}" -m "3" "${multipliers3[@]}" -C > "$outFileClient" &
 		pid1=$!
 
 
@@ -122,7 +127,7 @@ do
 		if $extendedPrint; then echo "script: count of players: $countOfPlayer"; fi
 	
 		#start trivial ai's
-		if $extendedPrint; then echo "script: start trivial AIs in 3 sec"; fi
+		if $extendedPrint; then echo "script: start trivial AIs in $sleepingTime sec"; fi
 		ii=1
 		pidAIs=()
 		while [ $ii -lt $countOfPlayer ]
@@ -142,36 +147,36 @@ do
       if [ $depth -eq 0 ]; then
         if $print; then
           echo "script: with output"
-          (cd ../serverAndAi/; ./server_nogl -C -m $mapName | tee "../skripts/$outFileServer") #with output of server
+          (cd ../serverAndAi/; ./server_nogl -C -m "$mapName" | tee "../skripts/$outFileServer") #with output of server
         else
           echo "script: without output"
-          (cd ../serverAndAi/; ./server_nogl -C -m $mapName > "../skripts/$outFileServer") #without
+          (cd ../serverAndAi/; ./server_nogl -C -m "$mapName" > "../skripts/$outFileServer") #without
         fi
       else
         if $print; then
           echo "script: with output -d"
-          (cd ../serverAndAi/; ./server_nogl -C -m $mapName -d $depth | tee "../skripts/$outFileServer") #with output of server
+          (cd ../serverAndAi/; ./server_nogl -C -m "$mapName" -d $depth | tee "../skripts/$outFileServer") #with output of server
         else
           echo "script: without output -d"
-          (cd ../serverAndAi/; ./server_nogl -C -m $mapName -d $depth > "../skripts/$outFileServer") #without
+          (cd ../serverAndAi/; ./server_nogl -C -m "$mapName" -d $depth > "../skripts/$outFileServer") #without
         fi
       fi
     else
       if [ $depth -eq 0 ]; then
         if $print; then
           echo "script: with output -t"
-          (cd ../serverAndAi/; ./server_nogl -C -m $mapName -t $time | tee "../skripts/$outFileServer") #with output of server
+          (cd ../serverAndAi/; ./server_nogl -C -m "$mapName" -t $time | tee "../skripts/$outFileServer") #with output of server
         else
           echo "script: without output -t"
-          (cd ../serverAndAi/; ./server_nogl -C -m $mapName -t $time > "../skripts/$outFileServer") #without
+          (cd ../serverAndAi/; ./server_nogl -C -m "$mapName" -t $time > "../skripts/$outFileServer") #without
         fi
       else
         if $print; then
           echo "script: with output -d -t"
-          (cd ../serverAndAi/; ./server_nogl -C -m $mapName -t $time -d $depth | tee "../skripts/$outFileServer") #with output of server
+          (cd ../serverAndAi/; ./server_nogl -C -m "$mapName" -t $time -d $depth | tee "../skripts/$outFileServer") #with output of server
         else
           echo "script: without output -d -t"
-          (cd ../serverAndAi/; ./server_nogl -C -m $mapName -t $time -d $depth > "../skripts/$outFileServer") #without
+          (cd ../serverAndAi/; ./server_nogl -C -m "$mapName" -t $time -d $depth > "../skripts/$outFileServer") #without
         fi
       fi
     fi
