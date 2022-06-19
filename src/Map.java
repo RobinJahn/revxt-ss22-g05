@@ -2,6 +2,7 @@ package src;
 
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 public class Map{
 
@@ -1856,6 +1857,12 @@ public class Map{
      */
     public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit, Heuristic heuristic) throws ExceptionWithMove {
         ArrayList<int[]> everyPossibleMove;
+
+        //Out of Time ?
+        if(timed && (upperTimeLimit - System.nanoTime()<0)) {
+            if (printOn || serverLog) System.out.println("Out of Time - get Valid Moves");
+            throw new ExceptionWithMove(map.getRandomMove());
+        }
 
         if (useArrows){
             everyPossibleMove = map.getValidMovesByArrows(map.getCurrentlyPlayingI(), true, heuristic);

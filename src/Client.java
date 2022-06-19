@@ -270,6 +270,7 @@ public class Client{
 		int messageType;
 		boolean gameOngoing = true;
 		boolean firstPhase = true;
+		boolean firstMove = true;
 		int[] timeAndDepth;
 		moveCounter = 0;
 		long timeOffset;
@@ -311,8 +312,14 @@ public class Client{
 					}
 					//set timed
 					timed = time != 0;
-					timeOffset = 400_000_000;// xxx_000_000 ns -> xxx ms
-					upperTimeLimit = startTime + time * (long)1_000_000 - timeOffset;
+					timeOffset = 500_000_000;// xxx_000_000 ns -> xxx ms
+					if (firstMove) {
+						upperTimeLimit = 0; // -> random move at first but prevents disqualifying
+						firstMove = false;
+					}
+					else {
+						upperTimeLimit = startTime + time * (long) 1_000_000 - timeOffset;
+					}
 					if (timed && printOn) System.out.println("We have: " + time + "ms");
 
 					if (depth == 0) depth = Integer.MAX_VALUE;
