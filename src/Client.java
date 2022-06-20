@@ -537,15 +537,12 @@ public class Client{
 	 */
 	private void makeAMove(long upperTimeLimit){
 		//calculated Move
-		int[] positionAndInfo;
 		int[] validPosition;
-		int[] validPosition1;
 		final boolean phaseOne = true;
 
 		//general
 		double valueOfMap;
 		ArrayList<int[]> validMoves;
-		ArrayList<int[]> validMovesByOwnColor;
 
 		map.setPlayer(myPlayerNr);
 		//calculate possible moves
