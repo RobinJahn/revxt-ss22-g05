@@ -318,7 +318,7 @@ public class SearchTree {
         //Timing
         long startTime = System.nanoTime();
         long totalTime;
-        long timeOffsetCatch = 50_000_000;
+        long timeOffsetCatch = 50_000_000; // xxx_000_000 ns -> xxx ms
         long timeNextDepth = timeForLastDepth1;
 
         double totalNodesToGoOver;
