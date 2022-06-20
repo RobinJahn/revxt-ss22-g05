@@ -646,7 +646,7 @@ public class Map{
 
     public char getCharAt(Position pos){
         //check boundaries
-        if (pos.x > staticMap.width || pos.y > staticMap.height || pos.x < 0 || pos.y < 0) return '-';
+        if (pos.x >= staticMap.width || pos.y >= staticMap.height || pos.x < 0 || pos.y < 0) return '-';
         //return value
         return map[pos.y][pos.x];
     }
@@ -861,8 +861,8 @@ public class Map{
 
     public int[] getRandomMove() {
 
-        int x;
-        int y;
+        int x = 1 + (int) (Math.random() * (this.getWidth() - 2));
+        int y = 1 + (int) (Math.random() * (this.getHeight() - 2));
         ArrayList<Integer> directions = new ArrayList<>() {
             {
                 add(0);
@@ -875,22 +875,49 @@ public class Map{
                 add(7);
             }
         };
-        Position randomMove;
+        Position randomMove = new Position(x, y);
         int[] result;
-        char charAtPos;
-        boolean isValid;
+        char charAtPos = getCharAt(randomMove);
+        int length = 1;
+        boolean moveFound = false;
+        int direction = 0;
         int randomVal;
 
-        while (true) {
-            x = 1 + (int) (Math.random() * (this.getWidth() - 2)); //needs to be -1 because random can be almost 1 and therefore be rounded to the multiplier
-            y = 1 + (int) (Math.random() * (this.getHeight() - 2));
-            randomMove = new Position(x, y);
-
-            isValid = checkIfMoveIsPossible(randomMove, directions, this);
-
-            if (isValid) break;
+        if (charAtPos != '-' && charAtPos != 't') {
+            moveFound = checkIfMoveIsPossible(randomMove, directions, this);
         }
 
+        while (!moveFound) {
+            for(int i = 0; i < length; i++) {
+                randomMove = Position.goInR(randomMove, direction);
+                charAtPos = getCharAt(randomMove);
+                if (charAtPos != '-' && charAtPos != 't') {
+                    moveFound = checkIfMoveIsPossible(randomMove, directions, this);
+                    if (moveFound) {
+                        break;
+                    }
+                }
+            }
+
+            if (moveFound)
+                break;
+
+            direction = (direction+2)%8;
+
+            for(int i = 0; i < length; i++) {
+                randomMove = Position.goInR(randomMove, direction);
+                charAtPos = getCharAt(randomMove);
+                if (charAtPos != '-' && charAtPos != 't') {
+                    moveFound = checkIfMoveIsPossible(randomMove, directions, this);
+                    if (moveFound) {
+                        break;
+                    }
+                }
+            }
+
+            direction = (direction+2)%8;
+            length++;
+        }
 
         charAtPos = getCharAt(randomMove);
 
