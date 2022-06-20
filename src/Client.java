@@ -272,6 +272,7 @@ public class Client{
 		boolean firstPhase = true;
 		boolean firstMove = true;
 		int[] timeAndDepth;
+		int[] randomPos;
 		moveCounter = 0;
 		long timeOffset;
 		long upperTimeLimit;
@@ -310,16 +311,21 @@ public class Client{
 						gameOngoing = false;
 						break;
 					}
+
+					//random move at first but prevents disqualifying
+					if (firstMove) {
+						randomPos = map.getRandomMove();
+						if (printOn || serverLog) System.out.println("Made random first Move");
+						serverM.sendMove(randomPos[0], randomPos[1], 0, myPlayerNr);
+						firstMove = false;
+						continue;
+					}
+
 					//set timed
 					timed = time != 0;
 					timeOffset = 500_000_000;// xxx_000_000 ns -> xxx ms
-					if (firstMove) {
-						upperTimeLimit = 0; // -> random move at first but prevents disqualifying
-						firstMove = false;
-					}
-					else {
-						upperTimeLimit = startTime + time * (long) 1_000_000 - timeOffset;
-					}
+					upperTimeLimit = startTime + time * (long) 1_000_000 - timeOffset;
+
 					if (timed && printOn) System.out.println("We have: " + time + "ms");
 
 					if (depth == 0) depth = Integer.MAX_VALUE;
