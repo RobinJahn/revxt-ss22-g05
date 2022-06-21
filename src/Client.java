@@ -254,11 +254,11 @@ public class Client{
 
 		//set variables after map was imported
 		StaticHeuristicPerPhase shpp = new StaticHeuristicPerPhase(map, multipliers, extendedPrint);
-		heuristic = new Heuristic(map, myPlayerNr, printOn, extendedPrint, multipliers, shpp);
+		//	the heurisic here is only needed when the output is enabled
+		if (printOn) heuristic = new Heuristic(map, myPlayerNr, printOn, extendedPrint, multipliers, shpp);
 		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, useMCTS, multipliers, shpp);
 
-		//Staging Preparations
-
+		//Prints
 		if (printOn) {
 			if (extendedPrint) map.printReachableFields();
 			System.out.println("Count of reachable Fields: " + map.getCountOfReachableFields());
@@ -320,15 +320,6 @@ public class Client{
 						break;
 					}
 
-					//random move at first but prevents disqualifying
-					if (firstMove) {
-						randomPos = map.getRandomMove();
-						if (printOn || serverLog) System.out.println("Made random first Move " + randomPos);
-						serverM.sendMove(randomPos[0], randomPos[1], randomPos[2], myPlayerNr);
-						firstMove = false;
-						continue;
-					}
-
 					//set timed
 					timed = time != 0;
 					timeOffset = 500_000_000; // xxx_000_000 ns -> xxx ms
@@ -338,8 +329,24 @@ public class Client{
 
 					if (depth == 0) depth = Integer.MAX_VALUE;
 
+					randomPos = map.getRandomMove(); //TODO: remove
+
+					//random move at first but prevents disqualifying
+					if (firstMove && timed) {
+
+						randomPos = map.getRandomMove();
+
+						if (printOn || serverLog) System.out.println("Made random first Move " + Arrays.toString(randomPos));
+						serverM.sendMove(randomPos[0], randomPos[1], randomPos[2], myPlayerNr);
+						firstMove = false;
+						continue;
+					}
+
 					//Staging
 					if(printOn) System.out.println("Fill Percentage: " + String.format("%.2f",map.getFillPercentage()*100) + "%");
+
+					//set me as the player
+					map.setPlayer(myPlayerNr);
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) {
@@ -550,45 +557,9 @@ public class Client{
 		int[] validPosition;
 		final boolean phaseOne = true;
 
-		//general
-		double valueOfMap;
-		ArrayList<int[]> validMoves;
-
-		map.setPlayer(myPlayerNr);
-		//calculate possible moves
-		if (printOn) System.out.println("Get Valid Moves in make a move");
-		try {
-			validMoves = Map.getValidMoves(map, timed, printOn, serverLog, upperTimeLimit, heuristic);
-		} catch (ExceptionWithMove e) {
-			validPosition = e.PosAndInfo;
-			//send message where to move
-			serverM.sendMove(validPosition[0], validPosition[1], validPosition[2], myPlayerNr);
-			return;
-		}
-
-
-		//calculate value of map and print it
-
-		if (printOn){
-			try {
-				valueOfMap = (double)Math.round(heuristic.evaluate(phaseOne,timed, serverLog, upperTimeLimit)*100)/100;
-			}
-			catch (TimeoutException TE) {
-				System.out.println("TimeOutException in MakeAMove");
-				return;
-			}
-			System.out.println("Value of Map is " + valueOfMap);
-		}
-		//check for error
-		if (validMoves.isEmpty()) {
-			System.err.println("Something's wrong - Valid Moves are empty but server says they're not");
-			return;
-		}
-
 		//make a calculated move
-		validPosition = searchTree.getMove(map, timed, depth, phaseOne, validMoves, upperTimeLimit, moveCounter);
-		//validPosition = getMoveTimeDepth(phaseOne, validMoves);
-		//validPosition = validMoves.get( random.nextInt(validMoves.size()) );
+		validPosition = searchTree.getMove(map, timed, depth, phaseOne, upperTimeLimit, moveCounter);
+		//validPosition = validMoves.get( random.nextInt(validMoves.size()) ); //random move
 
 		//let player enter a move
 		if (!calculateMove) {
@@ -689,47 +660,20 @@ public class Client{
 
 	//phase 2 - bomb phase
 	private void setABomb(long upperTimeLimit){
+
 		int[] validPosition;
-		ArrayList<int[]> validMoves;
-		boolean moveIsPossible = false;
-		Position posToSetKeystone = new Position(0, 0);
 		final boolean phaseOne = false;
-
-		final boolean pickARandom = false;
-
-		map.setPlayer(myPlayerNr);
-		validMoves = Map.getPositionsToSetABomb(map);
-
-		if (validMoves.isEmpty()) {
-			System.err.println("Something's wrong - Positions to set a Bomb are empty but server says they're not");
-			return;
-		}
 
         //get a move
         if (calculateMove)
 		{
-            if (!pickARandom)
-			{
-				validPosition = searchTree.getMove(map, timed, depth, phaseOne, validMoves, upperTimeLimit, moveCounter);
-				//validPosition = getMoveTimeDepth(phaseOne, validMoves);
-
-				posToSetKeystone = new Position(validPosition[0], validPosition[1]);
-            }
-            else
-			{
-                int[] posAndInfo = validMoves.get((int)Math.round( Math.random() * (validMoves.size()-1) ));
-                posToSetKeystone = new Position(posAndInfo[0], posAndInfo[1]);
-            }
+				validPosition = searchTree.getMove(map, timed, depth, phaseOne, upperTimeLimit, moveCounter);
         }
         //let player pick a move
         else {
+			Position posToSetKeystone = new Position(0, 0);
 			Scanner sc = new Scanner(System.in);
-
-            //change valid moves to a position list to use contains
-            ArrayList<Position> possibleMoves = new ArrayList<>();
-            for (int[] posAndInfo : validMoves) {
-                possibleMoves.add(new Position(posAndInfo[0], posAndInfo[1]));
-            }
+			boolean moveIsPossible = false;
 
             while (!moveIsPossible) {
 
@@ -743,16 +687,15 @@ public class Client{
                 if (printOn) System.out.println();
 
                 //check if the move is valid
-                moveIsPossible = possibleMoves.contains(posToSetKeystone);
+                if (map.getCharAt(posToSetKeystone) != '-' && map.getCharAt(posToSetKeystone) != 't') moveIsPossible = true;
 				//moveIsPossible = true;
             }
+			validPosition = new int[]{posToSetKeystone.x, posToSetKeystone.y};
 			sc.close();
         }
 
-		if (printOn) System.out.println("Set Keystone at: " + posToSetKeystone);
-
 		//send the move
-		serverM.sendMove(posToSetKeystone.x, posToSetKeystone.y, 0, myPlayerNr);
+		serverM.sendMove(validPosition[0], validPosition[1], 0, myPlayerNr);
 	}
 
 	private boolean compareValidMoves(boolean phaseOne, ArrayList<int[]> validMoves) {

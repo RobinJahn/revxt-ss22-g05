@@ -78,19 +78,45 @@ public class SearchTree {
         AW = new AspirationWindow(Double.MIN_VALUE,Double.MAX_VALUE,1000);
     }
 
-    public int[] getMove(Map map, boolean timed, int depth, boolean phaseOne, ArrayList<int[]> validMoves, long upperTimeLimit, int moveCounter){
+    public int[] getMove(Map map, boolean timed, int depth, boolean phaseOne, long upperTimeLimit, int moveCounter){
 
         this.timed = timed;
         this.depth = depth;
         this.moveCounter = moveCounter;
         this.upperTimeLimit = upperTimeLimit;
 
+        ArrayList<int[]> validMoves;
         int[] moveToMake = new int[]{-1, -1, -1};
 
         killerArrays = new ArrayList<>();
 
         Statistic statistic;
 
+
+        //calculate possible moves
+        if (phaseOne) {
+            try {
+                validMoves = Map.getValidMoves(map, timed, printOn, serverLog, upperTimeLimit, heuristicForSimulation);
+            } catch (ExceptionWithMove e) {
+                moveToMake = e.PosAndInfo;
+                if (printOn || serverLog)
+                    System.out.println("Timeout Exception in getMove. Returning move " + Arrays.toString(moveToMake));
+                //send message where to move
+                return moveToMake;
+            }
+        }
+        else {
+            validMoves = Map.getPositionsToSetABomb(map);
+        }
+
+        //check for error
+        if (validMoves.isEmpty()) {
+            System.err.println("Something's wrong - Valid Moves are empty but server says they're not");
+            return moveToMake;
+        }
+
+
+        //get move to make
         if (timed){
             if (useMCTS) {
                 moveToMake = getMoveWithMCTS(map, phaseOne, validMoves);
@@ -112,7 +138,7 @@ public class SearchTree {
             }
         }
 
-        if(serverLog) {
+        if(serverLog || printOn) {
             System.out.println("Search tree: For Move: " + moveCounter + ", Depth: " + (this.depth-1) + ", Move: " + Arrays.toString(moveToMake) + ",Value: " + valueOfMove);
             System.out.println();
             totalDepth+=(this.depth-1);
@@ -539,7 +565,7 @@ public class SearchTree {
         map = new Map(map, phaseOne);
         //first phase
         if (phaseOne) {
-            while (!map.isTerminal(heuristicForSimulation)) {
+            while (!map.isTerminal()) {
                 a = map.getRandomMove();
                 map = simulateMove(map, a, phaseOne);
 

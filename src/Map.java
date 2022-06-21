@@ -836,11 +836,11 @@ public class Map{
     }
 
 
-    public boolean isTerminal(Heuristic heuristic){
+    public boolean isTerminal(){
         for (int playerNR = 1; playerNR<=staticMap.anzPlayers; playerNR++){
             try {
                 //if getValidMovesByColor is called it returns when it found one move. If getValidMovesByArrow is called it returns the list.
-                if (!Map.getValidMoves(this, true, false, false, 0, heuristic).isEmpty()) {
+                if (!Map.getValidMoves(this, true, false, false, 0, null).isEmpty()) {
                     return false;
                 }
             } catch (ExceptionWithMove e) {
@@ -917,6 +917,8 @@ public class Map{
 
             direction = (direction+2)%8;
             length++;
+
+            if (length > 2 + 2 * Math.max(getHeight(), getWidth())) return new int[]{-1, -1, -1};
         }
 
         charAtPos = getCharAt(randomMove);
@@ -1952,7 +1954,9 @@ public class Map{
         Position currPos;
         Integer newR;
         boolean wasFirstStep;
+        boolean isOverwriteMove;
         char currChar = map.getCharAt(pos);
+
 
 
         //check if it's out of the map
@@ -1962,7 +1966,8 @@ public class Map{
         if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) return true;
 
         //check if it is an overwrite-move and if we have enough overwrite stones
-        if (currChar != '0' && Character.isDigit(currChar) && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) <= 0) return false;
+        isOverwriteMove = currChar != '0' && Character.isDigit(currChar);
+        if (isOverwriteMove && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) <= 0) return false;
 
         //go over every direction that needs to be checked
         for (Integer r : directions){
