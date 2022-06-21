@@ -329,8 +329,6 @@ public class Client{
 
 					if (depth == 0) depth = Integer.MAX_VALUE;
 
-					randomPos = map.getRandomMove(); //TODO: remove
-
 					//random move at first but prevents disqualifying
 					if (firstMove && timed) {
 
