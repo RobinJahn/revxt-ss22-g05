@@ -56,7 +56,8 @@ public class SearchTree {
                       boolean useBRS,
                       boolean useKH,
                       boolean useMCTS,
-                      double[][] multiplier){
+                      double[][] multiplier,
+                      StaticHeuristicPerPhase shpp){
         this.printOn = printOn;
         this.serverLog = ServerLog;
         this.myPlayerNr = myPlayerNr;
@@ -68,7 +69,7 @@ public class SearchTree {
         this.useKH = useKH;
         this.useMCTS = useMCTS;
 
-        heuristicForSimulation = new Heuristic(map, myPlayerNr, false, false, multiplier);
+        heuristicForSimulation = new Heuristic(map, myPlayerNr, false, false, multiplier, shpp);
 
         //Zobrist Hashing
         ZH = new ZobristHashing(map.getHeight(), map.getWidth(), myPlayerNr);

@@ -860,9 +860,9 @@ public class Map{
     }
 
     public int[] getRandomMove() {
-
-        int x = 1 + (int) (Math.random() * (this.getWidth() - 2));
-        int y = 1 + (int) (Math.random() * (this.getHeight() - 2));
+        //-2 because we have a line of walls around all maps and -1 because we don't want to have the (widht-2) itself in the values
+        int x = 1 + (int) (Math.random() * (this.getWidth() - 3));
+        int y = 1 + (int) (Math.random() * (this.getHeight() - 3));
         ArrayList<Integer> directions = new ArrayList<>() {
             {
                 add(0);

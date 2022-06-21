@@ -43,7 +43,7 @@ public class Heuristic {
      * @param extendedPrint prints more information. Like the Matrix
      * @param multiplier list of double values to define the multipliers for the different heuristically evaluations
      */
-    public Heuristic(Map map, int myColor, boolean printOn, boolean extendedPrint, double[][] multiplier){
+    public Heuristic(Map map, int myColor, boolean printOn, boolean extendedPrint, double[][] multiplier, StaticHeuristicPerPhase shpp){
         this.printOn = printOn;
         this.map = map;
         this.myColorI = myColor;
@@ -58,20 +58,11 @@ public class Heuristic {
             System.out.println(Arrays.deepToString(this.multiplier).replace("],", "],\n"));
         }
 
-        staticHeuristicPerPhase = new StaticHeuristicPerPhase(map, this.multiplier, extendedPrint);
+        staticHeuristicPerPhase = shpp;
     }
 
     private void setMultipliers(int phase) {
         //set multiplier
-
-        //default multipliers
-        if (multiplier == null) {
-            multiplier = new double[][]{
-                    {3, 2, 9, 5, 2},
-                    {9, 0, 9, 3, 2},
-                    {5, 7, 7, 2, 2}
-            };
-        }
 
         //bomb phase multipliers
         if (phase == 4){

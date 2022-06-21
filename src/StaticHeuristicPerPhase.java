@@ -4,28 +4,28 @@ import java.util.ArrayList;
 
 public class StaticHeuristicPerPhase {
 
-    ArrayList<StaticHeurisic> staticHeuristicPerPhase;
+    private final ArrayList<StaticHeurisic> staticHeuristicPerPhase;
 
-    int height;
-    int width;
+    private final int height;
+    private final int width;
 
-    int stonesIndex = 0;
-    int movesIndex = 1;
-    int fieldValueIndex = 2;
-    int edgesIndex = 3;
-    int wavesIndex = 4;
+    private final int stonesIndex = 0;
+    private final int movesIndex = 1;
+    private final int fieldValueIndex = 2;
+    private final int edgesIndex = 3;
+    private final int wavesIndex = 4;
 
-    boolean extendedPrint;
+    private final boolean extendedPrint;
 
-    public double[][] staticMatrix;
-    public double[][] fieldValueMatrix;
-    public boolean[][] edgeMatrix;
+    private final  double[][] staticMatrix;
+    private final  double[][] fieldValueMatrix;
+    private final  boolean[][] edgeMatrix;
 
 
-    private ArrayList<Position> specialFields = new ArrayList<>();
+    private final ArrayList<Position> specialFields = new ArrayList<>();
 
-    double[][] multiplier; //[] phases, [] stones, moves, Field Values, Edges, Waves
-    boolean[][] enables;
+    private final double[][] multiplier; //[] phases, [] stones, moves, Field Values, Edges, Waves
+    private final boolean[][] enables;
 
 
     public StaticHeuristicPerPhase(Map map, double[][] multiplier, boolean extendedPrint) {

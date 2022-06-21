@@ -243,9 +243,19 @@ public class Client{
 		myPlayerNr = serverM.getPlayerNumber();
 		if(printOn) System.out.println("Own Player Number is: " + myPlayerNr);
 
+		//default multipliers
+		if (multipliers == null) {
+			multipliers = new double[][]{
+					{3, 2, 9, 5, 2},
+					{9, 0, 9, 3, 2},
+					{5, 7, 7, 2, 2}
+			};
+		}
+
 		//set variables after map was imported
-		heuristic = new Heuristic(map, myPlayerNr, printOn, extendedPrint, multipliers);
-		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, useMCTS, multipliers);
+		StaticHeuristicPerPhase shpp = new StaticHeuristicPerPhase(map, multipliers, extendedPrint);
+		heuristic = new Heuristic(map, myPlayerNr, printOn, extendedPrint, multipliers, shpp);
+		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, useMCTS, multipliers, shpp);
 
 		//Staging Preparations
 
@@ -313,7 +323,7 @@ public class Client{
 					//random move at first but prevents disqualifying
 					if (firstMove) {
 						randomPos = map.getRandomMove();
-						if (printOn || serverLog) System.out.println("Made random first Move");
+						if (printOn || serverLog) System.out.println("Made random first Move " + randomPos);
 						serverM.sendMove(randomPos[0], randomPos[1], randomPos[2], myPlayerNr);
 						firstMove = false;
 						continue;
