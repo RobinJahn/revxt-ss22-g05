@@ -16,6 +16,9 @@ public class Heuristic {
     //booleans to enable or disable certain elements of the heuristic
     private boolean countStones;
     private boolean countMoves;
+    private boolean useFieldValues;
+    private boolean useEdges;
+    private boolean useWaves;
 
     //multipliers
     public static final int countOfMultipliers = 5;
@@ -23,6 +26,9 @@ public class Heuristic {
 
     private double stoneCountMultiplier;
     private double moveCountMultiplier;
+    private double fieldValueMultiplier;
+    private double edgeMultiplier;
+    private double waveCount;
 
     //Staging
     private int stageNumber;
@@ -52,7 +58,7 @@ public class Heuristic {
             System.out.println(Arrays.deepToString(this.multiplier).replace("],", "],\n"));
         }
 
-        staticHeuristicPerPhase = new StaticHeuristicPerPhase(map, multiplier, extendedPrint);
+        staticHeuristicPerPhase = new StaticHeuristicPerPhase(map, this.multiplier, extendedPrint);
     }
 
     private void setMultipliers(int phase) {
@@ -133,8 +139,6 @@ public class Heuristic {
             this.stageNumber = stageNumber;
 
             setMultipliers(stageNumber);
-
-            setStaticInfos(); //TODO: set static infos gets called over and over in the search tree because there the maps are constantly set
         }
     }
 
@@ -286,8 +290,8 @@ public class Heuristic {
     }
 
     public boolean evaluateOverwriteMove(Position pos) {
-        //return true;
-        return fieldsForOverwriteMoves.contains(pos);
+        //return false;
+        return staticHeuristicPerPhase.evaluateOverwriteMove(pos, stageNumber);
     }
 
     public int selectBombOrOverwrite(){
@@ -447,7 +451,7 @@ public class Heuristic {
 
         for (Position pos :  map.getStonesOfPlayer(myColorI)) {
             averageFieldValue += staticHeuristicPerPhase.getValueFromMatrix(pos.x, pos.y, stageNumber);
-            averageFieldValue += staticHeuristicPerPhase.getWaveValueForPos(pos);
+            averageFieldValue += staticHeuristicPerPhase.getWaveValueForPos(pos, map, stageNumber);
         }
 
         return averageFieldValue/map.getCountOfStonesOfPlayer(myColorI); //calculates the average stone value

@@ -73,7 +73,7 @@ public class StaticHeurisic {
     }
 
 
-    public double getWaveValueForPos(Position currPos){
+    public double getWaveValueForPos(Position currPos, Map map){
         double result = 0;
         LinkedList<PositionAndValue> list;
         char charAtPos;

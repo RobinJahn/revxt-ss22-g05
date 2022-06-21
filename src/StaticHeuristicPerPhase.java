@@ -51,6 +51,7 @@ public class StaticHeuristicPerPhase {
         //handle matrices
         fieldValueMatrix = new double[height][width];
         edgeMatrix = new boolean[height][width];
+        staticMatrix = new double[height][width];
 
         staticHeuristicPerPhase = new ArrayList<>(multiplier.length);
 
@@ -63,6 +64,15 @@ public class StaticHeuristicPerPhase {
 
     public double getValueFromMatrix(int x, int y, int phase){
         return staticHeuristicPerPhase.get(phase-1).matrix[y][x];
+    }
+
+    public double getWaveValueForPos(Position pos, Map map, int phase) {
+        return staticHeuristicPerPhase.get(phase-1).getWaveValueForPos(pos, map);
+    }
+
+    public boolean evaluateOverwriteMove(Position pos, int phase) {
+        //return false;
+        return staticHeuristicPerPhase.get(phase-1).fieldsWithHighValues.contains(pos);
     }
 
     //initialize Static parts
@@ -261,4 +271,6 @@ public class StaticHeuristicPerPhase {
         }
         System.out.println();
     }
+
+
 }
