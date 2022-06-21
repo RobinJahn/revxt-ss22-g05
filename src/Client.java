@@ -314,7 +314,7 @@ public class Client{
 					if (firstMove) {
 						randomPos = map.getRandomMove();
 						if (printOn || serverLog) System.out.println("Made random first Move");
-						serverM.sendMove(randomPos[0], randomPos[1], 0, myPlayerNr);
+						serverM.sendMove(randomPos[0], randomPos[1], randomPos[2], myPlayerNr);
 						firstMove = false;
 						continue;
 					}
