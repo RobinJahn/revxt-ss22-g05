@@ -164,7 +164,7 @@ public class StaticHeurisic {
                 }
             }
 
-            /*
+
             System.out.println("Wave Matrix: For field " + pos + ", and processing " + currPos);
             double val;
             Position posInLoop;
@@ -172,7 +172,7 @@ public class StaticHeurisic {
             for(int y = 0; y < matrix.length; y++){
                 for (int x = 0; x < matrix[0].length; x++){
                     posInLoop = new Position(x,y);
-                    val = getWaveValueForPos(posInLoop);
+                    val = getWaveValueForPos(posInLoop, map);
                     buffer = "";
                     if (posInLoop.equals(currPos)) buffer += "(";
                     if (posInLoop.equals(pos)) buffer += "[";
@@ -192,7 +192,7 @@ public class StaticHeurisic {
                 System.out.println();
             }
             System.out.println();
-             */
+
 
         }
     }

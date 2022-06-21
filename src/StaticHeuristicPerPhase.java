@@ -1,7 +1,6 @@
 package src;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class StaticHeuristicPerPhase {
 
@@ -23,7 +22,7 @@ public class StaticHeuristicPerPhase {
     public boolean[][] edgeMatrix;
 
 
-    private ArrayList<Position> specialFields = new ArrayList<>(); //TODO: fill
+    private ArrayList<Position> specialFields = new ArrayList<>();
 
     double[][] multiplier; //[] phases, [] stones, moves, Field Values, Edges, Waves
     boolean[][] enables;
@@ -38,6 +37,7 @@ public class StaticHeuristicPerPhase {
         this.multiplier = multiplier;
         enables = new boolean[multiplier.length][multiplier[0].length];
 
+        //fill enables
         for (int phase = 0; phase < multiplier.length; phase++){
             for (int indexOfMultiplier = 0; indexOfMultiplier < multiplier[0].length; indexOfMultiplier++){
                 if (indexOfMultiplier == wavesIndex) { //waves also get disables if Field Values and Edges are disabled
@@ -48,34 +48,112 @@ public class StaticHeuristicPerPhase {
             }
         }
 
-        //handle matrices
+        //inits
         fieldValueMatrix = new double[height][width];
         edgeMatrix = new boolean[height][width];
         staticMatrix = new double[height][width];
 
         staticHeuristicPerPhase = new ArrayList<>(multiplier.length);
 
+        //fill Matrices
+        initStaticMatrixAndSetSpecialFields(map);
+        initEdgeMatrixAndFieldValueMatrix(map);
+        //  Print them
+        if (extendedPrint) {
+            System.out.println("Field value Matrix:");
+            printMatrix(fieldValueMatrix);
+
+            System.out.println("Edge matrix");
+            printMatrix(edgeMatrix);
+        }
+
+        //create static Heurisics
         for (int phase = 0; phase < multiplier.length; phase++){
             staticHeuristicPerPhase.add(new StaticHeurisic(map, specialFields, (int)multiplier[phase][wavesIndex]));
         }
 
-        setStaticInfos(map);
+        //set infos in static Heurisics
+        setStaticInfos();
     }
 
     public double getValueFromMatrix(int x, int y, int phase){
+        if (phase-1 >= staticHeuristicPerPhase.size()){
+            System.err.println("Phase it too high - getValueFromMatrix");
+        }
         return staticHeuristicPerPhase.get(phase-1).matrix[y][x];
     }
 
     public double getWaveValueForPos(Position pos, Map map, int phase) {
+        if (phase-1 >= staticHeuristicPerPhase.size()){
+            System.err.println("Phase it too high - getWaveValueForPos");
+        }
         return staticHeuristicPerPhase.get(phase-1).getWaveValueForPos(pos, map);
     }
 
-    public boolean evaluateOverwriteMove(Position pos, int phase) {
-        //return false;
-        return staticHeuristicPerPhase.get(phase-1).fieldsWithHighValues.contains(pos);
+    //initialize Matrices per Phase
+
+    private void setStaticInfos() {
+        StaticHeurisic sh;
+
+        //add matrices
+        for (int y = 1; y < height - 1; y++) {
+            for (int x = 1; x < width - 1; x++) {
+                if (staticMatrix[y][x] == Double.NEGATIVE_INFINITY) {
+                    for (StaticHeurisic staticHeurisic : staticHeuristicPerPhase) {
+                        staticHeurisic.matrix[y][x] = Double.NEGATIVE_INFINITY;
+                    }
+                    continue;
+                }
+
+                for (int phase = 0; phase < staticHeuristicPerPhase.size(); phase++) {
+
+                    sh = staticHeuristicPerPhase.get(phase);
+
+                    //field Values
+                    if (enables[phase][fieldValueIndex])
+                        sh.matrix[y][x] = fieldValueMatrix[y][x] * multiplier[phase][fieldValueIndex];
+
+                    //edges
+                    if (enables[phase][edgesIndex]) {
+                        if (enables[phase][fieldValueIndex])
+                            sh.matrix[y][x] *= (edgeMatrix[y][x]) ? multiplier[phase][edgesIndex] : 1;
+                        else sh.matrix[y][x] = (edgeMatrix[y][x]) ? multiplier[phase][edgesIndex] : 1;
+                    }
+                }
+            }
+        }
+
+
+        //evaluate every position by its neighbours
+        for (StaticHeurisic staticHeurisic : staticHeuristicPerPhase) {
+            staticHeurisic.setFieldsWithHighValues();
+            staticHeurisic.createWaves();
+            //staticHeurisic.setFieldsForOverwriteMoves();
+        }
     }
 
     //initialize Static parts
+
+    private void initStaticMatrixAndSetSpecialFields(Map map){
+        char currChar;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+
+                //valid Position ?
+                currChar = map.getCharAt(x,y);
+
+                switch (currChar){
+                    case '-':
+                    case 't':
+                        staticMatrix[y][x] = Double.NEGATIVE_INFINITY;
+                        break;
+                    case 'b':
+                        specialFields.add(new Position(x,y));
+                }
+            }
+        }
+    }
 
     private void initEdgeMatrixAndFieldValueMatrix(Map map){
         //edge Matrix
@@ -92,7 +170,7 @@ public class StaticHeuristicPerPhase {
 
                 //edge Matrix
                 outgoingDirections = getOutgoingDirections(new Position(x, y), map);
-                edgeMatrix[y][x] = isCapturable(outgoingDirections);
+                edgeMatrix[y][x] = !isCapturable(outgoingDirections);
 
 
                 //field value matrix
@@ -102,25 +180,9 @@ public class StaticHeuristicPerPhase {
                 fieldValueMatrix[y][x] = (double) sumOfReachableFields / map.getCountOfReachableFields();
             }
         }
-
-
     }
 
-    private void initStaticMatrix(Map map){
-        char currChar;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-
-                //valid Position ?
-                currChar = map.getCharAt(x,y);
-                if (currChar == '-' || currChar == 't') {
-                    staticMatrix[y][x] = Double.NEGATIVE_INFINITY;
-                }
-
-            }
-        }
-    }
+    //helpers for initEdgeMatrixAndFieldValueMatrix
 
     private boolean[] getOutgoingDirections(Position savedPos, Map map){
         boolean[] outgoingDirections = new boolean[]{true, true, true, true, true, true, true, true};
@@ -195,55 +257,6 @@ public class StaticHeuristicPerPhase {
         return backedUpOutgoings;
     }
 
-    //initialize Matrices per Phase
-
-    private void setStaticInfos(Map map) {
-        StaticHeurisic sh;
-
-        initStaticMatrix(map);
-        initEdgeMatrixAndFieldValueMatrix(map);
-
-        if (extendedPrint) {
-            System.out.println("Field value Matrix:");
-            printMatrix(fieldValueMatrix);
-
-            System.out.println("Edge matrix");
-            printMatrix(edgeMatrix);
-        }
-
-
-        //add matrices
-        for (int y = 1; y < height - 1; y++) {
-            for (int x = 1; x < width - 1; x++) {
-
-                if (staticMatrix[y][x] == Double.NEGATIVE_INFINITY) continue;
-
-                for (int phase = 0; phase < staticHeuristicPerPhase.size(); phase++) {
-                    sh = staticHeuristicPerPhase.get(phase);
-
-                    //field Values
-                    if (enables[phase][fieldValueIndex])
-                        sh.matrix[y][x] = fieldValueMatrix[y][x] * multiplier[phase][fieldValueIndex];
-
-                    //edges
-                    if (enables[phase][edgesIndex]) {
-                        if (enables[phase][fieldValueIndex])
-                            sh.matrix[y][x] *= (edgeMatrix[y][x]) ? multiplier[phase][edgesIndex] : 1;
-                        else sh.matrix[y][x] = (edgeMatrix[y][x]) ? multiplier[phase][edgesIndex] : 1;
-                    }
-                }
-            }
-        }
-
-
-        //evaluate every position by its neighbours
-        for (StaticHeurisic staticHeurisic : staticHeuristicPerPhase) {
-            staticHeurisic.setFieldsWithHighValues();
-            staticHeurisic.createWaves();
-            //staticHeurisic.setFieldsForOverwriteMoves();
-        }
-    }
-
     //helper
     /**
      * prints out the evaluation matrix
@@ -271,6 +284,4 @@ public class StaticHeuristicPerPhase {
         }
         System.out.println();
     }
-
-
 }

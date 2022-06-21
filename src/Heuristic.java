@@ -11,7 +11,7 @@ public class Heuristic {
     private final int myColorI;
     private final char myColorC;
 
-    private StaticHeuristicPerPhase staticHeuristicPerPhase;
+    private final StaticHeuristicPerPhase staticHeuristicPerPhase;
 
     //booleans to enable or disable certain elements of the heuristic
     private boolean countStones;
@@ -290,8 +290,7 @@ public class Heuristic {
     }
 
     public boolean evaluateOverwriteMove(Position pos) {
-        //return false;
-        return staticHeuristicPerPhase.evaluateOverwriteMove(pos, stageNumber);
+        return false;
     }
 
     public int selectBombOrOverwrite(){
