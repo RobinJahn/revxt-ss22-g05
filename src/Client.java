@@ -314,7 +314,7 @@ public class Client{
 					if (firstMove) {
 						randomPos = map.getRandomMove();
 						if (printOn || serverLog) System.out.println("Made random first Move");
-						serverM.sendMove(randomPos[0], randomPos[1], 0, myPlayerNr);
+						serverM.sendMove(randomPos[0], randomPos[1], randomPos[2], myPlayerNr);
 						firstMove = false;
 						continue;
 					}
@@ -537,15 +537,12 @@ public class Client{
 	 */
 	private void makeAMove(long upperTimeLimit){
 		//calculated Move
-		int[] positionAndInfo;
 		int[] validPosition;
-		int[] validPosition1;
 		final boolean phaseOne = true;
 
 		//general
 		double valueOfMap;
 		ArrayList<int[]> validMoves;
-		ArrayList<int[]> validMovesByOwnColor;
 
 		map.setPlayer(myPlayerNr);
 		//calculate possible moves

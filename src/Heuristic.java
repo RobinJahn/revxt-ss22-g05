@@ -5,23 +5,13 @@ import java.util.concurrent.TimeoutException;
 
 public class Heuristic {
     private final boolean printOn;
-    private final boolean extendedPrint;
 
     private Map map; //is automatically updated because of the reference here
     //the color of the player for which the map is being evaluated
     private final int myColorI;
     private final char myColorC;
 
-    //the matrix that rates the different fields
-    public double[][] matrix;
-    private double[][] fieldValueMatrix;
-    private double[][] waveMatrix;
-    private HashMap<Position, LinkedList<PositionAndValue>> wavesAndFields;
-    private double[][] edgeMatrix;
-
-    private ArrayList<Position> fieldsWithHighValues = new ArrayList<>();
-    private ArrayList<Position> specialFields = new ArrayList<>();
-    private ArrayList<Position> fieldsForOverwriteMoves = new ArrayList<>();
+    private final StaticHeuristicPerPhase staticHeuristicPerPhase;
 
     //booleans to enable or disable certain elements of the heuristic
     private boolean countStones;
@@ -55,11 +45,9 @@ public class Heuristic {
      */
     public Heuristic(Map map, int myColor, boolean printOn, boolean extendedPrint, double[][] multiplier){
         this.printOn = printOn;
-        this.extendedPrint = extendedPrint;
         this.map = map;
         this.myColorI = myColor;
         this.myColorC = (char)('0'+myColor);
-        matrix = new double[map.getHeight()][map.getWidth()];
 
         this.multiplier = multiplier;
         stageNumber = getStage(true);
@@ -70,10 +58,7 @@ public class Heuristic {
             System.out.println(Arrays.deepToString(this.multiplier).replace("],", "],\n"));
         }
 
-        initMatrix();
-        initEdgeMatrixAndFieldValueMatrix(); //needs multipliers
-
-        setStaticInfos(); //needs initialized matrices
+        staticHeuristicPerPhase = new StaticHeuristicPerPhase(map, this.multiplier, extendedPrint);
     }
 
     private void setMultipliers(int phase) {
@@ -138,29 +123,6 @@ public class Heuristic {
 
     }
 
-    //SETTER -----------------------------------------------------------------------------------------------------------
-
-    public void setStoneCountMultiplier(double stoneCountMultiplier) {
-        this.stoneCountMultiplier = stoneCountMultiplier;
-    }
-
-    public void setMoveCountMultiplier(double moveCountMultiplier) {
-        this.moveCountMultiplier = moveCountMultiplier;
-    }
-
-    public void setFieldValueMultiplier(double fieldValueMultiplier) {
-        this.fieldValueMultiplier = fieldValueMultiplier;
-    }
-
-    public void setEdgeMultiplier(double edgeMultiplier) {
-        this.edgeMultiplier = edgeMultiplier;
-    }
-
-    public void setWaveCount(int waveCount) {
-        this.waveCount = waveCount;
-    }
-
-
 
     //UPDATES ----------------------------------------------------------------------------------------------------------
 
@@ -177,8 +139,6 @@ public class Heuristic {
             this.stageNumber = stageNumber;
 
             setMultipliers(stageNumber);
-
-            setStaticInfos(); //TODO: set static infos gets called over and over in the search tree because there the maps are constantly set
         }
     }
 
@@ -330,8 +290,7 @@ public class Heuristic {
     }
 
     public boolean evaluateOverwriteMove(Position pos) {
-        //return true;
-        return fieldsForOverwriteMoves.contains(pos);
+        return false;
     }
 
     public int selectBombOrOverwrite(){
@@ -490,8 +449,8 @@ public class Heuristic {
         if (map.getCountOfStonesOfPlayer(myColorI) == 0) return averageFieldValue;
 
         for (Position pos :  map.getStonesOfPlayer(myColorI)) {
-            averageFieldValue += matrix[pos.y][pos.x];
-            if (useWaves) averageFieldValue += getWaveValueForPos(pos);
+            averageFieldValue += staticHeuristicPerPhase.getValueFromMatrix(pos.x, pos.y, stageNumber);
+            averageFieldValue += staticHeuristicPerPhase.getWaveValueForPos(pos, map, stageNumber);
         }
 
         return averageFieldValue/map.getCountOfStonesOfPlayer(myColorI); //calculates the average stone value
@@ -504,492 +463,4 @@ public class Heuristic {
         return result;
     }
 
-
-    //  getter of static infos
-
-    /**
-     * calculates and sets static information about the map.
-     * initializes the matrix of values for the map
-     *
-     * Current heuristic implementations:
-     *      check for backed up outgoings
-     *
-     * Information that are currently saved:
-     *      bonus
-     *      inversion
-     *      choice
-     */
-    private void setStaticInfos(){
-
-        //add matrices
-        if (useEdges || useFieldValues) { //only gets updated when used because when it's not used the matrix don't need to be updated
-            for (int y = 1; y < map.getHeight() - 1; y++) {
-                for (int x = 1; x < map.getWidth() - 1; x++) {
-
-                    if (matrix[y][x] == Double.NEGATIVE_INFINITY) continue;
-
-                    if (useFieldValues) matrix[y][x] = fieldValueMatrix[y][x] * fieldValueMultiplier;
-
-                    if (useEdges) {
-                        if (useFieldValues) matrix[y][x] *= (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
-                        else matrix[y][x] =  (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
-                    }
-
-                    //matrix[y][x] += bonusFieldValue(map.getCharAt(x,y));
-                }
-            }
-        }
-
-
-        if (extendedPrint) {
-            if (useFieldValues) {
-                System.out.println("Field value Matrix:");
-                printMatrix(fieldValueMatrix);
-            }
-
-            if (useEdges) {
-                System.out.println("Edge matrix");
-                printMatrix(edgeMatrix);
-            }
-
-            System.out.println("Combined matrix");
-            printMatrix(matrix);
-        }
-
-        //evaluate every position by its neighbours
-        if (useWaves) {
-            setFieldsWithHighValues();
-            createWaves();
-        }
-
-        if (extendedPrint && useWaves){
-            System.out.println("Fields with highest values that create waves:");
-            System.out.println(Arrays.deepToString(fieldsWithHighValues.toArray()));
-
-            System.out.println("Special fields that create Waves:");
-            System.out.println(Arrays.deepToString(specialFields.toArray()));
-
-            System.out.println("Wave Matrix");
-            double val;
-            for(int y = 0; y < matrix.length; y++){
-                for (int x = 0; x < matrix[0].length; x++){
-                    val = getWaveValueForPos(new Position(x,y));
-                    if (val == 0){
-                        System.out.printf("%8s", "-");
-                    }
-                    else {
-                        System.out.printf("%8s", String.format("%4.2f", val));
-                    }
-                }
-                System.out.println();
-            }
-            System.out.println();
-        }
-
-        setFieldsForOverwriteMoves();
-    }
-
-    private void initEdgeMatrixAndFieldValueMatrix(){
-        //edge Matrix
-        boolean[] outgoingDirections;
-        edgeMatrix = new double[map.getHeight()][map.getWidth()];
-
-
-        //field Value Matrix
-        int[] reachableFields;
-        int sumOfReachableFields;
-        fieldValueMatrix = new double[map.getHeight()][map.getWidth()];
-
-
-        for (int y = 1; y < map.getHeight() - 1; y++) {
-            for (int x = 1; x < map.getWidth() - 1; x++) {
-
-                if (matrix[y][x] == Double.NEGATIVE_INFINITY) continue;
-
-                //edge Matrix
-                outgoingDirections = getOutgoingDirections(new Position(x, y));
-                edgeMatrix[y][x] = isCapturable(outgoingDirections) ? 0 : 1;
-
-
-                //field value matrix
-                sumOfReachableFields = 0;
-                reachableFields = checkReachableFields(new Position(x, y));
-                for (int a : reachableFields) sumOfReachableFields += a;
-                fieldValueMatrix[y][x] = (double) sumOfReachableFields / map.getCountOfReachableFields();
-            }
-        }
-
-
-    }
-
-    private void initMatrix(){
-        char currChar;
-
-        for (int y = 0; y < map.getHeight(); y++) {
-            for (int x = 0; x < map.getWidth(); x++) {
-
-                //valid Position ?
-                currChar = map.getCharAt(x,y);
-                if (currChar == '-' || currChar == 't') {
-                    matrix[y][x] = Double.NEGATIVE_INFINITY;
-                }
-
-            }
-        }
-    }
-
-    private double calculateValueOfPosition(Position pos, char charAtPos){
-        double result = 0;
-        boolean[] outgoingDirections;
-        boolean isCapturable;
-        int[] reachableFields;
-        int sumOfReachableFields = 0;
-        int backedUpOutgoings;
-
-        //set values
-        outgoingDirections = getOutgoingDirections(pos);
-        isCapturable = isCapturable(outgoingDirections);
-        reachableFields = checkReachableFields(pos);
-        for (int a : reachableFields) sumOfReachableFields += a;
-        backedUpOutgoings = getBackedUpOutgoings(outgoingDirections);
-
-        //get evaluation
-        if (useFieldValues) {
-            result = (double)sumOfReachableFields / map.getCountOfReachableFields();
-        }
-
-        // or: result = Math.pow(base, backedUpOutgoings);
-        if (!isCapturable){
-            if (useFieldValues) result *= edgeMultiplier;
-            else result += edgeMultiplier;
-        }
-        //result += bonusFieldValue(charAtPos);
-
-        return result;
-    }
-
-    //  returning information
-    private boolean[] getOutgoingDirections(Position savedPos){
-        boolean[] outgoingDirections = new boolean[]{true, true, true, true, true, true, true, true};
-        char charAtPos;
-        Position pos;
-
-        for (int r = 0; r <= 7; r++){
-            //check first direction
-            pos = savedPos.clone();
-            pos = Position.goInR(pos,r);
-
-            charAtPos = map.getCharAt(pos);
-            //check if there's a wall
-            if(charAtPos == '-') {
-                outgoingDirections[r] = false;
-            }
-            //check if there's a transition and if it's relevant
-            else if(charAtPos == 't'){
-                if (!map.checkForTransition(savedPos,r)) outgoingDirections[r] = false;
-            }
-        }
-        return outgoingDirections;
-    }
-
-    private boolean isCapturable(boolean[] outgoingDirections){
-
-        int blockedAxisCount = 0;
-
-        for (int r = 0; r < 4; r++){
-            if (!outgoingDirections[r] || !outgoingDirections[(r+4)%8]) blockedAxisCount++;
-        }
-
-        if (blockedAxisCount ==4) return false;
-        else return true;
-    }
-
-    private int[] checkReachableFields(Position savedPos) {
-        Integer newR;
-        int[] reachableFields = new int[8];
-        Position pos;
-
-        for (int r = 0; r <= 7; r++){
-            pos = savedPos.clone();
-            newR = r;
-            while (true) {
-                newR = map.doAStep(pos, newR);
-
-                if (newR == null || ( pos.equals(savedPos) && newR == r )){ //was pos.equals(savedPos)
-                    break;
-                }
-                reachableFields[r]++;
-
-                //safety to not run infinitely
-                if (reachableFields[r] > 8 * (map.getWidth()-2) * (map.getHeight()-2) ) { // 8 because of the 8 directions. reachable fields = maximum stones a field in any direction could reach.
-                    System.err.println("This shouldn't happen - checkReachableFields() ran into an infinite loop");
-                    reachableFields[r] = -1;
-                    break;
-                }
-            }
-        }
-
-        return reachableFields;
-    }
-
-    private int getBackedUpOutgoings(boolean[] outgoingDirections) {
-        int backedUpOutgoings = 0;
-
-        for (int r = 0; r < 4; r++){
-            if (outgoingDirections[r] ^ outgoingDirections[(r+4)%8]) backedUpOutgoings++; // xor - on one side needs to be free the other needs to be a wall
-        }
-
-        return backedUpOutgoings;
-    }
-
-    private int bonusFieldValue(char charAtPos){ //TODO: delete value for overwrite move out of matrix
-        switch (charAtPos){
-            case 'b':
-                return 100;
-            case 'c':
-                return 40;
-            case 'i':
-            case 'x':
-            default: //includes 0-8
-                return 0;
-        }
-    }
-
-
-    private void setFieldsForOverwriteMoves(){
-        if (!useEdges && !useFieldValues) return;
-
-        double percentageOfValues = 0.05;
-        int i = 0;
-        double lastValue;
-        int currIndex;
-        Position pos;
-        double currValue = 0;
-
-        fieldsForOverwriteMoves = new ArrayList<>();
-
-        ArrayList<Position> posList = new ArrayList<>();
-        ArrayList<Double> valueList = new ArrayList<>();
-        ArrayList<Integer> indexList = new ArrayList<>();
-
-        for (int y = 1; y < map.getHeight()-1; y++) {
-            for (int x = 1; x < map.getWidth()-1; x++) {
-                posList.add(new Position(x,y));
-
-                //for the value only use edges and fieldValues
-                if (useFieldValues) currValue = fieldValueMatrix[y][x] * fieldValueMultiplier;
-                if (useEdges) {
-                    if (useFieldValues) currValue *= (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
-                    else currValue =  (edgeMatrix[y][x] == 0) ? 1 : edgeMultiplier;
-                }
-
-                valueList.add(currValue);
-                indexList.add(i);
-                i++;
-            }
-        }
-
-        indexList.sort(new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                Double d1 = valueList.get(o1);
-                Double d2 = valueList.get(o2);
-                return Double.compare(d2,d1);
-            }
-        });
-
-        lastValue = valueList.get( indexList.get( (int)(indexList.size() * percentageOfValues) ) ); //gets the value of the last element defined by percentage
-
-        for (i = 0; i < indexList.size(); i++) {
-            currIndex = indexList.get(i);
-
-            if (valueList.get(currIndex) < lastValue) break; //goes until the value is smaller than the lastValue
-
-            pos = posList.get(currIndex);
-
-            fieldsForOverwriteMoves.add(pos);
-        }
-    }
-
-    //  waves
-
-    private void setFieldsWithHighValues(){
-        double percentageOfValues = 0.05;
-        int i = 0;
-        double lastValue;
-        int currIdnex;
-        Position pos;
-        char charAtPos;
-
-        fieldsWithHighValues = new ArrayList<>();
-        specialFields = new ArrayList<>();
-
-        ArrayList<Position> posList = new ArrayList<>();
-        ArrayList<Double> valueList = new ArrayList<>();
-        ArrayList<Integer> indexList = new ArrayList<>();
-
-        for (int y = 0; y < map.getHeight(); y++) {
-            for (int x = 0; x < map.getWidth(); x++) {
-                charAtPos = map.getCharAt(x,y);
-
-                //if field is free
-                if (charAtPos == '0' || !Character.isDigit(charAtPos)) {
-                    //add high rated fields of matrix
-                    posList.add(new Position(x, y));
-                    valueList.add(matrix[y][x]);
-                    indexList.add(i);
-                    i++;
-                }
-
-                //add bonus fields directly to special fields
-                if (charAtPos == 'b') specialFields.add(new Position(x,y));
-            }
-        }
-
-        indexList.sort(new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                Double d1 = valueList.get(o1);
-                Double d2 = valueList.get(o2);
-                return Double.compare(d2,d1);
-            }
-        });
-
-        lastValue = valueList.get( indexList.get( (int)(indexList.size() * percentageOfValues) ) ); //gets the value of the last element defined by percentage
-
-        for (i = 0; i < indexList.size(); i++) {
-            currIdnex = indexList.get(i);
-
-            if (valueList.get(currIdnex) < lastValue) break; //goes until the value is smaller than the lastValue
-
-            pos = posList.get(currIdnex);
-
-            fieldsWithHighValues.add(pos);
-        }
-
-    }
-
-
-    private double getWaveValueForPos(Position currPos){
-        double result = 0;
-        LinkedList<PositionAndValue> list;
-        char charAtPos;
-
-        //get List of values for the position
-        list = wavesAndFields.get(currPos);
-        if (list != null) {
-            //go throu every position that creats a wave that's affacting this position
-            for (PositionAndValue pav : list) {
-                //get char at creating position
-                charAtPos = map.getCharAt(pav.x, pav.y);
-                //only use the value when the field is free
-                if (charAtPos == '0' || !Character.isDigit(charAtPos)) {
-                    result += pav.value;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    private void createWaves(){
-        wavesAndFields = new HashMap<>();
-
-        for (Position pos : specialFields){
-            createWaveForPos(pos);
-        }
-        for (Position pos : fieldsWithHighValues) {
-            if (specialFields.contains(pos)) continue;
-            createWaveForPos(pos);
-        }
-    }
-
-    private void createWaveForPos(Position pos){
-        int divisor = 5;
-        double originValue = 0;
-
-        //for breadth-first search
-        Queue<PositionAndInfo> posQ = new LinkedList<>();
-        LinkedList<PositionAndValue> currList;
-        Position currPos;
-        Position posAfterStep;
-        PositionAndInfo currPosAndDist;
-        PositionAndValue posAndVal;
-        PositionAndValue posAndValInList;
-        int distanceFromOriginForNewField = 0;
-        int index;
-        Integer newR;
-
-        if (specialFields.contains(pos)) originValue += 100;
-        if (fieldsWithHighValues.contains(pos)) originValue += matrix[pos.y][pos.x];
-
-        posQ.add(new PositionAndInfo(pos.x,pos.y,distanceFromOriginForNewField));
-
-        while (!posQ.isEmpty()){
-            currPosAndDist = posQ.poll();
-            currPos = new Position(currPosAndDist.x, currPosAndDist.y);
-            distanceFromOriginForNewField = currPosAndDist.info + 1;
-
-
-            //go in every possible direction
-            for (int r = 0; r <= 7; r++) {
-                posAfterStep = currPos.clone();
-                //get position it will move to
-                newR = map.doAStep(posAfterStep, r);
-                if (newR == null || specialFields.contains(posAfterStep) || fieldsWithHighValues.contains(posAfterStep)) continue;
-
-                //create position and value for this position
-                posAndVal = new PositionAndValue(pos.x, pos.y, originValue/Math.pow(-divisor, distanceFromOriginForNewField) );
-
-                //check what's there
-                currList = wavesAndFields.get(posAfterStep);
-
-                //if the field wasn't visited yet
-                if (currList == null) {
-                    //create List
-                    wavesAndFields.put( posAfterStep, new LinkedList<>());
-                    //add current positionAndValue to this field
-                    wavesAndFields.get(posAfterStep).add(posAndVal);
-                    if (distanceFromOriginForNewField < waveCount) posQ.add(new PositionAndInfo(posAfterStep.x, posAfterStep.y, distanceFromOriginForNewField));
-                }
-                //if the field was already visited but not from us (if we visited it already that route was faster and so would create a |hieger| value)
-                else if (!currList.contains(posAndVal)) {
-                    //add current positionAndValue to this field
-                    currList.add(posAndVal);
-                    if (distanceFromOriginForNewField < waveCount) posQ.add(new PositionAndInfo(posAfterStep.x, posAfterStep.y, distanceFromOriginForNewField));
-                }
-            }
-
-            /*
-            System.out.println("Wave Matrix: For field " + pos + ", and processing " + currPos);
-            double val;
-            Position posInLoop;
-            String buffer;
-            for(int y = 0; y < matrix.length; y++){
-                for (int x = 0; x < matrix[0].length; x++){
-                    posInLoop = new Position(x,y);
-                    val = getWaveValueForPos(posInLoop);
-                    buffer = "";
-                    if (posInLoop.equals(currPos)) buffer += "(";
-                    if (posInLoop.equals(pos)) buffer += "[";
-
-                    if (val == 0){
-                        buffer += "-";
-                    }
-                    else {
-                         buffer += String.format("%4.2f", val);
-                    }
-
-                    if (posInLoop.equals(pos)) buffer += "]";
-                    if (posInLoop.equals(currPos)) buffer += ")";
-
-                    System.out.printf("%10s", buffer);
-                }
-                System.out.println();
-            }
-            System.out.println();
-             */
-
-        }
-    }
 }
