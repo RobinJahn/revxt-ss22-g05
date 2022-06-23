@@ -121,7 +121,7 @@ public class Map{
         }
 
         //General Map info
-        overwriteStonesPerPlayer = mapToCopy.overwriteStonesPerPlayer.clone(); //shallow clone because we need a new Array TODO: check that
+        overwriteStonesPerPlayer = mapToCopy.overwriteStonesPerPlayer.clone(); //shallow clone because we need a new Array
         bombsPerPlayer = mapToCopy.bombsPerPlayer.clone();
 
         //Extended Map info
@@ -178,16 +178,7 @@ public class Map{
      * Returns Infos, Map and Transitions in a formatted String
      */
     public String toString() {
-        StringBuilder mapString = new StringBuilder();
-
-        appendMapInfosForStringBuilder(mapString);
-
-        mapString.append(Arrays.deepToString(map).replaceAll("],", "]\n"));
-        mapString.append("\n\n");
-
-        mapString.append(Transitions.AllToString(staticMap.transitions));
-
-        return mapString.toString();
+        return this.toString(null,true,false);
     }
 
     public String toString_Server(ArrayList<int[]> everyPossibleMove)
