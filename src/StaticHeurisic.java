@@ -164,7 +164,7 @@ public class StaticHeurisic {
                 }
             }
 
-/*
+            /*
             System.out.println("Wave Matrix: For field " + pos + ", and processing " + currPos);
             double val;
             Position posInLoop;
@@ -193,8 +193,10 @@ public class StaticHeurisic {
             }
             System.out.println();
 
+             */
 
- */
+
+
 
         }
     }

@@ -96,8 +96,8 @@ public class StaticHeuristicPerPhase {
         StaticHeurisic sh;
 
         //add matrices
-        for (int y = 1; y < height - 1; y++) {
-            for (int x = 1; x < width - 1; x++) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 if (staticMatrix[y][x] == Double.NEGATIVE_INFINITY) {
                     for (StaticHeurisic staticHeurisic : staticHeuristicPerPhase) {
                         staticHeurisic.matrix[y][x] = Double.NEGATIVE_INFINITY;
@@ -126,6 +126,7 @@ public class StaticHeuristicPerPhase {
 
         //evaluate every position by its neighbours
         for (StaticHeurisic staticHeurisic : staticHeuristicPerPhase) {
+            //TODO: only do this when multiplier says so
             staticHeurisic.setFieldsWithHighValues();
             staticHeurisic.createWaves();
             //staticHeurisic.setFieldsForOverwriteMoves();

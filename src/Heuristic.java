@@ -53,12 +53,21 @@ public class Heuristic {
         stageNumber = getStage(true);
         setMultipliers(stageNumber);
 
+        staticHeuristicPerPhase = shpp;
+
         if (printOn){
             System.out.println("Multipliers per phase");
             System.out.println(Arrays.deepToString(this.multiplier).replace("],", "],\n"));
+            if (extendedPrint) {
+                System.out.println("Matrix for phase 1");
+                printMatrix(1);
+                System.out.println("Matrix for phase 2");
+                printMatrix(2);
+                System.out.println("Matrix for phase 3");
+                printMatrix(3);
+            }
         }
 
-        staticHeuristicPerPhase = shpp;
     }
 
     private void setMultipliers(int phase) {
@@ -298,12 +307,22 @@ public class Heuristic {
     /**
      * prints out the evaluation matrix
      */
-    public void printMatrix(double[][] matrix){
-        for (int y = 0; y < matrix.length; y++){
-            for (int x = 0; x < matrix[y].length; x++){
-                if (matrix[y][x] != Double.NEGATIVE_INFINITY && matrix[y][x] != Double.POSITIVE_INFINITY) System.out.printf("%8s", String.format("%4.2f", matrix[y][x]) );
-                if (matrix[y][x] == Double.NEGATIVE_INFINITY) System.out.printf("%8s", "-");
-                if (matrix[y][x] == Double.POSITIVE_INFINITY) System.out.printf("%8s", "+");
+    public void printMatrix(int phase){
+        if (staticHeuristicPerPhase == null) return;
+        double currVal;
+        for (int y = 0; y < map.getHeight(); y++){
+            for (int x = 0; x < map.getWidth(); x++){
+                currVal = staticHeuristicPerPhase.getValueFromMatrix(x,y,phase);
+                currVal += staticHeuristicPerPhase.getWaveValueForPos(new Position(x,y), map, phase);
+                if (currVal == Double.POSITIVE_INFINITY) {
+                    System.out.printf("%8s", "+");
+                    continue;
+                }
+                if (currVal == Double.NEGATIVE_INFINITY) {
+                    System.out.printf("%8s", "-");
+                    continue;
+                }
+                System.out.printf("%8s", String.format("%4.2f", currVal));
             }
             System.out.println();
         }
