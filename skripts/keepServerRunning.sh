@@ -29,7 +29,7 @@ do
 	while [ $ii -lt $anzPlayer ]
 	do
 		if $extendedPrint; then echo "skript: start ai $ii"; fi
-		sleep 3 && 
+		sleep 10 &&
 			echo "skript: startet ai" && 
 			./ai_trivial -q &
 		ii=$((ii+1))
