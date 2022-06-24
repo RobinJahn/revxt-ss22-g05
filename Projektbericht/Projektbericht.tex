@@ -8,11 +8,11 @@
 % ----------------------------------------------------------------------------------------------------------
 % Titelseite
 % ----------------------------------------------------------------------------------------------------------
-\MyTitlepage[pics/gamefield02]{05}{
+\MyTitlepage[pics/gruppenbild]{05}{
 \texttt{robin.jahn@st.oth-regensburg.de}\\
 \texttt{simon1.melcher@st.oth-regensburg.de}\\
 \texttt{alexander1.wess@st.oth-regensburg.de}}
-{??.??.\the\year} % FIXME optional: Gruppenlogo als PNG, Pflichtfelder: Gruppe, Authoren durch "\\" getrennt und Abgabedatum eingeben
+{27.06.\the\year} % FIXME optional: Gruppenlogo als PNG, Pflichtfelder: Gruppe, Authoren durch "\\" getrennt und Abgabedatum eingeben
 
 \setcounter{page}{1} 
 % ----------------------------------------------------------------------------------------------------------
@@ -72,10 +72,9 @@ Das Spiel ReversiXT basiert auf dem Brettspiel Reversi aus den 1880er Jahren und
 \end{minipage}
 \\
 
-Jedem Spieler wird zu Beginn eine Farbe und die dazugehörigen Spielsteine zugewiesen. Das Spielprinzip ist es dann von den eigenen Steinen aus über die der Gegner auf ein freies Feld zu legen, wodurch die eingeschlossenen gegnerischen Steine eingefärbt werden und den Besitzer wechseln. Das bedeutet, dass zwischen dem eigenen Stein und dem freien Feld immer mindestens ein gegnerischer liegen muss. Es kann generell in jede Richtung, horizontal, vertikal und diagonal gezogen werden.
+Jedem Spieler wird zu Beginn eine Farbe und die dazugehörigen Spielsteine zugewiesen. Das Spielprinzip ist es dann von den eigenen Steinen aus über die der Gegner auf ein freies Feld zu legen, wodurch die eingeschlossenen gegnerischen Steine eingefärbt werden und den Besitzer wechseln. Das bedeutet, dass zwischen dem eigenen Stein und dem freien Feld immer mindestens ein gegnerischer liegen muss. Es kann generell in jede Richtung, horizontal, vertikal und diagonal gezogen werden. Ein Beispiel hierfür ist in den folgenden Abbildungen zu sehen wobei Abbildung \ref{fig:capture_pre} die Situation vor dem Zug des Spielers mit den roten Steinen zeigt und durch eine weiße Umrandung verdeutlicht werden soll auf welches Feld gezogen wird. Abbildung \ref{fig:capture_post} stellt den Spielfeldzustand nach des Färbens dar.
 
-\vspace{1em}
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \begin{minipage}[c]{0.4\textwidth}
 	\centering
@@ -83,6 +82,7 @@ Jedem Spieler wird zu Beginn eine Farbe und die dazugehörigen Spielsteine zugew
 	\captionof{figure}[Bsp. 3 Einfärbern vorher]{Einfärben vor dem Zug}
 	\label{fig:capture_pre}
 \end{minipage}
+\hspace{0.1\textwidth}
 \begin{minipage}[c]{0.4\textwidth}
 	\centering
 	\includegraphics[width=\textwidth]{pics/reversi_original_map_capture_2.png}
@@ -126,11 +126,10 @@ Wichtiges Vorwissen wurde vor allem aus den Fächern Programmieren 2 und Algorit
 
 Neben der wöchentlichen Vorlesung und Übung der Veranstaltung, wurde jeden Freitag eine Besprechung mit allen Mitgliedern abgehalten. In diesen Besprechungen wurden die Aufgaben, die bereits in der Übung am Dienstag verteilt wurden, besprochen und aufgetretene Probleme gemeinsam gelöst. Außerdem wurden neue Ansätze zur Ausarbeitung bzw. Verbesserung des Clients diskutiert und implementiert sowie neue Aufgaben zur Bearbeitung über das Wochenende zugeteilt. Zusätzlich wurde über eine gemeinsame WhatsApp Gruppe kommuniziert, in der Fragen gestellt werden konnten und organisatorisches vereinbart wurde.
 
-\newpage
 \vspace{1em}
-\begin{table}[!h]
+\begin{table}[H]
 \centering
-	\begin{tabular} {| m{1.7cm} | m{3.5cm} | m{3.5cm} | m{3.5cm}|}
+	\begin{tabular} {| m{2.6cm} | m{4cm} | m{4cm} | m{4cm}|}
 		\hline
 		\textbf{} &\textbf{Simon Melcher} & \textbf{Robin Jahn} & \textbf{Alexander Wess}\\
 		\hline
@@ -146,7 +145,7 @@ Neben der wöchentlichen Vorlesung und Übung der Veranstaltung, wurde jeden Fre
 		\hline
 		Woche 6 & Skripte erstellt um Tests durchzuführen & Skripte erstellt um Tests durchzuführen; Statistik implementiert; Bombenphase programmiert & Implementierung Alpha-Beta-Pruning\\
 		\hline
-		Woche 7 & Implementierung Iterative-Deepening & Implementierung Zugsortierung & Erweiterung des Projektberichts durch Tabelle mit wöchentlichen Aufgabenverteilung und weiteren Beispielen\\
+		Woche 7 & Implementierung Iterative-Deepening & Implementierung Zugsortierung & Erweiterung des Projektberichts\\
 		\hline
 		Woche 8 & Programmierung einer neuer Funktion für die Bombenphase zum zählen der Steine & Änderung des Skripts zur Ermittlung der besten Multiplikatoren für die Heuristik & Implementierung einer neuen Funktion zur Bewertung von Bonusfeldern\\
 		\hline
@@ -154,16 +153,19 @@ Neben der wöchentlichen Vorlesung und Übung der Veranstaltung, wurde jeden Fre
 		\hline
 		Woche 10 & Implementierung Zobrist Hasing und Aspiration Window & Implementierung MCTS & Implementierung Methode zufälliger Zug\\
 		\hline
+		Woche 11 - 13 & Optimierungen & Optimierungen & Optimierungen\\
+		\hline
 	\end{tabular}
 	\caption{Aufgabenverteilung}
 	\label{tab:tasks}
 \end{table}
-\newpage
 
 \subsection{Technische Daten}
 In diesem Abschnitt soll auf die verwendeten technischen Mittel eingegangen werden. Das Projekt wurde in der Programmiersprache Java in der 11ten Version umgesetzt, da zum einen in dieser Programmiersprache bereits die meiste Erfahrung gesammelt werden konnte. Zum anderen konnten die gängigen Vorteile dieser Programmiersprache genutzt werden, wie z. B. die automatische Speicher- und Heap-Verwaltung oder die Möglichkeit mit \glqq Call by Reference\grqq{} zu arbeiten ohne Pointer zu benutzen.
 Zu Beginn legte sich die Gruppe fest einheitlich die Entwicklungsumgebung IntelliJ IDEA der Version 2021.3.3 von JetBrains zu nutzen. Der Vorteil davon war u. a., dass diese bereits eine gute Anbindung an Git besitzte und somit das Arbeiten in einem gemeinsam Repository signifikant erleichterte.
 Als Betriebssystem wurde hauptsächlich Windows 10 der Version 21H2 verwendet. Außerdem wurde von Robin Jahn eine virtuelle Maschine eingerichtet, die das Unix Betriebssystem Ubuntu simulierte, um Tests mit dem Server zu machen, über den im späteren Verlauf der Veranstaltung die Spiele ausgetragen wurden. Simon Melcher und Alexander Wess nutzten hingegen das Windows Subsystem for Linux. Dadurch sollte sichergestellt werden, dass der entwickelte Client fehlerlos über ein Linux Betriebssystem ausgeführt werden konnte und die Kommunikation mit dem Server reibungslos funktionierte.
+
+Ebenfalls wurden die Tools aus dem globalen Repository wie der Map Editor genutzt, um Spielfelder zu erstellen und zu bearbeiten. Zusätzlich wurden Skripte angefertigt, die die Erstellung des Projekts erleichtern sollten. Um den Server auf dem die Spiele ausgetragen wurden und die zur Verfügung gestellte triviale K.I., nicht nach jedem Spiel neu starten zu müssen, wurde ein Skript programmiert, das nach jeder Partie dies übernahm. Zur Verbesserung der Heuristik, die in Kapitel \ref{kap:Heuristik_Beschreibung} genauer beschrieben wird, wurde ein Skript entwickelt, das verschiedene Möglichkeiten zur Gewichtung der Bewertungsfunktionen automatisch testete und die beste Kombination zurückgab.
 
 Robin Jahn entwickelte zu Beginn auf seinem Laptop mit einem AMD Ryzen 5 3500U Prozessor, der eine Taktfrequenz von 2,1 bis 3,7 GHz aufweist, und 8 GB Arbeitsspeicher. Jedoch wechselte er, vor allem zum Testen, auf seinen Tower PC, der mit einem Intel Core i5-7600 (3,5 GHz), 16GB RAM und einer Nvidia GeForce GTX 1070 Grafikkarte ausgestattet war, da dieser die virtuelle Maschine aufgrund seiner höheren Leistung besser bewältigen konnte. Simon Melcher wechselte ebenfalls zwischen einem Desktop Computer und einem Laptop für die Vorlesungen, Übungen und Gruppenmeetings. Beide Geräte besaßen 16 GB RAM sowie einen AMD Ryzen 5 2600X (3,6 GHz), der in seinem PC enthalten war und einen AMD Ryzen 3500U (2,1 GHz) in seinem Laptop. Alexander Wess arbeitet durchgehend mit einem Laptop, der einen AMD Ryzen 5 5500U (2.10 GHz) Prozessor und 16 GB Arbeitsspeicher verbaut hatte.
 
@@ -172,7 +174,7 @@ Robin Jahn entwickelte zu Beginn auf seinem Laptop mit einem AMD Ryzen 5 3500U P
 % Kapitel: Spielfeldbewertung
 % ----------------------------------------------------------------------------------
 \section{Spielfeldbewertung}
-Zur Umsetzung eines solchen Clients wird eine starke K.I. benötigt, die anhand von Suchbäumen entscheidet, welcher Zug als nächstes getätigt werden soll. Die Elemente dieses Suchbaums sind verschiedene Szenarien, die aus der aktuellen Situation auf dem Spielfeld entstehen können. Hierfür müssen die verschiedenen Zugmöglichkeiten simuliert und der daraus entstandene Zustand bewertet werden, um zu entscheiden welcher der bestmögliche Zug ist. 
+Zur Umsetzung eines solchen Clients wird eine K.I. benötigt, die anhand von Suchbäumen entscheidet, welcher Zug als nächstes getätigt werden soll. Die Elemente dieses Suchbaums sind verschiedene Szenarien, die aus der aktuellen Situation auf dem Spielfeld entstehen können. Hierfür müssen die verschiedenen Zugmöglichkeiten simuliert und der daraus entstandene Zustand bewertet werden, um zu entscheiden welcher der bestmögliche Zug ist. 
 In diesem Kapitel soll deshalb darauf eingegangen werden, wie Gruppe fünf diese Einschätzung umgesetzt hat.
 
 \subsection{Bestandteile}\label{kap:Heuristik_Beschreibung}
@@ -208,11 +210,10 @@ Wie schon oben erwähnt kann das gleiche Verfahren auch für die Bewertung der M
 \[ \frac{ \text{ \# meine Züge } \cdot \text{ \# Spieler } }{ \sum_{i=1}^{ \#Spieler} \text{ \# züge von Spieler i } }  \].
 
 
-Ein weiterer Ansatz der Spielfeldbewertung ist die \glqq Sicherheit\grqq{} der einnehmbaren Felder. In diesem Fall soll darauf geachtete werden, ob und wie leicht die jeweiligen Felder vom Gegner eingefärbt werden können. Folglich muss hierbei überprüft werden, ob ein Feld, nachdem es das erste Mal besetzt wird, überhaupt noch einmal den Besitzer wechseln kann oder aus wie vielen Richtungen die Gegner noch Möglichkeiten haben, dieses Feld zurückzugewinnen. Zusätzlich soll die Anzahl der Wege, in die von diesem Feld aus gezogen werden kann, einkalkuliert werden. Diese Analyse kann anhand eines Punktesystems realisiert werden.
+Ein weiterer Ansatz der Spielfeldbewertung ist die \glqq Sicherheit\grqq{} der einnehmbaren Felder. In diesem Fall soll darauf geachtete werden, ob und wie leicht die jeweiligen Felder vom Gegner eingefärbt werden können. Folglich muss hierbei überprüft werden, ob ein Feld, nachdem es das erste Mal besetzt wird, überhaupt noch einmal den Besitzer wechseln kann oder aus wie vielen Richtungen die Gegner noch Möglichkeiten haben, dieses Feld zurückzugewinnen. Zusätzlich soll einkalkuliert werden, wie viel Prozent der bespielbaren Felder ausgehend von dieser Position erreichbar sind. Diese Analyse wird anhand eines Punktesystems realisiert, auf das im weiteren Verlauf dieses Kapitels noch genauer eingegangen wird.
 
-Das naheliegendste Beispiel für ein solches sicheres Feld ist eine Ecke wie in Abbildung \ref{fig:example_heuristics_safe_fields_corner} dargestellt. Dieser Stein kann weder horizontal noch vertikal oder diagonal von einem Gegner eingefärbt werden und stellt somit eine wertvolle Position dar. 
+Das naheliegendste Beispiel für ein solches sicheres Feld ist eine Ecke wie in Abbildung \ref{fig:example_heuristics_safe_fields_corner} dargestellt. Dieser Stein kann weder horizontal noch vertikal oder diagonal von einem Gegner eingefärbt werden und stellt somit eine wertvolle Position dar. Aufgrund der zusätzlichen Regeln von ReversiXT können diese Felder zwar noch mit Überschreibsteine eingenommen werden, jedoch muss dafür eine begrenzte und wertvolle Ressource verwendet werden.
 
-%ToDo: Pfeile einfügen, besseres Beispiel? Also mit maximalen Wert -> noch eine Richtung mehr0
 \vspace{1em}
 \begin{minipage}{\linewidth}
 	\centering
@@ -222,7 +223,7 @@ Das naheliegendste Beispiel für ein solches sicheres Feld ist eine Ecke wie in 
 \end{minipage}
 \\
 
-Abbildung \ref{fig:example_heuristics_safe_fields_dead_end} zeigt eine andere Situation, in der das Feld zwar ebenfalls nicht mehr eingenommen werden kann, jedoch auch nur eine Richtung (nach Unten) als Zugmöglichkeit bietet.
+Abbildung \ref{fig:example_heuristics_safe_fields_dead_end} zeigt eine andere Situation, in der das Feld zwar ebenfalls nicht mehr mit einem herkömmlichen Zug eingenommen werden kann, jedoch auch nur eine Richtung (nach Unten) als Zugmöglichkeit bietet. Somit kann von hieraus nur ein geringer Prozentsatz der Karte bespielt werden und sollte schlechter eingestuft werden als das Feld aus der Situation davor.
 
 \vspace{1em}
 \begin{minipage}{\linewidth}
@@ -245,7 +246,7 @@ Ein Feld, das sich am Rand der Karte befindet, kann zwar eingenommen werden, jed
 \end{minipage}
 \\
 
-Wenn jedoch keine Seite durch das Ende der Karte geschützt ist, ist dieses Feld von allen Seiten für den Gegner erreichbar und kann mit einer niedrigeren Priorität berücksichtigt werden. In Abbildung \ref{fig:example_heuristics_safe_fields_middle} wird dies durch ein Feld inmitten der Spielfläche verdeutlicht.
+Wenn jedoch keine Seite durch das Ende der Karte geschützt ist, ist dieses Feld von allen Seiten für den Gegner erreichbar, bietet jedoch gleichzeitig viele Zugmöglichkeiten. Deshalb muss es durchdacht werden, wann welche Position wichtiger ist. In Abbildung \ref{fig:example_heuristics_safe_fields_middle} wird dies durch ein Feld inmitten der Spielfläche verdeutlicht.
 
 %ToDo: Pfeile einfügen
 \vspace{1em}
@@ -259,7 +260,7 @@ Wenn jedoch keine Seite durch das Ende der Karte geschützt ist, ist dieses Feld
 
 Die Schwierigkeit dieser Heuristik besteht darin, dass die Sonderregeln von ReversiXT nicht vernachlässigt werden dürfen. Ein vermeintlich sicheres Feld (z. B. eine Ecke), kann durch Transitionen gar kein uneinnehmbares Feld sein und muss auch als dieses behandelt werden. Ebenso können Überschreibsteine diesen Effekt hervorrufen.
 
-Die Analyse zur Sicherheit der Felder bzw. deren Wert wurde anhand eines Punktesystems realisiert. Hierbei sollte jedem Feld eine Zahl zugeordnet werden, die auf Basis von einigen Kriterien errechnet wurde und somit darstellte, wie bedeutend dieses ist. Wie bereits zuvor erwähnt sind zum einen die Möglichkeiten der Gegner zur Eroberung des Feldes als auch die daraus ausgehenden Wege maßgebend. Zusätzlich wurde berücksichtigt wie weit von den jeweiligen Positionen aus gezogen werden kann. Dadurch sollte sichergestellt werden, dass z.B. Felder, die zwar nicht mehr eingenommen werden können, aber sich bspw. in schmäleren Bereichen der Karte befinden und somit weniger Zugmöglichkeiten bieten, nicht so gut bewertet werden, wie welche von denen aus weit ins Spielfeld hinein gezogen werden kann. Der Stein, der in Abbildung \ref{fig:example_heuristics_reachable_fields} zu sehen ist, ist ein Beispiel für ein solches Feld. Ein gegnerischer Spieler kann diesen Stein zwar nicht mehr erobern, aber gezogen werden kann von hier aus nur nach oben, da links und diagonal nur ein Feld bis zum Ende der Karte ist.
+Wie bereits zuvor erwähnt wurde die Analyse zur Sicherheit der Felder bzw. deren Wert anhand eines Punktesystems realisiert. Hierbei wurde jedem Feld eine Zahl zugeordnet, die auf Basis von einigen Kriterien errechnet wurde und somit darstellte, wie bedeutend dieses ist. Zuvor wurde bereits erläutert, dass zum einen die Möglichkeiten der Gegner zur Eroberung des Feldes als auch die daraus ausgehenden Wege maßgebend sind. Zusätzlich wurde berücksichtigt wie weit von den jeweiligen Positionen aus gezogen werden kann bzw. wie viel Prozent des Spielfelds davon ausgehend erreichbar ist. Dadurch sollte sichergestellt werden, dass z.B. Felder, die zwar nicht mehr eingenommen werden können, aber sich bspw. in schmäleren Bereichen der Karte befinden und somit weniger Zugmöglichkeiten bieten, nicht so gut bewertet werden, wie welche von denen aus weit ins Spielfeld hinein gezogen werden kann. Der Stein, der in Abbildung \ref{fig:example_heuristics_reachable_fields} zu sehen ist, ist ein Beispiel für ein solches Feld. Ein gegnerischer Spieler kann diesen Stein zwar nicht mehr erobern, aber gezogen werden kann von hier aus nur nach oben, da links und diagonal nur ein Feld bis zum Ende der Karte ist.
 
 \vspace{1em}
 \begin{minipage}{\linewidth}
@@ -270,7 +271,14 @@ Die Analyse zur Sicherheit der Felder bzw. deren Wert wurde anhand eines Punktes
 \end{minipage}
 \\
 
-Das Endergebnis einer solchen Berechnung ist in Abbildung \ref{fig:example_heuristics_implementation_field_values_matrix} zu sehen. Hier ist deutlich zu erkennen, dass Felder in den Ecken oder am Rand höher beziffert wurden als welche in der Mitte der Karte. Darüber hinaus wurde darauf geachtet, dass die wertvollen Felder auch erreicht werden können, indem die angrenzenden Bereiche mit negativen Zahlen gewichtet wurden. Dadurch soll signalisiert werden, dass diese Felder gemieden werden sollten, da sie dem Spieler die Chance verwehrt auf eines der vorteilhaften Felder zu ziehen und nur dem Gegner die Gelegenheit dafür geben würde. 
+%Bonusfeldbewertung
+Ebenso wurden die speziellen Felder von ReversiXT höher eingestuft als normale, sodass bspw. ein Bonusfeld immer eingenommen wird, sofern es möglich ist. 
+%Waves
+Um sicher zu gehen, dass der eigene Client vorteilhafte Felder auch einnehmen kann wurde ein Algorithmus entworfen, der die angrenzenden Bereiche mit negativen Zahlen gewichtet. Dadurch sollte signalisiert werden, dass diese Felder gemieden werden sollten, da sie dem Spieler die Chance verwehen auf eines der positiven Felder zu ziehen und nur dem Gegner die Gelegenheit dafür geben würde. Hierbei wurde jedoch darauf geachtet, dass vorteilhafte Felder sich nicht gegenseitig beeinflussen, da z. B. mehrere Bonusfelder, die direkt nebeneinander liegen ansonsten die Bewertung verfälscht hätten und möglicherweise sogar geringer eingestuft werden würden als gewöhnliche. Gebiete, die wiederum an solche negativ eingeschätzten Felder angrenzen wurden wieder positiv beziffert, womit das Ziel verfolgt wurde, dass der eigene Client auf diese zieht, um den Gegner dazu zu bringen, dass er auf ein Feld, das sich um ein nutzbringendes Feld befindet zu legen. Dieses Verfahren von abwechselnder negativen und positiven Bewertung ausgehend von dem bedeutenden Feld, wurde weitergeführt, wodurch eine Art Wellen entstanden.
+Im Laufe der Entwicklung zeigte sich, dass eine statische Berechnung dieser Wellen nicht gewinnbringend war, da Felder, wie bspw. Bonusfelder weiterhin positiv dargestellt wurden selbst, wenn diese bereits von einem Gegner eingenommen wurden und somit keinen zusätzliche Ressource mehr brachten. Dadurch bevorzugte der Client weiterhin diese Spielfelder z. B. beim durchführen von Überschreibzügen, obwohl es sich lediglich um ein normales Feld handelte.
+
+Abschließend wurden die Werte der einzelnen Heuristikbestandteile addiert. Das Endergebnis einer solchen Berechnung ist in Abbildung \ref{fig:example_heuristics_implementation_field_values_matrix} zu sehen. Hier ist deutlich zu erkennen, dass Felder in den Ecken oder am Rand höher beziffert wurden als welche in der Mitte der Karte.
+%neues Bild
 
 \vspace{1em}
 \begin{minipage}{\linewidth}
@@ -281,9 +289,7 @@ Das Endergebnis einer solchen Berechnung ist in Abbildung \ref{fig:example_heuri
 \end{minipage} 
 \\
 
-%Hier noch generell Multiplikatoren erwähnen
-Während der Entwicklung des Clients wurde ersichtlich, dass die unterschiedlichen Bewertungsmethoden im Laufe eines Spiels unterschiedlich schwer gewichtet werden sollten. Deshalb wurde ein Algorithmus entworfen, der angibt wie viele Felder auf einer Karte überhaupt bespielbar sind. Woraufhin verschiedene Phasen implementiert wurden, die angaben wie weit das Spiel bereits vorangeschritten ist und die Multiplikatoren der einzelnen Heuristiken neu setzten. In der ersten Phase befand sich die Partie solange weniger als 50\% der bespielbaren Felder eingenommen wurden. Verschiedene Tests zum finden der optimalen Multiplikatoren ergaben, dass zu diesem Zeitpunkt vor allem XX besonders wichtig war. War der Wert der eingefärbten Felder zwischen 50\% und 80\% befand sich das Spiel in der Mitte und somit in Phase 2.
-Ab 80\% Füllmenge des Spielbretts wurden die Multiplikatoren für Phase 3 gesetzt, in der XX bedeutend war.
+Die einzelnen Komponenten der Heuristik wurden mithilfe von Multiplikatoren verschieden stark priorisiert. Während der Entwicklung des Clients wurde ersichtlich, dass die unterschiedlichen Bewertungsmethoden im Laufe eines Spiels unterschiedlich schwer gewichtet werden sollten. Deshalb wurde ein Algorithmus entworfen, der angibt wie viele Felder auf einer Karte tatsächlich bespielbar sind. Woraufhin verschiedene Phasen implementiert wurden, die angaben wie weit das Spiel bereits vorangeschritten ist und die Multiplikatoren der einzelnen Heuristiken wurden abhängig davon neu gesetzt. In der ersten Phase befand sich die Partie solange weniger als 50\% der bespielbaren Felder eingenommen wurden. Verschiedene Tests zum finden der optimalen Multiplikatoren ergaben, dass zu diesem Zeitpunkt vor allem wichtig war wie weit von diesem Feld gezogen werden kann. War der Wert der eingefärbten Felder zwischen 50\% und 80\% befand sich das Spiel in der Mitte und somit in Phase 2. Hier wurde noch zusätzlich der Multiplikator für die Anzahl der einzufärbenden Steine deutlich erhöht während die anderen kaum verändert wurden. Ab 80\% Füllmenge des Spielbretts wurden die Multiplikatoren für Phase 3 gesetzt, in der die Mobilität an Wichtigkeit zunahm.
  
 \newpage
 % ----------------------------------------------------------------------------------
@@ -301,6 +307,7 @@ Ab 80\% Füllmenge des Spielbretts wurden die Multiplikatoren für Phase 3 geset
 \section{Fazit}
 Beschreiben Sie in diesem Abschnitt u.a.\ was Ihnen an diesem Fach gefallen hat und welche Verbesserungsvorschläge Sie für künftige Veranstaltungen haben. Was konnten Sie dazulernen, in welchen Bereichen haben Sie sich verbessert. Welche Problemsituationen gab es während der Projekterstellung, wie sind Sie diese angegangen und wie haben Sie diese gelöst. Was haben Sie evtl.\ vermisst.
 
+Abschließend lässt sich festhalten, dass das Wahlfach ZOCK einen guten ersten Einblick in das umfangreiche Themengebiet der künstlichen Intelligenz gibt. Gleichzeitig bietet es den Studierenden die Möglichkeit an einem Projekt von Anfang bis Ende zu arbeiten und Erfahrungen zu sammeln als Gruppe an einer Software zu entwickeln. 
 % ----------------------------------------------------------------------------------------------------------
 % Literatur
 % ----------------------------------------------------------------------------------------------------------
