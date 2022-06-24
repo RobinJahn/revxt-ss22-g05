@@ -185,7 +185,7 @@ Robin Jahn entwickelte zu Beginn auf seinem Laptop mit einem AMD Ryzen 5 3500U P
 % Kapitel: Spielfeldbewertung
 % ----------------------------------------------------------------------------------
 \section{Spielfeldbewertung}
-Zur Umsetzung eines solchen Clients wird eine K.I. benötigt, die anhand von Suchbäumen entscheidet, welcher Zug als nächstes getätigt werden soll. Die Elemente dieses Suchbaums sind verschiedene Szenarien, die aus der aktuellen Situation auf dem Spielfeld entstehen können. Hierfür müssen die verschiedenen Zugmöglichkeiten simuliert und der daraus entstandene Zustand bewertet werden, um zu entscheiden welcher der bestmögliche Zug ist. 
+Zur Umsetzung eines solchen Clients wird eine K.I. benötigt, die anhand von Suchbäumen entscheidet, welcher Zug als nächstes getätigt werden soll. Die Elemente dieses Suchbaums sind verschiedene Szenarien, die aus der aktuellen Situation auf dem Spielfeld entstehen können. Hierfür müssen die verschiedenen Zugmöglichkeiten simuliert und der daraus entstandene Zustand bewertet werden, um zu entscheiden welcher der bestmögliche Zug ist.
 In diesem Kapitel soll deshalb darauf eingegangen werden, wie Gruppe fünf diese Einschätzung umgesetzt hat.
 
 \subsection{Bestandteile}\label{kap:Heuristik_Beschreibung}
@@ -282,7 +282,7 @@ Wie bereits zuvor erwähnt wurde die Analyse zur Sicherheit der Felder bzw. dere
 \\
 
 %Bonusfeldbewertung
-Ebenso wurden die speziellen Felder von ReversiXT höher eingestuft als normale, sodass bspw. ein Bonusfeld immer eingenommen wird, sofern es möglich ist. 
+Ebenso wurden die speziellen Felder von ReversiXT höher eingestuft als normale, sodass bspw. ein Bonusfeld immer eingenommen wird, sofern es möglich ist.
 %Waves
 Um sicher zu gehen, dass der eigene Client vorteilhafte Felder auch einnehmen kann wurde ein Algorithmus entworfen, der die angrenzenden Bereiche mit negativen Zahlen gewichtet. Dadurch sollte signalisiert werden, dass diese Felder gemieden werden sollten, da sie dem Spieler die Chance verwehen auf eines der positiven Felder zu ziehen und nur dem Gegner die Gelegenheit dafür geben würde. Hierbei wurde jedoch darauf geachtet, dass vorteilhafte Felder sich nicht gegenseitig beeinflussen, da z. B. mehrere Bonusfelder, die direkt nebeneinander liegen ansonsten die Bewertung verfälscht hätten und möglicherweise sogar geringer eingestuft werden würden als gewöhnliche. Gebiete, die wiederum an solche negativ eingeschätzten Felder angrenzen wurden wieder positiv beziffert, womit das Ziel verfolgt wurde, dass der eigene Client auf diese zieht, um den Gegner dazu zu bringen, dass er auf ein Feld, das sich um ein nutzbringendes Feld befindet zu legen. Dieses Verfahren von abwechselnder negativen und positiven Bewertung ausgehend von dem bedeutenden Feld, wurde weitergeführt, wodurch eine Art Wellen entstanden.
 Im Laufe der Entwicklung zeigte sich, dass eine statische Berechnung dieser Wellen nicht gewinnbringend war, da Felder, wie bspw. Bonusfelder weiterhin positiv dargestellt wurden selbst, wenn diese bereits von einem Gegner eingenommen wurden und somit keinen zusätzliche Ressource mehr brachten. Dadurch bevorzugte der Client weiterhin diese Spielfelder z. B. beim durchführen von Überschreibzügen, obwohl es sich lediglich um ein normales Feld handelte.
@@ -306,9 +306,57 @@ Die einzelnen Komponenten der Heuristik wurden mithilfe von Multiplikatoren vers
 % Kapitel: Zusätzliche Inhalte
 % ----------------------------------------------------------------------------------
 \section{Optimierungen}
-\subsection{Aspiration Window}
+\subsection{LookAtReturnedMove First}
+Ausgehend davon, dass der beste Zug aus der letzten Tiefe auch in der neuen Tiefe sehr wahrscheinlich ein guter Zug sein wird schauen wir ihn uns als ersten Zug in der neuen tieferen Tiefe an.
 
-\subsection{Zobrist Hashing}
+\subsection{Reachable Fields}
+Um Felder, die im Spielverlauf nicht erreichbar sind, nicht in anderen Algorithmen zu berücksichtigen, lassen wir am Anfang diesen Algorithmus laufen. Dieser findet uns die erreichbaren Felder und speichert diese Information in der Karte ab.
+
+\subsection{Aspiration Window}
+Mit Hilfe des Aspiration Windows wollen wir bei Alpha Beta Pruning auf oberster Ebene bessere Werte setzen. Dafür nehmen wir den Wert aus der vorhergegangenen Iteration und addieren beziehungsweise subtrahieren eine Fenstergröße davon, um Alpha, beziehungsweise Beta zu erhalten. Sollte dann ein berechneter Wert aus diesem Fenster herausfallen, muss die Suche auf der gleichen Tiefe noch einmal mit komplett geöffneten Alpha und Beta gestartet werden. Dies führt allerdings zu mehr Aufwand.
+
+Da ReversiXT sehr volatil ist, mussten wir eine sehr große Fenstergröße ansetzen, um die Anzahl der kompletten Neusuchen in einen akzeptablen Bereich zu bringen. Dies führte allerdings dazu, dass wir insgesamt keinen Zeitgewinn gemacht haben.
+Deswegen haben wir uns entschieden es generell zu deaktivieren.
+
+\subsection{Transposition Tabelle mit Hilfe von Zobrist Hashing}
+Um unseren Client schneller zu machen, wollen wir uns Bewertungen für verschiedene Spielbretter merken.
+Dies haben wir durch eine Hash-Tabelle realisiert, welche für einen gegebenen Hash überprüft, ob wir diese Spielsituation schon einmal gesehen haben und falls ja den Wert dafür zurückzugeben.
+
+Um aus einem Spielbrett einen möglichst eindeutigen Hash in akzeptabler Zeit zu generieren verwenden wir Zobrist Hashing.
+
+Dafür erstellen wir am Anfang eine Zobrist Tabelle, welcher so groß, wie die Map ist und 2 tief. Wobei die erste Ebene für unsere Steine und die Zweite Ebene für alle gegnerischen Steine gilt. Außerdem speichern wir noch einen Wert, der dafür steht, ob wir dran sind oder nicht.
+
+Diese werden mit zufälligen 64-Bit Zahlen initialisiert.
+Um nun den Hashwert für eine gegebene Karte zu ermitteln, starten wir bei dem Hashwert von 0 gehen über alle Steine aller Spieler und XOR'n den Wert der für diesen Spieler in der dazugehörigen Tabelle steht drauf. Am Schluss XOR'n wir noch den Extra Wert darauf, wenn wir dran sind.
+
+Da wir die Zobrist Tabelle nur einmal aufbauen müssen, haben wir uns überlegt, ob wir nicht eine explizit aufgebaute Tabelle übergeben wollen, anstatt einmal am Anfang eine zu generieren. Allerdings haben wir uns dagegen entschieden, da der Aufbau einer maximal großen Tabelle gemittelt, über 10.000 Versuche, nur 3,7 ms braucht.
+
+% Hier Tabelle mit Gewinn pro Kartengroeße pro Transpositon Tabelle mit Assoziativität;
+
+  \begin{table}[!h]
+\centering
+	\begin{tabular} {| m{1.7cm} | m{3cm} | m{3cm} | m{3cm} | m{3cm}|}
+		\hline
+		\textbf{} &\textbf{0} &\textbf{32000} & \textbf{64000} & \textbf{128000}\\
+		\hline
+		20x20 & 4,7 & 5,07 & 4.95 & 4,95 \\
+		\hline
+		Hits & 0 & 388656 & 458906 & 497381 \\
+		\hline
+		50x50 & X & 2,36 & 2,7 & 3 \\
+		\hline
+		Hits & 0 & 0 & 0 & 0 \\
+		\hline
+	\end{tabular}
+	\caption{Durchschnittliche Tiefe und Treffer mit Transposition Tabellen}
+	\label{tab:tasks}
+\end{table}
+
+Auf Grund dieser Daten halten wir in unserer Transposition Tabelle 64.000 Werte, welche uns einen durchschnittlichen Tiefengewinn von 0,5 auf großen Karten und einen Gewinn von 0,4 auf kleinen Karten.
+
+
+
+
 
 \newpage
 % ----------------------------------------------------------------------------------
@@ -317,7 +365,7 @@ Die einzelnen Komponenten der Heuristik wurden mithilfe von Multiplikatoren vers
 \section{Fazit}
 Beschreiben Sie in diesem Abschnitt u.a.\ was Ihnen an diesem Fach gefallen hat und welche Verbesserungsvorschläge Sie für künftige Veranstaltungen haben. Was konnten Sie dazulernen, in welchen Bereichen haben Sie sich verbessert. Welche Problemsituationen gab es während der Projekterstellung, wie sind Sie diese angegangen und wie haben Sie diese gelöst. Was haben Sie evtl.\ vermisst.
 
-Abschließend lässt sich festhalten, dass das Wahlfach ZOCK einen guten ersten Einblick in das umfangreiche Themengebiet der künstlichen Intelligenz gibt. Gleichzeitig bietet es den Studierenden die Möglichkeit an einem Projekt von Anfang bis Ende zu arbeiten und Erfahrungen zu sammeln als Gruppe an einer Software zu entwickeln. 
+Abschließend lässt sich festhalten, dass das Wahlfach ZOCK einen guten ersten Einblick in das umfangreiche Themengebiet der künstlichen Intelligenz gibt. Gleichzeitig bietet es den Studierenden die Möglichkeit an einem Projekt von Anfang bis Ende zu arbeiten und Erfahrungen zu sammeln als Gruppe an einer Software zu entwickeln.
 % ----------------------------------------------------------------------------------------------------------
 % Literatur
 % ----------------------------------------------------------------------------------------------------------
