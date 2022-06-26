@@ -94,8 +94,6 @@ Die erweiterte Variante bietet eine zusätzliche Besonderheit bei der Möglichke
 Außerdem können ReversiXT Karten besondere Felder enthalten, die ausgelöst werden, sobald ein Spieler das erste Mal darauf zieht. Dazu gehören die Bonusfelder, die dem Spieler die Wahl zwischen einer zusätzlichen Bombe oder eines Überschreibsteins gibt (In Abbildung \ref{fig:reversixt_circle_map} in Gelb dargestellt). Setzt ein Spieler auf ein Inversionsfeld, werden die Farben der Spieler um eins verschoben, wodurch bspw. Spieler 2 die Steine von Spieler 1, Spieler 3 die von Spieler 2 und Spieler 1 die von Spieler 3 erhält (in Abbildung \ref{fig:reversixt_circle_map} in Rosa). Ein Wahlfeld gibt einem Spieler die Möglichkeit seine Steine gezielt mit denen eines Gegners zu tauschen, allerdings kann auch darauf verzichtet werden, indem mit den eigenen Steinen \glqq getauscht\grqq{} wird (In Abbildung \ref{fig:reversixt_circle_map} in Grün). Als letzte Art von Sonderfeldern sind die Expansionsfelder zu nennen, die für alle Spieler als Gegner gelten. Eine weitere Besonderheit dieser Felder ist, dass sie zu jeder Zeit mit einem Überschreibstein eingenommen werden können, selbst wenn dadurch kein gültiger Zug entsteht (In Abbildung \ref{fig:reversixt_circle_map} als weiße Spieler dargestellt). Durch diese Steine können einige interessante Spielfelder entstehen. Es können zum Beispiel Spielfelder gebaut werden, bei denen die Spieler zu Beginn keine eigenen Steine besitzen, es jedoch einige Expansionsfelder gibt. In diesem Fall könnten sich die Spieler in den ersten Zügen aussuchen, auf welchen Expansionsstein sie Ziehen möchten. Dieser Ansatz wurde bei der Karte in Abbildung \ref{fig:reversixt_islands_map} verfolgt. Eine weitere Konsequenz von Expansionsfeldern ist, dass abgeschnittene Bereiche einer Karte bespielbar werden, solange dort einige Expansionssteine platziert wurden.
 
 Eine andere Eigenart von ReversiXT sind die Transitionen, die wie eine Art Portal betrachtet werden können. Sie erlauben es über die Wände der Karte hinaus zu ziehen, um an einer andere Stelle der Karte (das andere Ende der Transition) herauszukommen. Diese sind ebenfalls optional und können vom Ersteller des jeweiligen Spielfelds gezielt gesetzt werden. Dadurch können Karten bspw. in einzelne Bereiche eingeteilt werden, die nur über Transitionen erreicht werden können, wie es in Abbildung \ref{fig:reversixt_islands_map} dargestellt wird. Die Transitionen werden hierbei durch gelbe Linien repräsentiert und bestehen aus einem Ein- und Ausgangsfeld sowie einer Richtung in die diese Transition gültig ist. Ebenso ist zu beachten, dass diese immer in beide Richtungen genutzt werden können.
-%Beispiel Zug mit Transition?
-%Loops
 
 \vspace{1em}
 \begin{minipage}{\linewidth}
@@ -280,7 +278,6 @@ Abbildung \ref{fig:example_heuristics_safe_fields_dead_end} zeigt eine andere Si
 
 Ein Feld, das sich am Rand der Karte befindet, kann zwar eingenommen werden, jedoch sind die Möglichkeiten beschränkt, da es lediglich vertikal von gegnerischen Spielern eingefärbt werden kann, wie es in Abbildung \ref{fig:example_heuristics_safe_fields_outer_side} zu sehen ist. Gleichzeitig eröffnet es Möglichkeiten in fünf Richtungen den nächsten Spielzug durchzuführen.
 
-%ToDo: Pfeile einfügen
 \vspace{1em}
 \begin{minipage}{\linewidth}
 	\centering
@@ -292,7 +289,6 @@ Ein Feld, das sich am Rand der Karte befindet, kann zwar eingenommen werden, jed
 
 Wenn jedoch keine Seite durch das Ende der Karte geschützt ist, ist dieses Feld von allen Seiten für den Gegner erreichbar, bietet jedoch gleichzeitig viele Zugmöglichkeiten. Deshalb muss es durchdacht werden, wann welche Position wichtiger ist. In Abbildung \ref{fig:example_heuristics_safe_fields_middle} wird dies durch ein Feld inmitten der Spielfläche verdeutlicht.
 
-%ToDo: Pfeile einfügen
 \vspace{1em}
 \begin{minipage}{\linewidth}
 	\centering
@@ -315,10 +311,7 @@ Wie bereits zuvor erwähnt wurde die Analyse zur Sicherheit der Felder bzw. dere
 \end{minipage}
 \\
 
-%Bonusfeldbewertung
-Ebenso wurden die speziellen Felder von ReversiXT höher eingestuft als normale, sodass bspw. ein Bonusfeld immer eingenommen wird, sofern es möglich ist.
-%Waves
-Um sicher zu gehen, dass der eigene Client vorteilhafte Felder auch einnehmen kann wurde ein Algorithmus entworfen, der die angrenzenden Bereiche mit negativen Zahlen gewichtet. Dadurch sollte signalisiert werden, dass diese Felder gemieden werden sollten, da sie dem Spieler die Chance verwehen auf eines der positiven Felder zu ziehen und nur dem Gegner die Gelegenheit dafür geben würde. Hierbei wurde jedoch darauf geachtet, dass vorteilhafte Felder sich nicht gegenseitig beeinflussen, da z. B. mehrere Bonusfelder, die direkt nebeneinander liegen ansonsten die Bewertung verfälscht hätten und möglicherweise sogar geringer eingestuft werden würden als gewöhnliche. Gebiete, die wiederum an solche negativ eingeschätzten Felder angrenzen, wurden wieder positiv beziffert, womit das Ziel verfolgt wurde, dass der eigene Client auf diese zieht, um den Gegner dazu zu bringen auf ein Feld zu legen, das sich um ein nutzbringendes Feld befindet. Dieses Verfahren von abwechselnder negativen und positiven Bewertung ausgehend von dem bedeutenden Feld, wurde weitergeführt, wodurch eine Art Wellen entstanden.
+Ebenso wurden die speziellen Felder von ReversiXT höher eingestuft als normale, sodass bspw. ein Bonusfeld immer eingenommen wird, sofern es möglich ist. Um sicher zu gehen, dass der eigene Client vorteilhafte Felder auch einnehmen kann wurde ein Algorithmus entworfen, der die angrenzenden Bereiche mit negativen Zahlen gewichtet. Dadurch sollte signalisiert werden, dass diese Felder gemieden werden sollten, da sie dem Spieler die Chance verwehen auf eines der positiven Felder zu ziehen und nur dem Gegner die Gelegenheit dafür geben würde. Hierbei wurde jedoch darauf geachtet, dass vorteilhafte Felder sich nicht gegenseitig beeinflussen, da z. B. mehrere Bonusfelder, die direkt nebeneinander liegen ansonsten die Bewertung verfälscht hätten und möglicherweise sogar geringer eingestuft werden würden als gewöhnliche. Gebiete, die wiederum an solche negativ eingeschätzten Felder angrenzen, wurden wieder positiv beziffert, womit das Ziel verfolgt wurde, dass der eigene Client auf diese zieht, um den Gegner dazu zu bringen auf ein Feld zu legen, das sich um ein nutzbringendes Feld befindet. Dieses Verfahren von abwechselnder negativen und positiven Bewertung ausgehend von dem bedeutenden Feld, wurde weitergeführt, wodurch eine Art Wellen entstanden.
 Im Laufe der Entwicklung zeigte sich, dass eine statische Berechnung dieser Wellen nicht immer gewinnbringend war, da Felder, wie bspw. Bonusfelder weiterhin positiv dargestellt wurden selbst, wenn diese bereits von einem Gegner eingenommen wurden und somit keinen zusätzliche Ressource mehr brachten. Dadurch bevorzugte der Client weiterhin diese Spielfelder z. B. beim durchführen von Überschreibzügen, obwohl es sich lediglich um ein normales Feld handelte. Deshalb wurde bei Bonusfeldern die Wellen rundherum und der zusätzliche Wert entfernt, sobald es das erste Mal eingenommen wurde.
 
 Abschließend wurden die Werte der einzelnen Heuristikbestandteile addiert. Das Endergebnis einer solchen Berechnung ist in Abbildung \ref{fig:example_heuristics_implementation_field_values_matrix} zu sehen. Hier ist deutlich zu erkennen, dass Felder in den Ecken höher beziffert sind als andere. Außerdem kann festgestellt werden, dass die Bereiche um die Ecken einen deutlich niedrigeren Wert besitzen, was auf die negative Bewertung durch die Wellen zurückzuführen ist.
@@ -346,7 +339,7 @@ Ausgehend davon, dass der beste Zug aus der letzten Tiefe auch in der neuen Tief
 Um Felder, die im Spielverlauf nicht erreichbar sind, nicht in anderen Algorithmen zu berücksichtigen, lassen wir am Anfang diesen Algorithmus laufen. Dieser findet uns die erreichbaren Felder und speichert diese Information in der Karte ab.
 
 \subsection{Aspiration Window}
-Mit Hilfe des Aspiration Windows wollen wir bei Alpha Beta Pruning auf oberster Ebene konkrete Werte für Alpha und Beta setzen und nicht  -$\infty$ und +$\infty$ . Dafür nehmen wir den Wert aus der vorhergegangenen Iteration und addieren beziehungsweise subtrahieren eine Fenstergröße davon, um \textalpha, beziehungsweise \textbeta\ zu erhalten. Sollte dann ein berechneter Wert nicht in dem Intervall liegen, muss die Suche auf der gleichen Tiefe noch einmal mit komplett geöffneten \textalpha\ und \textbeta\ gestartet werden. Allerdings führt dies zu mehr Aufwand, als die Suche gleich mit -$\infty$ und +$\infty$ zu starten.
+Mit Hilfe des Aspiration Windows wollen wir bei Alpha Beta Pruning auf oberster Ebene konkrete Werte für Alpha und Beta setzen und nicht  -$\infty$ und +$\infty$ . Dafür nehmen wir den Wert aus der vorhergegangenen Iteration und addieren bzw. subtrahieren eine Fenstergröße davon, um \textalpha, bzw. \textbeta\ zu erhalten. Sollte dann ein berechneter Wert nicht in dem Intervall liegen, muss die Suche auf der gleichen Tiefe noch einmal mit komplett geöffneten \textalpha\ und \textbeta\ gestartet werden. Allerdings führt dies zu mehr Aufwand, als die Suche gleich mit -$\infty$ und +$\infty$ zu starten.
 
 Da ReversiXT ein sehr volatiles Spiel ist, mussten wir eine sehr große Fenstergröße ansetzen, um die Anzahl der kompletten Neusuchen in einen akzeptablen Bereich zu bringen. Dies führte allerdings dazu, dass wir insgesamt so gut wie keinen Zeitgewinn gemacht haben.
 Deswegen haben wir uns entschieden es generell zu deaktivieren.
@@ -355,15 +348,15 @@ Deswegen haben wir uns entschieden es generell zu deaktivieren.
 Damit unser Client tiefer suchen kann, wollen wir vermeiden, dass wir gleiche Spielfelder mehrfach evaluieren. Um dies zu erreichen müssen wir uns Bewertungen für verschiedene Spielbretter merken.
 Dies haben wir durch eine Hash-Tabelle realisiert, welche für einen gegebenen Hash überprüft, ob wir diese Spielsituation schon einmal gesehen haben und falls ja den Wert dafür zurückzugeben.
 
-Um aus einem Spielbrett einen möglichst einzigartigen Hash in akzeptabler Zeit zu generieren verwenden wir Zobrist Hashing.
+Um aus einem Spielbrett einen möglichst einzigartigen Hash in akzeptabler Zeit zu generieren, verwenden wir Zobrist Hashing.
 
-Dafür erstellen wir am Anfang eine Zobrist Tabelle, welche so groß, wie die Karte ist und 2 tief. Wobei die erste Ebene für unsere Steine und die Zweite Ebene für alle gegnerischen Steine gilt. Außerdem speichern wir noch einen Wert, der dafür steht, ob wir dran sind oder nicht.
+Dafür erstellen wir am Anfang eine Zobrist Tabelle, welche so groß, wie die Karte ist und zwei tief. Wobei die erste Ebene für unsere Steine und die zweite Ebene für alle gegnerischen Steine gilt. Außerdem speichern wir noch einen Wert, der dafür steht, ob wir an der Reihe sind oder nicht.
 
 Dann werden diese mit zufälligen 64-Bit Zahlen initialisiert.
-Um nun den Hashwert für eine gegebene Karte zu ermitteln, starten wir bei dem Hashwert von 0 gehen über alle Steine aller Spieler und XOR'n den Wert der für diesen Spieler in der dazugehörigen Tabelle steht drauf. Am Schluss XOR'n wir noch den Extra Wert darauf, wenn wir dran sind.
+Um nun den Hashwert für eine gegebene Karte zu ermitteln, starten wir bei dem Hashwert von null gehen über alle Steine aller Spieler und XOR'n den Wert der für diesen Spieler in der dazugehörigen Tabelle steht darauf. Am Schluss XOR'n wir noch den Extrawert darauf, wenn wir am Zug sind.
 
 Da wir die Zobrist Tabelle nur einmal aufbauen müssen, haben wir uns überlegt, ob wir nicht eine explizit aufgebaute Tabelle übergeben wollen, anstatt einmal am Anfang eine zu generieren.
-Allerdings haben wir uns dagegen entschieden, da der Aufbau einer maximal großen Tabelle gemittelt, über 1.000.000 Versuche, nur 3,7 ms braucht.
+Allerdings haben wir uns dagegen entschieden, da der Aufbau einer maximal großen Tabelle gemittelt über 1.000.000 Versuche nur 3,7 ms braucht.
 
 In der nachfolgenden Tabelle sind durchschnittlich erreichte Tiefen aufgeführt. Die 1.Spalte steht für die Kartengröße und die 1.Zeile für die Größe der Transpositionen Tabelle. Null steht hierbei dafür, dass wir ohne Tabelle gerechnet haben.
 
@@ -382,7 +375,7 @@ In der nachfolgenden Tabelle sind durchschnittlich erreichte Tiefen aufgeführt.
 	\label{tab:tasks}
 \end{table}
 
-Auf Grund dieser Daten haben wir für eine Transpositionen Tabelle der Größe 128.000 entschieden, welche uns einen durchschnittlichen Tiefengewinn von 0,5 auf großen Karten und einen Gewinn von 0,6 auf kleinen Karten bringt.
+Aufgrund dieser Daten haben wir für eine Transpositionen Tabelle der Größe 128.000 entschieden, welche uns einen durchschnittlichen Tiefengewinn von 0,5 auf großen Karten und einen Gewinn von 0,6 auf kleinen Karten bringt.
 
 
 
