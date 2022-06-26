@@ -8,7 +8,7 @@
 % ----------------------------------------------------------------------------------------------------------
 % Titelseite
 % ----------------------------------------------------------------------------------------------------------
-\MyTitlepage[pics/gruppenbild2]{05}{
+\MyTitlepage[pics/gruppenbild]{05}{
 \texttt{robin.jahn@st.oth-regensburg.de}\\
 \texttt{simon1.melcher@st.oth-regensburg.de}\\
 \texttt{alexander1.wess@st.oth-regensburg.de}}
@@ -134,101 +134,69 @@ Wichtiges Vorwissen wurde vor allem aus den Fächern Programmieren 2 und Algorit
 
 Neben der wöchentlichen Vorlesung und Übung der Veranstaltung, wurde jeden Freitag eine Besprechung mit allen Mitgliedern abgehalten. In diesen Besprechungen wurden die Aufgaben, die bereits in der Übung am Dienstag verteilt wurden, besprochen und aufgetretene Probleme gemeinsam gelöst. Außerdem wurden neue Ansätze zur Ausarbeitung bzw. Verbesserung des Clients diskutiert und implementiert sowie neue Aufgaben zur Bearbeitung über das Wochenende zugeteilt. Zusätzlich wurde über eine gemeinsame WhatsApp Gruppe kommuniziert, in der Fragen gestellt werden konnten und organisatorisches vereinbart wurde.
 
-\vspace{1em}
-\begin{table}[H]
-\centering
-	\begin{tabular} {| m{2.6cm} | m{4cm} | m{4cm} | m{4cm}|}
-		\hline
-		\textbf{} &\textbf{Simon Melcher} & \textbf{Robin Jahn} & \textbf{Alexander Wess}\\
-		\hline
-		Woche 1 & Erstellen von eigenen Spielfeldern & Erstellen von eigenen Spielfeldern; Implementierung der Datenstruktur, Einlesen und Ausgabe & Erstellen von eigenen Spielfeldern\\
-		\hline
-		Woche 2 & Programmierung der gültigen Züge für Spezialfelder & Programmierung der gültigen Züge & Beschreibung der Zugheuristiken im Projektbericht\\
-		\hline
-		Woche 3 & Umsetzung der verbesserter Heuristik & Umsetzung der verbesserter Heuristik & Projektbericht Kapitel 1 - 3\\
-		\hline
-		Woche 4 & \textit{Krank} & Programmierung der Netzwerkfunktionalität & Erstellung des Build-File\\
-		\hline
-		Woche 5 & Implementierung Client-Parameter & Implementierung Paranoidsuche &\\
-		\hline
-		Woche 6 & Skripte erstellt um Tests durchzuführen & Skripte erstellt um Tests durchzuführen; Statistik implementiert; Bombenphase programmiert & Implementierung Alpha-Beta-Pruning\\
-		\hline
-		Woche 7 & Implementierung Iterative-Deepening & Implementierung Zugsortierung & Erweiterung des Projektberichts\\
-		\hline
-		Woche 8 & Programmierung einer neuer Funktion für die Bombenphase zum zählen der Steine & Änderung des Skripts zur Ermittlung der besten Multiplikatoren für die Heuristik & Implementierung einer neuen Funktion zur Bewertung von Bonusfeldern\\
-		\hline
-		Woche 9 & Implementierung Killer Heuristik und BRS+ & Programmierung einer neuen Funktion zur Zugermittlung & Implementierung BRS+; Weiterführung des Projektberichts\\
-		\hline
-		Woche 10 & Implementierung Zobrist Hasing und Aspiration Window & Implementierung MCTS & Implementierung Methode zufälliger Zug\\
-		\hline
-		Woche 11 - 13 & Optimierungen & Optimierungen & Optimierungen\\
-		\hline
-	\end{tabular}
-	\caption{Aufgabenverteilung}
-	\label{tab:tasks}
-\end{table}
 \newpage
 
-Woche 1:
+\subsection{Wochenübersicht}
+\underline{Woche 1:}
 \begin{itemize}
 \item Robin: Map Datenstruktur implementiert
 \item gesamte Gruppe: je zwei Spielfelder erstellt
 \end{itemize}
-Woche 2:
+\underline{Woche 2:}
 \begin{itemize}
 \item Robin: Algorithmus für gültige Züge
 \item Simon: Algorithmus für gültige Züge (Spezialfelder)
 \item Alex: Beschreibung der Zugheuristik im Projektbericht
 \end{itemize}
-Woche 3:
+\underline{Woche 3:}
 \begin{itemize}
 \item Robin: Umsetzung der verbesserten Heuristik
 \item Simon: Git Struktur anhand der Vorgaben angepasst
 \item Alex: Projektbericht Kapitel 1 - 3
 \end{itemize}
-Woche 4:
+\underline{Woche 4:}
 \begin{itemize}
 \item Robin: Netzwerkfunktion implementiert, Bombenphase implementiert
 \item Simon: Krank
 \item Alex: Build-File erstellt
 \end{itemize}
-Woche 5:
+\underline{Woche 5:}
 \begin{itemize}
 \item Robin: Paranoidsuche implementiert
 \item Simon: Client Parameter implementiert, Vergleichsmöglichkeit mit der Ausgabe des Servers angelegt
 \end{itemize}
-Woche 6:
+\underline{Woche 6:}
 \begin{itemize}
 \item Robin: Statistiken implementiert
 \item Simon: Read Me für Vergleichsskript erstellt und Skript weiterentwickelt
 \item Alex: Alpha-Beta-Pruning implementiert
 \end{itemize}
-Woche 7:
+\underline{Woche 7:}
 \begin{itemize}
 \item Robin: Zugsortierung implementiert, Skript zur Ermittlung der besten Multiplikatoren erstellt
 \item Simon: Iterative-Deepening implementiert
 \item Alex: Erweiterung des Projektberichts
 \end{itemize}
-Woche 8:
+\underline{Woche 8:}
 \begin{itemize}
 \item Robin: Überarbeitung Skripte
 \item Simon: Funktion für die Bombenphase zum Zählen der Steine entwickelt
 \item Alex: Funktion zur Bewertung von Bonusfeldern erstellt
 \item gesamte Gruppe: ToDo's abgearbeitet
 \end{itemize}
-Woche 9:
+\underline{Woche 9:}
 \begin{itemize}
 \item Robin: Aufteilung Map Klasse in statischen und dynamischen Teil, neue Suchbaum Klasse
 \item Simon: BRS+, Killer Heuristik und Phasen für Heuristik implementiert
 \item Alex: BRS+ implementiert
 \end{itemize}
-Woche 10:
+\underline{Woche 10:}
 \begin{itemize}
 \item Robin: Entwurf Algorithmus erreichbare Felder, MCTS implementiert
 \item Simon: Implementierung Algorithmus erreichbare Felder, Zobrist Hashing und Aspiration Window implementiert
 \item Alex: Methode zufälliger Zug implementiert
 \end{itemize}
-Woche 11 - 13:
+\underline{Wochen 11 - 13:}
 \begin{itemize}
 \item Robin: Disqualifikation beseitigt (ein Überschreibzug zu viel), Aufteilung Heuristik in statisch und dynamisch, Wellen dynamisch gemacht, Vader Map erstellt
 \item Simon: Alderan Map erstellt, testen der optionalen Optimierungen (Zobrist Hashing und Aspiration Window)
@@ -275,11 +243,10 @@ Jedoch bringt dieses Verfahren auch Nachteile mit sich, da das Ziel des Spiels, 
 Zur Umsetzung der Spielfeldbewertung hinsichtlich der Anzahl an Steinen und der Mobilität wurde das gleiche Vorgehen verwendet. Im Folgenden wird die Umsetzung für die Anzahl der Steine beschrieben.
 Zuerst wird die Anzahl der eigenen Steine und die Anzahl der gefärbten Steine bestimmt. Durch den Quotienten dieser beiden Werte bekommt man den Anteil der eigenen Steine zu allen Steinen, die bisher eingenommen wurden. Wenn man z.B. 25 von insgesamt 100 gefärbten Steinen besitzt hat man 25\% der Steine. Dieser Anteilswert hat jedoch je nach Anzahl der Spieler auf einer Karte eine andere Aussagekraft. Wenn man 25\% der Steine auf einer 2-Spieler Karte hat ist dieser Wert schlecht. Wenn es jedoch eine 4 Spieler Karte ist, ist es der Durchschnitt. Um dieses Problem zu lösen, wird der Wert normiert, indem er durch die Durchschnittsanzahl der Steine pro Spieler geteilt wird. 
 
-Insgesamt ergibt sich
-\( \frac{ \frac{\text{ \# meine Steine}}{\text{ \# gefärbte Steine}} }{ \frac{1}{ \# Spieler} } \).
-Was zu
-\( \frac{ \text{ \# meine Steine } \cdot \text{ \# Spieler} }{ \text{ \# gefärbte Steine} } \) 
-vereinfacht werden kann.\\
+Insgesamt ergibt sich dadurch:
+\[ \frac{ \frac{\text{ \# meine Steine}}{\text{ \# gefärbte Steine}} }{ \frac{1}{ \# Spieler} } \]
+Was vereinfacht werden kann zu:
+\[ \frac{ \text{ \# meine Steine } \cdot \text{ \# Spieler} }{ \text{ \# gefärbte Steine} } \] 
 Wenn das Endergebnis 1 ist, bedeutet dies, dass der Spieler genau so viele Steine besitzt, wie er im Durchschnitt besitzen sollte. Ist es 0.5 oder auch 50\% hat der Spieler nur 50\% der Steine, die er im Durchschnitt besitzen sollte. Ebenso hat er bei einem Wert von 1,5 150\% der durchschnittlichen Steine.
 Im Vergleich zu einem Absolutwert hat diese Methode einige Vorteile. Da die Werte unabhängig von der Anzahl der Spieler oder des Spielfortschritts sind, kann ein Multiplikator auf den Wert gerechnet werden, um das Gewicht dieser Bewertungsmethode gegenüber den anderen zu verändern. Dieses ist durch die Unabhängigkeit auf allen möglichen Karten gleich, was dem gewünschten Verhalten entspricht.
 
@@ -295,7 +262,7 @@ Das naheliegendste Beispiel für ein solches sicheres Feld ist eine Ecke wie in 
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.3\linewidth]{pics/heuristics_safe_fields_corner.png}
-	\captionof{figure}[Heuristik sichere Felder Bsp. 1]{Nicht einnehmbares Feld mit vielen 		Zugmöglichkeiten}
+	\captionof{figure}[Heuristik sichere Felder Bsp. 1]{Nicht einnehmbares Feld mit vielen Zugmöglichkeiten}
 	\label{fig:example_heuristics_safe_fields_corner}
 \end{minipage}
 \\
@@ -359,7 +326,7 @@ Abschließend wurden die Werte der einzelnen Heuristikbestandteile addiert. Das 
 \vspace{1em}
 \begin{minipage}{\linewidth}
 	\centering
-	\includegraphics[width=0.8\linewidth]{pics/heuristics_implementation_field_values_matrix.png}
+	\includegraphics[width=\linewidth]{pics/heuristics_implementation_field_values_matrix.png}
 	\captionof{figure}[Heuristik Implementierung Bewertung Felder]{Spielfeld mit Punktzahl zur Bewertung der Felder}
 	\label{fig:example_heuristics_implementation_field_values_matrix}
 \end{minipage} 
