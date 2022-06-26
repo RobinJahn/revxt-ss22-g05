@@ -8,7 +8,7 @@
 % ----------------------------------------------------------------------------------------------------------
 % Titelseite
 % ----------------------------------------------------------------------------------------------------------
-\MyTitlepage[pics/gruppenbild]{05}{
+\MyTitlepage[pics/gruppenbild2]{05}{
 \texttt{robin.jahn@st.oth-regensburg.de}\\
 \texttt{simon1.melcher@st.oth-regensburg.de}\\
 \texttt{alexander1.wess@st.oth-regensburg.de}}
@@ -48,17 +48,15 @@
 % Kapitel: Einleitung
 % ----------------------------------------------------------------------------------
 \section{Einleitung} \label{kap:Einleitung}
-Der Begriff der \glqq künstlichen Intelligenz\grqq{} (kurz K.I.) ist heutzutage allgegenwärtig und findet in der Praxis immer mehr Anwendung und dementsprechend erhöht sich die Nachfrage an diesem Themengebiet.
-%Quelle suchen?
-Das Wahlpflichtfach \glqq ZOCK - Projekt Client-K.I.s für Brettspiele\grqq{} soll Studierenden einen ersten Einblick in die Algorithmen der künstlichen Intelligenz gewähren. Zur Umsetzung der Lernziele soll ein Projekt in Form einer Client-K.I. für das Spiel ReversiXT erstellt werden, wozu die Teilnehmer in Gruppen von je drei Studierenden aufgeteilt werden. 
+Der Begriff der \glqq künstlichen Intelligenz\grqq{} (kurz K.I.) ist heutzutage allgegenwärtig und findet in der Praxis immer mehr Anwendung und dementsprechend erhöht sich die Nachfrage an diesem Themengebiet.\cite{ki} Das Wahlpflichtfach \glqq ZOCK - Projekt Client-K.I.s für Brettspiele\grqq{} soll Studierenden einen ersten Einblick in die Algorithmen der künstlichen Intelligenz gewähren. Zur Umsetzung der Lernziele soll ein Projekt in Form einer Client-K.I. für das Spiel ReversiXT erstellt werden, wozu die Teilnehmer in Gruppen von je drei Studierenden aufgeteilt werden. 
 
-Das Spiel ReversiXT basiert auf dem Brettspiel Reversi aus den 1880er Jahren und wurde um einige Sonderregelungen erweitert, um dessen Komplexität zu steigern damit umfassendere K.I.'s entwickelt werden können. Das Original wird von zwei Spielern auf einem acht mal acht Spielfeld gespielt, wie es in Abbildung \ref{fig:reversi_original_map} zu sehen ist, während es in der weiterentwickelten Version möglich ist, auf Karten mit bis zu 2500 Felder, also 50 mal 50, mit höchstens acht Spielern zu spielen. Ein Beispiel eines solchen Spielfelds wird in Abbildung \ref{fig:reversixt_circle_map} dargestellt. Hierbei handelt es sich um eine Karte für drei Spieler mit einer Höhe und Breite von je 29 Feldern, wobei auch verdeutlicht wird, dass Spielfelder nicht zwangsläufig quadratisch sein müssen, sondern individuell gestaltet werden können.
+Das Spiel ReversiXT basiert auf dem Brettspiel Reversi aus den 1880er Jahren\cite{reversi} und wurde um einige Sonderregelungen erweitert, um dessen Komplexität zu steigern, damit umfassendere K.I.'s entwickelt werden können. Das Original wird von zwei Spielern auf einem acht mal acht Spielfeld gespielt, wie es in Abbildung \ref{fig:reversi_original_map} zu sehen ist, während es in der weiterentwickelten Version möglich ist, auf Karten mit bis zu 2500 Felder, also 50 mal 50, mit höchstens acht Spielern zu spielen. Ein Beispiel eines solchen Spielfelds wird in Abbildung \ref{fig:reversixt_circle_map} dargestellt. Hierbei handelt es sich um eine Karte für drei Spieler mit einer Höhe und Breite von je 29 Feldern, wobei auch verdeutlicht wird, dass Spielfelder nicht zwangsläufig quadratisch sein müssen, sondern individuell gestaltet werden können.
 
 \vspace{1em}
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.4\linewidth]{pics/reversi_original_map.png}
-	\captionof{figure}[Bsp. 1 Reversi Karte]{Originales Spielfeld Reversi}
+	\captionof{figure}[Reversi Karte]{Originales Spielfeld Reversi}
 	\label{fig:reversi_original_map}
 \end{minipage}
 \\
@@ -67,34 +65,33 @@ Das Spiel ReversiXT basiert auf dem Brettspiel Reversi aus den 1880er Jahren und
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.7\linewidth]{pics/reversixt_circle_map.png}
-	\captionof{figure}[Bsp. 2 ReversiXT Circle Karte]{Spielfeld ReversiXT}
+	\captionof{figure}[ReversiXT Circle Karte]{Spielfeld ReversiXT}
 	\label{fig:reversixt_circle_map}
 \end{minipage}
 \\
 
-Jedem Spieler wird zu Beginn eine Farbe und die dazugehörigen Spielsteine zugewiesen. Das Spielprinzip ist es dann von den eigenen Steinen aus über die der Gegner auf ein freies Feld zu legen, wodurch die eingeschlossenen gegnerischen Steine eingefärbt werden und den Besitzer wechseln. Das bedeutet, dass zwischen dem eigenen Stein und dem freien Feld immer mindestens ein gegnerischer liegen muss. Es kann generell in jede Richtung, horizontal, vertikal und diagonal gezogen werden. Ein Beispiel hierfür ist in den folgenden Abbildungen zu sehen wobei Abbildung \ref{fig:capture_pre} die Situation vor dem Zug des Spielers mit den roten Steinen zeigt und durch eine weiße Umrandung verdeutlicht werden soll auf welches Feld gezogen wird. Abbildung \ref{fig:capture_post} stellt den Spielfeldzustand nach des Färbens dar.
+Jedem Spieler wird zu Beginn eine Farbe und die dazugehörigen Spielsteine zugewiesen. Das Spielprinzip ist es dann, von den eigenen Steinen aus über die der Gegner auf ein freies Feld zu legen, wodurch die eingeschlossenen gegnerischen Steine eingefärbt werden und den Besitzer wechseln. Das bedeutet, dass zwischen dem eigenen Stein und dem freien Feld immer mindestens ein gegnerischer liegen muss. Es kann generell in jede Richtung horizontal, vertikal und diagonal gezogen werden. Ein Beispiel hierfür ist in den folgenden Abbildungen zu sehen wobei Abbildung \ref{fig:capture_pre} die Situation vor dem Zug des Spielers mit den roten Steinen zeigt und durch eine weiße Umrandung verdeutlicht werden soll, auf welches Feld gezogen wird. Abbildung \ref{fig:capture_post} stellt den Spielfeldzustand nach dem Färben dar.
 
 \begin{figure}[H]
 \centering
 \begin{minipage}[c]{0.4\textwidth}
 	\centering
 	\includegraphics[width=\textwidth]{pics/reversi_original_map_capture_1.png}
-	\captionof{figure}[Bsp. 3 Einfärbern vorher]{Einfärben vor dem Zug}
+	\captionof{figure}[Einfärbern vorher]{Einfärben vor dem Zug}
 	\label{fig:capture_pre}
 \end{minipage}
 \hspace{0.1\textwidth}
 \begin{minipage}[c]{0.4\textwidth}
 	\centering
 	\includegraphics[width=\textwidth]{pics/reversi_original_map_capture_2.png}
-	\captionof{figure}[Bsp. 4 Einfärbern nachher]{Einfärben nach dem Zug}
+	\captionof{figure}[Einfärbern nachher]{Einfärben nach dem Zug}
 	\label{fig:capture_post}
 \end{minipage}
 \end{figure}
 
-Die erweiterte Variante bietet eine weitere Besonderheit bei der Möglichkeit einen gültigen Zug durchzuführen in Form von sogenannten Überschreibsteine. Diese erlauben es nicht nur auf freie Felder zu legen, sondern auch auf eigene oder gegnerische Steine, um diese einzunehmen, sofern es sich um einen ansonsten regelkonformen Spielzug handelt. Wie viele dieser Steine jeder Spieler zu Beginn zur Verfügung hat, wird vom Ersteller der Karte vorgeschrieben. Es ist jedoch möglich (abhängig vom Spielfeld) zusätzliche dieser Steine im Laufe der Runde zu erhalten, worauf im Weiteren noch genauer eingegangen wird. 
-%Bsp. Überschreibsteine
+Die erweiterte Variante bietet eine zusätzliche Besonderheit bei der Möglichkeit, einen gültigen Zug durchzuführen in Form von sogenannten Überschreibsteine. Diese erlauben es nicht nur auf freie Felder zu legen, sondern auch auf eigene oder gegnerische Steine, um diese einzunehmen, sofern es sich um einen ansonsten regelkonformen Spielzug handelt. Wie viele dieser Steine jeder Spieler zu Beginn zur Verfügung hat, wird vom Ersteller der Karte vorgeschrieben. Es ist jedoch möglich (abhängig vom Spielfeld) zusätzliche dieser Steine im Laufe der Runde zu erhalten, worauf im Weiteren noch genauer eingegangen wird. 
 
-Außerdem können ReversiXT Karten besondere Felder enthalten, die ausgelöst werden sobald ein Spieler das erste Mal darauf zieht. Dazu gehören die Bonusfelder, die dem Spieler die Wahl zwischen einer zusätzlichen Bombe oder eines Überschreibsteins gibt (In Abbildung \ref{fig:reversixt_circle_map} in gelb dargestellt). Setzt ein Spieler auf ein Inversionsfeld werden die Farben der Spieler um eins verschoben, wodurch bspw. Spieler 2 die Steine von Spieler 1, Spieler 3 die von Spieler 2 und Spieler 1 die von Spieler 3 erhält (in Abbildung \ref{fig:reversixt_circle_map} in rosa). Ein Wahlfeld gibt einem Spieler die Möglichkeit seine Steine gezielt mit denen eines Gegners zu tauschen, allerdings kann auch darauf verzichtet werden indem mit den eigenen Steinen \glqq getauscht\grqq{} wird (In Abbildung \ref{fig:reversixt_circle_map} in grün). Als letzte Art von Sonderfeldern sind die Expansionsfelder zu nennen, die für alle Spieler als Gegner gelten. Eine weitere Besonderheit dieser Felder ist, dass sie zu jeder Zeit mit einem Überschreibstein eingenommen werden können, selbst wenn dadurch kein gültiger Zug entsteht (In Abbildung \ref{fig:reversixt_circle_map} als weiße Spieler dargestellt). Durch diese Steine können einige interessante Spielfelder entstehen. Es können zum Beispiel Spielfelder gebaut werden, bei denen die Spieler zu Beginn keine eigenen Steine besitzen, es jedoch einige Expansionsfelder gibt. In diesem Fall könnten sich die Spieler in den ersten Zügen aussuchen, auf welchen Expansionsstein sie Ziehen möchten. Dieser Ansatz wurde bei der Karte in Abbildung \ref{fig:reversixt_circle_map} verfolgt. Eine weitere Konsequenz von Expansionsfeldern ist, dass abgeschnittene Bereiche einer Karte bespielbar werden, solange dort einige Expansionssteine platziert wurden.
+Außerdem können ReversiXT Karten besondere Felder enthalten, die ausgelöst werden, sobald ein Spieler das erste Mal darauf zieht. Dazu gehören die Bonusfelder, die dem Spieler die Wahl zwischen einer zusätzlichen Bombe oder eines Überschreibsteins gibt (In Abbildung \ref{fig:reversixt_circle_map} in Gelb dargestellt). Setzt ein Spieler auf ein Inversionsfeld, werden die Farben der Spieler um eins verschoben, wodurch bspw. Spieler 2 die Steine von Spieler 1, Spieler 3 die von Spieler 2 und Spieler 1 die von Spieler 3 erhält (in Abbildung \ref{fig:reversixt_circle_map} in Rosa). Ein Wahlfeld gibt einem Spieler die Möglichkeit seine Steine gezielt mit denen eines Gegners zu tauschen, allerdings kann auch darauf verzichtet werden, indem mit den eigenen Steinen \glqq getauscht\grqq{} wird (In Abbildung \ref{fig:reversixt_circle_map} in Grün). Als letzte Art von Sonderfeldern sind die Expansionsfelder zu nennen, die für alle Spieler als Gegner gelten. Eine weitere Besonderheit dieser Felder ist, dass sie zu jeder Zeit mit einem Überschreibstein eingenommen werden können, selbst wenn dadurch kein gültiger Zug entsteht (In Abbildung \ref{fig:reversixt_circle_map} als weiße Spieler dargestellt). Durch diese Steine können einige interessante Spielfelder entstehen. Es können zum Beispiel Spielfelder gebaut werden, bei denen die Spieler zu Beginn keine eigenen Steine besitzen, es jedoch einige Expansionsfelder gibt. In diesem Fall könnten sich die Spieler in den ersten Zügen aussuchen, auf welchen Expansionsstein sie Ziehen möchten. Dieser Ansatz wurde bei der Karte in Abbildung \ref{fig:reversixt_islands_map} verfolgt. Eine weitere Konsequenz von Expansionsfeldern ist, dass abgeschnittene Bereiche einer Karte bespielbar werden, solange dort einige Expansionssteine platziert wurden.
 
 Eine andere Eigenart von ReversiXT sind die Transitionen, die wie eine Art Portal betrachtet werden können. Sie erlauben es über die Wände der Karte hinaus zu ziehen, um an einer andere Stelle der Karte (das andere Ende der Transition) herauszukommen. Diese sind ebenfalls optional und können vom Ersteller des jeweiligen Spielfelds gezielt gesetzt werden. Dadurch können Karten bspw. in einzelne Bereiche eingeteilt werden, die nur über Transitionen erreicht werden können, wie es in Abbildung \ref{fig:reversixt_islands_map} dargestellt wird. Die Transitionen werden hierbei durch gelbe Linien repräsentiert und bestehen aus einem Ein- und Ausgangsfeld sowie einer Richtung in die diese Transition gültig ist. Ebenso ist zu beachten, dass diese immer in beide Richtungen genutzt werden können.
 %Beispiel Zug mit Transition?
@@ -104,7 +101,7 @@ Eine andere Eigenart von ReversiXT sind die Transitionen, die wie eine Art Porta
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.7\linewidth]{pics/reversixt_islands_map.png}
-	\captionof{figure}[Bsp. 3 ReversiXT Islands Karte]{Spielfeld mit Transitionen}
+	\captionof{figure}[ReversiXT Islands Karte]{Spielfeld mit Transitionen}
 	\label{fig:reversixt_islands_map}
 \end{minipage}
 \\
@@ -115,7 +112,7 @@ Aufgrund dieser Besonderheit ist es möglich in Schleifen über die Karte zu geh
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.4\linewidth]{pics/transition_loop.png}
-	\captionof{figure}[Bsp. 4 Transition loop]{Transition mit Schleife}
+	\captionof{figure}[Transition loop]{Transition mit Schleife}
 	\label{fig:example_transition_loop}
 \end{minipage}
 \\
@@ -133,7 +130,7 @@ Wie in Kapitel \ref{kap:Einleitung} erwähnt wurde das Projekt in einer Kleingru
 \subsection{Team und Kommunikation}
 Die Mitglieder der Gruppe 05 waren Simon Melcher, Robin Jahn und Alexander Wess, die sich alle im vierten Semester ihres Bachelor Informatik Studiums befanden.
 
-Wichtiges Vorwissen wurde vor allem aus den Fächern Programmieren 2 und Algorithmen und Datenstrukturen von den Studierenden mitgebracht. Dort wurde u. a. anhand von Java die Objektorientierte Programmierung vermittelt, anhand dieser dann verschiedenste Algorithmen in anderen Modulen besprochen und eigene Projekte durchgeführt wurden. Außerdem wurde ein Grundverständnis von Komplexität von Algorithmen mitgebracht, wodurch stärker auf Performance geachtet werden konnte und Einschätzungen getroffen werden konnten, welche Datenstruktur an welcher Stelle sinnvoll war. Robin Jahn konnte sich bereits im Vorfeld wissen zu verschiedenen K.\,I.\ relevanten Themen durch den Austausch mit anderen Studierenden des Studiengangs \glqq Künstliche Intelligenz und Data Science \grqq{} an der OTH Regensburg aneignen.
+Wichtiges Vorwissen wurde vor allem aus den Fächern Programmieren 2 und Algorithmen und Datenstrukturen von den Studierenden mitgebracht. Dort wurde u. a. anhand von Java die Objektorientierte Programmierung vermittelt, anhand dieser dann verschiedenste Algorithmen in anderen Modulen besprochen und eigene Projekte durchgeführt wurden. Außerdem wurde ein Grundverständnis von Komplexität von Algorithmen mitgebracht, wodurch stärker auf Performance geachtet werden konnte und Einschätzungen getroffen werden konnten, welche Datenstruktur an welcher Stelle sinnvoll war. Robin Jahn konnte sich bereits im Vorfeld wissen zu verschiedenen K.\,I.\ relevanten Themen durch den Austausch mit anderen Studierenden des Studiengangs \glqq Künstliche Intelligenz und Data Science\grqq{} an der OTH Regensburg aneignen.
 
 Neben der wöchentlichen Vorlesung und Übung der Veranstaltung, wurde jeden Freitag eine Besprechung mit allen Mitgliedern abgehalten. In diesen Besprechungen wurden die Aufgaben, die bereits in der Übung am Dienstag verteilt wurden, besprochen und aufgetretene Probleme gemeinsam gelöst. Außerdem wurden neue Ansätze zur Ausarbeitung bzw. Verbesserung des Clients diskutiert und implementiert sowie neue Aufgaben zur Bearbeitung über das Wochenende zugeteilt. Zusätzlich wurde über eine gemeinsame WhatsApp Gruppe kommuniziert, in der Fragen gestellt werden konnten und organisatorisches vereinbart wurde.
 
@@ -170,13 +167,83 @@ Neben der wöchentlichen Vorlesung und Übung der Veranstaltung, wurde jeden Fre
 	\caption{Aufgabenverteilung}
 	\label{tab:tasks}
 \end{table}
+\newpage
+
+Woche 1:
+\begin{itemize}
+\item Robin: Map Datenstruktur implementiert
+\item gesamte Gruppe: je zwei Spielfelder erstellt
+\end{itemize}
+Woche 2:
+\begin{itemize}
+\item Robin: Algorithmus für gültige Züge
+\item Simon: Algorithmus für gültige Züge (Spezialfelder)
+\item Alex: Beschreibung der Zugheuristik im Projektbericht
+\end{itemize}
+Woche 3:
+\begin{itemize}
+\item Robin: Umsetzung der verbesserten Heuristik
+\item Simon: Git Struktur anhand der Vorgaben angepasst
+\item Alex: Projektbericht Kapitel 1 - 3
+\end{itemize}
+Woche 4:
+\begin{itemize}
+\item Robin: Netzwerkfunktion implementiert, Bombenphase implementiert
+\item Simon: Krank
+\item Alex: Build-File erstellt
+\end{itemize}
+Woche 5:
+\begin{itemize}
+\item Robin: Paranoidsuche implementiert
+\item Simon: Client Parameter implementiert, Vergleichsmöglichkeit mit der Ausgabe des Servers angelegt
+\end{itemize}
+Woche 6:
+\begin{itemize}
+\item Robin: Statistiken implementiert
+\item Simon: Read Me für Vergleichsskript erstellt und Skript weiterentwickelt
+\item Alex: Alpha-Beta-Pruning implementiert
+\end{itemize}
+Woche 7:
+\begin{itemize}
+\item Robin: Zugsortierung implementiert, Skript zur Ermittlung der besten Multiplikatoren erstellt
+\item Simon: Iterative-Deepening implementiert
+\item Alex: Erweiterung des Projektberichts
+\end{itemize}
+Woche 8:
+\begin{itemize}
+\item Robin: Überarbeitung Skripte
+\item Simon: Funktion für die Bombenphase zum Zählen der Steine entwickelt
+\item Alex: Funktion zur Bewertung von Bonusfeldern erstellt
+\item gesamte Gruppe: ToDo's abgearbeitet
+\end{itemize}
+Woche 9:
+\begin{itemize}
+\item Robin: Aufteilung Map Klasse in statischen und dynamischen Teil, neue Suchbaum Klasse
+\item Simon: BRS+, Killer Heuristik und Phasen für Heuristik implementiert
+\item Alex: BRS+ implementiert
+\end{itemize}
+Woche 10:
+\begin{itemize}
+\item Robin: Entwurf Algorithmus erreichbare Felder, MCTS implementiert
+\item Simon: Implementierung Algorithmus erreichbare Felder, Zobrist Hashing und Aspiration Window implementiert
+\item Alex: Methode zufälliger Zug implementiert
+\end{itemize}
+Woche 11 - 13:
+\begin{itemize}
+\item Robin: Disqualifikation beseitigt (ein Überschreibzug zu viel), Aufteilung Heuristik in statisch und dynamisch, Wellen dynamisch gemacht, Vader Map erstellt
+\item Simon: Alderan Map erstellt, testen der optionalen Optimierungen (Zobrist Hashing und Aspiration Window)
+\item Alex: Zufälliger Zug überarbeitet (Suche in Spirale), Projektbericht überarbeitet
+\item gesamte Gruppe: Optimierungen und Erweiterung Projektbericht
+\end{itemize}
+
+\newpage
 
 \subsection{Technische Daten}
 In diesem Abschnitt soll auf die verwendeten technischen Mittel eingegangen werden. Das Projekt wurde in der Programmiersprache Java in der 11ten Version umgesetzt, da zum einen in dieser Programmiersprache bereits die meiste Erfahrung gesammelt werden konnte. Zum anderen konnten die gängigen Vorteile dieser Programmiersprache genutzt werden, wie z. B. die automatische Speicher- und Heap-Verwaltung oder die Möglichkeit mit \glqq Call by Reference\grqq{} zu arbeiten ohne Pointer zu benutzen.
 Zu Beginn legte sich die Gruppe fest einheitlich die Entwicklungsumgebung IntelliJ IDEA der Version 2021.3.3 von JetBrains zu nutzen. Der Vorteil davon war u. a., dass diese bereits eine gute Anbindung an Git besitzte und somit das Arbeiten in einem gemeinsam Repository signifikant erleichterte.
 Als Betriebssystem wurde hauptsächlich Windows 10 der Version 21H2 verwendet. Außerdem wurde von Robin Jahn eine virtuelle Maschine (VM) eingerichtet, die das Unix Betriebssystem Ubuntu simulierte. Simon Melcher und Alexander Wess nutzten hingegen das Windows Subsystem for Linux (WSL). Einerseits konnte mittels Linux der Server ausgeführt werden, wodurch neuer Code direkt im Spiel ausprobiert werden konnte. Außerdem konnten durch die Verwendung von WLS und der VM unterschiedliche Probleme identifiziert werden, die spezifisch auf einer der Umgebungen aufgetreten sind. Dadurch sollte sichergestellt werden, dass der entwickelte Client fehlerlos über ein Linux Betriebssystem ausgeführt werden konnte und die Kommunikation mit dem Server reibungslos funktionierte.
 
-Ebenfalls wurden die Tools aus dem globalen Repository wie der Map Editor genutzt, um Spielfelder zu erstellen und zu bearbeiten. Zusätzlich wurden Skripte angefertigt, die die Erstellung des Projekts erleichtern sollten. Um den Server auf dem die Spiele ausgetragen wurden und die zur Verfügung gestellte triviale K.I., nicht nach jedem Spiel neu starten zu müssen, wurde ein Skript programmiert, das nach jeder Partie dies übernahm. Zur Verbesserung der Heuristik, die in Kapitel \ref{kap:Heuristik_Beschreibung} genauer beschrieben wird, wurde ein weiteres Skript entwickelt. Dieses wurde verwendet, um möglichst gute Multiplikatoren der einzelnen Heuristik Bestandteile herauszufinden. Umgesetzt wurde dies, indem zu Beginn einer Partie alle Multiplikatoren zufällig in einem definierten Bereich gesetzt wurden und dann drei spiele gespielt wurden um diese zu testen. Eines auf einer zwei Spieler Karte, eines mit vier Spielern und eins mit acht. Hierbei spielte der eigene Client immer gegen Triviale KI's. Nach diesen drei Spielen wurde die mittlere Platzierung bestimmt und geprüft ob der beste Wert aktualisiert werden muss. Um die Effizienz des Skripts zu Steigern, wurden einerseits nur die eben erwähnten drei Karten bespielt und andererseits wurden Partien abgebrochen, wenn der eigene Client letzter wurde.
+Ebenfalls wurden die Tools aus dem globalen Repository wie der Map Editor genutzt, um Spielfelder zu erstellen und zu bearbeiten. Zusätzlich wurden Skripte angefertigt, die die Erstellung des Projekts erleichtern sollten. Um den Server, auf dem die Spiele ausgetragen wurden und die zur Verfügung gestellte triviale K.I., nicht nach jedem Spiel neu starten zu müssen, wurde ein Skript programmiert, das nach jeder Partie dies übernahm. Zur Verbesserung der Heuristik, die in Kapitel \ref{kap:Heuristik_Beschreibung} genauer beschrieben wird, wurde ein weiteres Skript entwickelt. Dieses wurde verwendet, um möglichst gute Multiplikatoren der einzelnen Heuristik Bestandteile herauszufinden. Umgesetzt wurde dies, indem zu Beginn einer Partie alle Multiplikatoren zufällig in einem definierten Bereich gesetzt wurden und dann drei Spiele gespielt wurden, um diese zu testen. Eines auf einer zwei Spieler Karte, eines mit vier Spielern und eins mit acht. Hierbei spielte der eigene Client immer gegen triviale KI's. Nach diesen drei Spielen wurde die mittlere Platzierung bestimmt und geprüft, ob der beste Wert aktualisiert werden muss. Um die Effizienz des Skripts zu Steigern, wurden einerseits nur die eben erwähnten drei Karten bespielt und andererseits wurden Partien abgebrochen, wenn der eigene Client letzter wurde.
 
 Robin Jahn entwickelte zu Beginn auf seinem Laptop mit einem AMD Ryzen 5 3500U Prozessor, der eine Taktfrequenz von 2,1 bis 3,7 GHz aufweist, und 8 GB Arbeitsspeicher. Jedoch wechselte er, vor allem zum Testen, auf seinen Tower PC, der mit einem Intel Core i5-7600 (3,5 GHz), 16GB RAM und einer Nvidia GeForce GTX 1070 Grafikkarte ausgestattet war, da dieser die virtuelle Maschine aufgrund seiner höheren Leistung besser bewältigen konnte. Simon Melcher wechselte ebenfalls zwischen einem Desktop Computer und einem Laptop für die Vorlesungen, Übungen und Gruppenmeetings. Beide Geräte besaßen 16 GB RAM sowie einen AMD Ryzen 5 2600X (3,6 GHz), der in seinem PC enthalten war und einen AMD Ryzen 3500U (2,1 GHz) in seinem Laptop. Alexander Wess arbeitet durchgehend mit einem Laptop, der einen AMD Ryzen 5 5500U (2.10 GHz) Prozessor und 16 GB Arbeitsspeicher verbaut hatte.
 
@@ -185,39 +252,39 @@ Robin Jahn entwickelte zu Beginn auf seinem Laptop mit einem AMD Ryzen 5 3500U P
 % Kapitel: Spielfeldbewertung
 % ----------------------------------------------------------------------------------
 \section{Spielfeldbewertung}
-Zur Umsetzung eines solchen Clients wird eine K.I. benötigt, die anhand von Suchbäumen entscheidet, welcher Zug als nächstes getätigt werden soll. Die Elemente dieses Suchbaums sind verschiedene Szenarien, die aus der aktuellen Situation auf dem Spielfeld entstehen können. Hierfür müssen die verschiedenen Zugmöglichkeiten simuliert und der daraus entstandene Zustand bewertet werden, um zu entscheiden welcher der bestmögliche Zug ist.
+Zur Umsetzung eines solchen Clients wird eine K.I. benötigt, die anhand von Suchbäumen entscheidet, welcher Zug als nächstes getätigt werden soll. Die Elemente dieses Suchbaums sind verschiedene Szenarien, die aus der aktuellen Situation auf dem Spielfeld entstehen können. Hierfür müssen die verschiedenen Zugmöglichkeiten simuliert und der daraus entstandene Zustand bewertet werden, um zu entscheiden, welcher der bestmögliche Zug ist.
 In diesem Kapitel soll deshalb darauf eingegangen werden, wie Gruppe fünf diese Einschätzung umgesetzt hat.
 
 \subsection{Bestandteile}\label{kap:Heuristik_Beschreibung}
-Eine mögliche Heuristik zur Spielfeldbewertung ist die eigene Flexibilität in Bezug auf durchführ"-bare Spielzüge (in diesem Kontext auch als "Mobilität" bezeichnet), die sich aus der jeweiligen Situation ergeben. Hierbei ist der Grundgedanke der, dass der Spieler nicht nur darauf achtet möglichst viele Steine auf dem Feld zu haben bzw. beim Tätigen eines Spielzugs möglichst viele Steine einzufärben (Greedy-Verfahren), sondern ebenfalls zu berücksichtigen wie viele Optionen er hat das Spiel weiterzuführen. Mehr valide Züge als die Gegner zu haben ist dementsprechend von Vorteil. Dadurch soll sichergestellt werden, dass die eigene Strategie weiterverfolgt werden kann und nicht der Gegner den Spielverlauf vorgibt oder man zu \glqq schlechten\grqq{} Zügen gezwungen wird.
+Eine mögliche Heuristik zur Spielfeldbewertung ist die eigene Flexibilität in Bezug auf durchführ"-bare Spielzüge (in diesem Kontext auch als "Mobilität" bezeichnet), die sich aus der jeweiligen Situation ergeben. Hierbei ist der Grundgedanke der, dass der Spieler nicht nur darauf achtet möglichst viele Steine auf dem Feld zu haben bzw. beim Tätigen eines Spielzugs möglichst viele Steine einzufärben (Greedy-Verfahren), sondern ebenfalls zu berücksichtigen wie viele Optionen er hat das Spiel weiterzuführen. Mehr valide Züge als die Gegner zu haben ist dementsprechend von Vorteil. Dadurch soll sichergestellt werden, dass die eigene Strategie weiterverfolgt werden kann und nicht der Gegner den Spielverlauf vorgibt.
 
-Die zuvor beschriebene Situation ist in Abbildung \ref{fig:example_heuristics_flexibility_simple} zu sehen. Der Spieler mit den blauen Steinen hat zwar mehr eingefärbt, kann jedoch nicht mehr ziehen (sofern keine Überschreibsteine verfügbar sind) und muss abwarten, was der Spieler mit den roten Steinen als nächstes macht. Dieser kann hingegen frei entscheiden in welche Richtung die Karte als nächstes bespielt werden soll, da er mehrere Richtung ziehen kann.
+Die zuvor beschriebene Situation ist in Abbildung \ref{fig:example_heuristics_flexibility_simple} zu sehen. Der Spieler mit den blauen Steinen hat zwar mehr eingefärbt, kann jedoch nicht mehr ziehen (sofern keine Überschreibsteine verfügbar sind) und muss abwarten, was der Spieler mit den roten Steinen als nächstes macht. Dieser kann hingegen frei entscheiden in welche Richtung die Karte als nächstes bespielt werden soll, da er in mehrere Richtung ziehen kann.
 
-Jedoch bringt dieses Verfahren auch Nachteile mit sich, da das Ziel des Spiels, am Ende der Partie die meisten Steine auf dem Spielfeld zu haben, vernachlässigt wird.
+Jedoch bringt dieses Verfahren auch Nachteile mit sich, da das Ziel des Spiels, am Ende der Partie die meisten Steine auf dem Spielfeld zu haben, vernachlässigt wird. Weshalb es mit anderen Bewertungsmethoden kombiniert werden sollte.
 
 \vspace{1em}
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.3\linewidth]{pics/heuristics_flexibility_simple_v2.png}
-	\captionof{figure}[Bsp. 1 Heuristik Flexibilität]{Situation Blau kann nicht mehr ziehen}
+	\captionof{figure}[Heuristik Flexibilität]{Situation Blau kann nicht mehr ziehen}
 	\label{fig:example_heuristics_flexibility_simple}
 \end{minipage}
 \\
 
 
 Zur Umsetzung der Spielfeldbewertung hinsichtlich der Anzahl an Steinen und der Mobilität wurde das gleiche Vorgehen verwendet. Im Folgenden wird die Umsetzung für die Anzahl der Steine beschrieben.
-Zuerst wird die Anzahl der eigenen Steine und die Anzahl der gefärbten Steine bestimmt. Durch den Quotient dieser beiden Werte bekommt man den Anteil der eigenen Steine zu allen Steinen, die bisher eingenommen wurden. Wenn man z.B. 25 von insgesamt 100 gefärbten Steinen besitzt hat man 25\% der Steine. Dieser Anteilswert hat jedoch je nach Anzahl der Spieler auf einer Karte eine andere Aussagekraft. Wenn man 25\% der Steine auf einer 2-Spieler Karte hat ist dieser Wert ziemlich schlecht. Wenn es jedoch eine 4 Spieler Karte ist, ist es der durchschnitt. Um dieses Problem zu lösen wird der Wert noch normiert, indem er durch die Durchschnittsanzahl der Steine pro Spieler geteilt wird. 
+Zuerst wird die Anzahl der eigenen Steine und die Anzahl der gefärbten Steine bestimmt. Durch den Quotienten dieser beiden Werte bekommt man den Anteil der eigenen Steine zu allen Steinen, die bisher eingenommen wurden. Wenn man z.B. 25 von insgesamt 100 gefärbten Steinen besitzt hat man 25\% der Steine. Dieser Anteilswert hat jedoch je nach Anzahl der Spieler auf einer Karte eine andere Aussagekraft. Wenn man 25\% der Steine auf einer 2-Spieler Karte hat ist dieser Wert schlecht. Wenn es jedoch eine 4 Spieler Karte ist, ist es der Durchschnitt. Um dieses Problem zu lösen, wird der Wert normiert, indem er durch die Durchschnittsanzahl der Steine pro Spieler geteilt wird. 
 
 Insgesamt ergibt sich
 \( \frac{ \frac{\text{ \# meine Steine}}{\text{ \# gefärbte Steine}} }{ \frac{1}{ \# Spieler} } \).
 Was zu
 \( \frac{ \text{ \# meine Steine } \cdot \text{ \# Spieler} }{ \text{ \# gefärbte Steine} } \) 
 vereinfacht werden kann.\\
-Wenn das Endergebnis 1 ist bedeutet dies, dass der Spieler genau so viele Steine besitzt, wie er im durchschnitt besitzen sollte. Ist es 0.5 oder auch 50\% hat der Spieler nur 50\% der Steine die er im durchschnitt besitzen sollte. Ebenso hat er beim Wert 1,5 150\% der durchschnittlichen Steine.
-Im Vergleich zu einem Absolutwert hat diese Methode einige Vorteile. Da die Werte unabhängig von der Anzahl der Spieler oder des Spielfortschritts sind  kann ein Multiplikator auf den Wert gerechnet werden um das Gewicht dieser Bewertungsmethode gegenüber den anderen zu verändern. Dieses ist durch die Unabhängigkeit auf allen möglichen Karten gleich, was dem gewünschten Verhalten entspricht.
+Wenn das Endergebnis 1 ist, bedeutet dies, dass der Spieler genau so viele Steine besitzt, wie er im Durchschnitt besitzen sollte. Ist es 0.5 oder auch 50\% hat der Spieler nur 50\% der Steine, die er im Durchschnitt besitzen sollte. Ebenso hat er bei einem Wert von 1,5 150\% der durchschnittlichen Steine.
+Im Vergleich zu einem Absolutwert hat diese Methode einige Vorteile. Da die Werte unabhängig von der Anzahl der Spieler oder des Spielfortschritts sind, kann ein Multiplikator auf den Wert gerechnet werden, um das Gewicht dieser Bewertungsmethode gegenüber den anderen zu verändern. Dieses ist durch die Unabhängigkeit auf allen möglichen Karten gleich, was dem gewünschten Verhalten entspricht.
 
-Wie schon oben erwähnt kann das gleiche Verfahren auch für die Bewertung der Mobilität verwendet werden. In diesem Fall sieht die Formel wie folgt aus:
-\[ \frac{ \text{ \# meine Züge } \cdot \text{ \# Spieler } }{ \sum_{i=1}^{ \#Spieler} \text{ \# züge von Spieler i } }  \].
+Wie bereits zuvor erwähnt kann das gleiche Verfahren auch für die Bewertung der Mobilität verwendet werden. In diesem Fall sieht die Formel wie folgt aus:
+\[ \frac{ \text{ \# meine Züge } \cdot \text{ \# Spieler } }{ \sum_{i=1}^{ \#Spieler} \text{ \# züge von Spieler i } }  \]
 
 
 Ein weiterer Ansatz der Spielfeldbewertung ist die \glqq Sicherheit\grqq{} der einnehmbaren Felder. In diesem Fall soll darauf geachtete werden, ob und wie leicht die jeweiligen Felder vom Gegner eingefärbt werden können. Folglich muss hierbei überprüft werden, ob ein Feld, nachdem es das erste Mal besetzt wird, überhaupt noch einmal den Besitzer wechseln kann oder aus wie vielen Richtungen die Gegner noch Möglichkeiten haben, dieses Feld zurückzugewinnen. Zusätzlich soll einkalkuliert werden, wie viel Prozent der bespielbaren Felder ausgehend von dieser Position erreichbar sind. Diese Analyse wird anhand eines Punktesystems realisiert, auf das im weiteren Verlauf dieses Kapitels noch genauer eingegangen wird.
@@ -228,7 +295,7 @@ Das naheliegendste Beispiel für ein solches sicheres Feld ist eine Ecke wie in 
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.3\linewidth]{pics/heuristics_safe_fields_corner.png}
-	\captionof{figure}[Bsp. 1 Heuristik sichere Felder]{Nicht einnehmbares Feld mit vielen 		Zugmöglichkeiten}
+	\captionof{figure}[Heuristik sichere Felder Bsp. 1]{Nicht einnehmbares Feld mit vielen 		Zugmöglichkeiten}
 	\label{fig:example_heuristics_safe_fields_corner}
 \end{minipage}
 \\
@@ -239,7 +306,7 @@ Abbildung \ref{fig:example_heuristics_safe_fields_dead_end} zeigt eine andere Si
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.3\linewidth]{pics/heuristics_safe_fields_dead_end.png}
-	\captionof{figure}[Bsp. 2 Heuristik sichere Felder]{Nicht einnehmbares Feld mit wenigen Zugmöglichkeiten}
+	\captionof{figure}[Heuristik sichere Felder Bsp. 2]{Nicht einnehmbares Feld mit wenigen Zugmöglichkeiten}
 	\label{fig:example_heuristics_safe_fields_dead_end}
 \end{minipage}
 \\
@@ -251,7 +318,7 @@ Ein Feld, das sich am Rand der Karte befindet, kann zwar eingenommen werden, jed
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.3\linewidth]{pics/heuristics_safe_fields_outer_side.png}
-	\captionof{figure}[Bsp. 3 Heuristik sichere Felder]{Beschränkt einnehmbares Feld}
+	\captionof{figure}[Heuristik sichere Felder Bsp. 3]{Beschränkt einnehmbares Feld}
 	\label{fig:example_heuristics_safe_fields_outer_side}
 \end{minipage}
 \\
@@ -263,20 +330,20 @@ Wenn jedoch keine Seite durch das Ende der Karte geschützt ist, ist dieses Feld
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.3\linewidth]{pics/heuristics_safe_fields_middle.png}
-	\captionof{figure}[Bsp. 4 Heuristik sichere Felder]{Voll einnehmbares Feld}
+	\captionof{figure}[Heuristik sichere Felder Bsp. 4]{Voll einnehmbares Feld}
 	\label{fig:example_heuristics_safe_fields_middle}
 \end{minipage}
 \\
 
 Die Schwierigkeit dieser Heuristik besteht darin, dass die Sonderregeln von ReversiXT nicht vernachlässigt werden dürfen. Ein vermeintlich sicheres Feld (z. B. eine Ecke), kann durch Transitionen gar kein uneinnehmbares Feld sein und muss auch als dieses behandelt werden. Ebenso können Überschreibsteine diesen Effekt hervorrufen.
 
-Wie bereits zuvor erwähnt wurde die Analyse zur Sicherheit der Felder bzw. deren Wert anhand eines Punktesystems realisiert. Hierbei wurde jedem Feld eine Zahl zugeordnet, die auf Basis von einigen Kriterien errechnet wurde und somit darstellte, wie bedeutend dieses ist. Zuvor wurde bereits erläutert, dass zum einen die Möglichkeiten der Gegner zur Eroberung des Feldes als auch die daraus ausgehenden Wege maßgebend sind. Zusätzlich wurde berücksichtigt wie weit von den jeweiligen Positionen aus gezogen werden kann bzw. wie viel Prozent des Spielfelds davon ausgehend erreichbar ist. Dadurch sollte sichergestellt werden, dass z.B. Felder, die zwar nicht mehr eingenommen werden können, aber sich bspw. in schmäleren Bereichen der Karte befinden und somit weniger Zugmöglichkeiten bieten, nicht so gut bewertet werden, wie welche von denen aus weit ins Spielfeld hinein gezogen werden kann. Der Stein, der in Abbildung \ref{fig:example_heuristics_reachable_fields} zu sehen ist, ist ein Beispiel für ein solches Feld. Ein gegnerischer Spieler kann diesen Stein zwar nicht mehr erobern, aber gezogen werden kann von hier aus nur nach oben, da links und diagonal nur ein Feld bis zum Ende der Karte ist.
+Wie bereits zuvor erwähnt wurde die Analyse zur Sicherheit der Felder bzw. deren Wert anhand eines Punktesystems realisiert. Hierbei wurde jedem Feld eine Zahl zugeordnet, die auf Basis von einigen Kriterien errechnet wurde und somit darstellte, wie bedeutend dieses ist. Zuvor wurde bereits erläutert, dass zum einen die Möglichkeiten der Gegner zur Eroberung des Feldes als auch die daraus ausgehenden Wege maßgebend sind. Zusätzlich wurde berücksichtigt wie weit von den jeweiligen Positionen aus gezogen werden kann bzw. wie viel Prozent des Spielfelds davon ausgehend erreichbar sind. Dadurch sollte sichergestellt werden, dass z.B. Felder, die zwar nicht mehr eingenommen werden können, aber sich bspw. in schmäleren Bereichen der Karte befinden und somit weniger Zugmöglichkeiten bieten, nicht so gut bewertet werden, wie welche von denen aus weit ins Spielfeld hinein gezogen werden kann. Der Stein, der in Abbildung \ref{fig:example_heuristics_reachable_fields} zu sehen ist, ist ein Beispiel für ein solches Feld. Ein gegnerischer Spieler kann diesen Stein zwar nicht mehr erobern, aber gezogen werden kann von hier aus nur nach oben, da links und diagonal nur ein Feld bis zum Ende der Karte ist.
 
 \vspace{1em}
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.5\linewidth]{pics/heuristics_reachable_fields.png}
-	\captionof{figure}[Bsp. 1 Heuristik erreichbare Felder]{Feld mit beschränkten Zugmöglichkeiten}
+	\captionof{figure}[Heuristik erreichbare Felder]{Feld mit beschränkten Zugmöglichkeiten}
 	\label{fig:example_heuristics_reachable_fields}
 \end{minipage}
 \\
@@ -284,22 +351,21 @@ Wie bereits zuvor erwähnt wurde die Analyse zur Sicherheit der Felder bzw. dere
 %Bonusfeldbewertung
 Ebenso wurden die speziellen Felder von ReversiXT höher eingestuft als normale, sodass bspw. ein Bonusfeld immer eingenommen wird, sofern es möglich ist.
 %Waves
-Um sicher zu gehen, dass der eigene Client vorteilhafte Felder auch einnehmen kann wurde ein Algorithmus entworfen, der die angrenzenden Bereiche mit negativen Zahlen gewichtet. Dadurch sollte signalisiert werden, dass diese Felder gemieden werden sollten, da sie dem Spieler die Chance verwehen auf eines der positiven Felder zu ziehen und nur dem Gegner die Gelegenheit dafür geben würde. Hierbei wurde jedoch darauf geachtet, dass vorteilhafte Felder sich nicht gegenseitig beeinflussen, da z. B. mehrere Bonusfelder, die direkt nebeneinander liegen ansonsten die Bewertung verfälscht hätten und möglicherweise sogar geringer eingestuft werden würden als gewöhnliche. Gebiete, die wiederum an solche negativ eingeschätzten Felder angrenzen wurden wieder positiv beziffert, womit das Ziel verfolgt wurde, dass der eigene Client auf diese zieht, um den Gegner dazu zu bringen, dass er auf ein Feld, das sich um ein nutzbringendes Feld befindet zu legen. Dieses Verfahren von abwechselnder negativen und positiven Bewertung ausgehend von dem bedeutenden Feld, wurde weitergeführt, wodurch eine Art Wellen entstanden.
-Im Laufe der Entwicklung zeigte sich, dass eine statische Berechnung dieser Wellen nicht gewinnbringend war, da Felder, wie bspw. Bonusfelder weiterhin positiv dargestellt wurden selbst, wenn diese bereits von einem Gegner eingenommen wurden und somit keinen zusätzliche Ressource mehr brachten. Dadurch bevorzugte der Client weiterhin diese Spielfelder z. B. beim durchführen von Überschreibzügen, obwohl es sich lediglich um ein normales Feld handelte.
+Um sicher zu gehen, dass der eigene Client vorteilhafte Felder auch einnehmen kann wurde ein Algorithmus entworfen, der die angrenzenden Bereiche mit negativen Zahlen gewichtet. Dadurch sollte signalisiert werden, dass diese Felder gemieden werden sollten, da sie dem Spieler die Chance verwehen auf eines der positiven Felder zu ziehen und nur dem Gegner die Gelegenheit dafür geben würde. Hierbei wurde jedoch darauf geachtet, dass vorteilhafte Felder sich nicht gegenseitig beeinflussen, da z. B. mehrere Bonusfelder, die direkt nebeneinander liegen ansonsten die Bewertung verfälscht hätten und möglicherweise sogar geringer eingestuft werden würden als gewöhnliche. Gebiete, die wiederum an solche negativ eingeschätzten Felder angrenzen, wurden wieder positiv beziffert, womit das Ziel verfolgt wurde, dass der eigene Client auf diese zieht, um den Gegner dazu zu bringen auf ein Feld zu legen, das sich um ein nutzbringendes Feld befindet. Dieses Verfahren von abwechselnder negativen und positiven Bewertung ausgehend von dem bedeutenden Feld, wurde weitergeführt, wodurch eine Art Wellen entstanden.
+Im Laufe der Entwicklung zeigte sich, dass eine statische Berechnung dieser Wellen nicht immer gewinnbringend war, da Felder, wie bspw. Bonusfelder weiterhin positiv dargestellt wurden selbst, wenn diese bereits von einem Gegner eingenommen wurden und somit keinen zusätzliche Ressource mehr brachten. Dadurch bevorzugte der Client weiterhin diese Spielfelder z. B. beim durchführen von Überschreibzügen, obwohl es sich lediglich um ein normales Feld handelte. Deshalb wurde bei Bonusfeldern die Wellen rundherum und der zusätzliche Wert entfernt, sobald es das erste Mal eingenommen wurde.
 
-Abschließend wurden die Werte der einzelnen Heuristikbestandteile addiert. Das Endergebnis einer solchen Berechnung ist in Abbildung \ref{fig:example_heuristics_implementation_field_values_matrix} zu sehen. Hier ist deutlich zu erkennen, dass Felder in den Ecken oder am Rand höher beziffert wurden als welche in der Mitte der Karte.
-%neues Bild
+Abschließend wurden die Werte der einzelnen Heuristikbestandteile addiert. Das Endergebnis einer solchen Berechnung ist in Abbildung \ref{fig:example_heuristics_implementation_field_values_matrix} zu sehen. Hier ist deutlich zu erkennen, dass Felder in den Ecken höher beziffert sind als andere. Außerdem kann festgestellt werden, dass die Bereiche um die Ecken einen deutlich niedrigeren Wert besitzen, was auf die negative Bewertung durch die Wellen zurückzuführen ist.
 
 \vspace{1em}
 \begin{minipage}{\linewidth}
 	\centering
 	\includegraphics[width=0.8\linewidth]{pics/heuristics_implementation_field_values_matrix.png}
-	\captionof{figure}[Bsp. 1 Heuristik Implementierung Bewertung Felder]{Spielfeld mit Punktzahl zur Bewertung der Felder}
+	\captionof{figure}[Heuristik Implementierung Bewertung Felder]{Spielfeld mit Punktzahl zur Bewertung der Felder}
 	\label{fig:example_heuristics_implementation_field_values_matrix}
 \end{minipage} 
 \\
 
-Die einzelnen Komponenten der Heuristik wurden mithilfe von Multiplikatoren verschieden stark priorisiert. Während der Entwicklung des Clients wurde ersichtlich, dass die unterschiedlichen Bewertungsmethoden im Laufe eines Spiels unterschiedlich schwer gewichtet werden sollten. Deshalb wurde ein Algorithmus entworfen, der angibt wie viele Felder auf einer Karte tatsächlich bespielbar sind. Woraufhin verschiedene Phasen implementiert wurden, die angaben wie weit das Spiel bereits vorangeschritten ist und die Multiplikatoren der einzelnen Heuristiken wurden abhängig davon neu gesetzt. In der ersten Phase befand sich die Partie solange weniger als 50\% der bespielbaren Felder eingenommen wurden. Verschiedene Tests zum finden der optimalen Multiplikatoren ergaben, dass zu diesem Zeitpunkt vor allem wichtig war wie weit von diesem Feld gezogen werden kann. War der Wert der eingefärbten Felder zwischen 50\% und 80\% befand sich das Spiel in der Mitte und somit in Phase 2. Hier wurde noch zusätzlich der Multiplikator für die Anzahl der einzufärbenden Steine deutlich erhöht während die anderen kaum verändert wurden. Ab 80\% Füllmenge des Spielbretts wurden die Multiplikatoren für Phase 3 gesetzt, in der die Mobilität an Wichtigkeit zunahm.
+Die einzelnen Komponenten der Heuristik wurden mithilfe von Multiplikatoren verschieden stark priorisiert. Während der Entwicklung des Clients wurde ersichtlich, dass die unterschiedlichen Bewertungsmethoden im Laufe eines Spiels unterschiedlich schwer gewichtet werden sollten. Deshalb wurde ein Algorithmus entworfen, der angibt wie viele Felder auf einer Karte tatsächlich bespielbar sind. Woraufhin verschiedene Phasen implementiert wurden, die angaben, wie weit das Spiel bereits vorangeschritten ist und die Multiplikatoren der einzelnen Heuristiken wurden abhängig davon neu gesetzt. In der ersten Phase befand sich die Partie solange weniger als 50\% der bespielbaren Felder eingenommen wurden. Verschiedene Tests zum Finden der optimalen Multiplikatoren ergaben, dass zu diesem Zeitpunkt vor allem wichtig war, wie weit von diesem Feld gezogen werden kann. War der Wert der eingefärbten Felder zwischen 50\% und 80\%, befand sich das Spiel in der Mitte und somit in Phase 2. Hier wurde noch zusätzlich der Multiplikator für die Anzahl der einzufärbenden Steine deutlich erhöht, während die anderen kaum verändert wurden. Ab 80\% Füllmenge des Spielbretts wurden die Multiplikatoren für Phase 3 gesetzt, in der die Mobilität an Wichtigkeit zunahm.
  
 \newpage
 % ----------------------------------------------------------------------------------
@@ -307,65 +373,70 @@ Die einzelnen Komponenten der Heuristik wurden mithilfe von Multiplikatoren vers
 % ----------------------------------------------------------------------------------
 \section{Optimierungen}
 \subsection{LookAtReturnedMove First}
-Ausgehend davon, dass der beste Zug aus der letzten Tiefe auch in der neuen Tiefe sehr wahrscheinlich ein guter Zug sein wird schauen wir ihn uns als ersten Zug in der neuen tieferen Tiefe an.
+Ausgehend davon, dass der beste Zug aus der letzten Tiefe auch in der neuen Tiefe sehr wahrscheinlich ein guter Zug sein wird, schauen wir ihn uns als ersten Zug in der neuen tieferen Tiefe an.
 
 \subsection{Reachable Fields}
 Um Felder, die im Spielverlauf nicht erreichbar sind, nicht in anderen Algorithmen zu berücksichtigen, lassen wir am Anfang diesen Algorithmus laufen. Dieser findet uns die erreichbaren Felder und speichert diese Information in der Karte ab.
 
 \subsection{Aspiration Window}
-Mit Hilfe des Aspiration Windows wollen wir bei Alpha Beta Pruning auf oberster Ebene konkrete Werte für Alpha und Beta setzen und nicht  -$\infty$ und +$\infty$ . Dafür nehmen wir den Wert aus der vorhergegangenen Iteration und addieren beziehungsweise subtrahieren eine Fenstergröße davon, um \textalpha, beziehungsweise \textbeta\ zu erhalten. Sollte dann ein berechneter Wert nicht in dem Intervall liegen, muss die Suche auf der gleichen Tiefe noch einmal mit komplett geöffneten \textalpha\ und \textbeta\ gestartet werden. Allerdings führt dies zu mehr Aufwand, als die Suche gleich mit -$\infty$ und +$\infty$ zu starten.
+Mit Hilfe des Aspiration Windows wollen wir bei Alpha Beta Pruning auf oberster Ebene bessere Werte setzen. Dafür nehmen wir den Wert aus der vorhergegangenen Iteration und addieren bzw. subtrahieren eine Fenstergröße davon, um Alpha, bzw. Beta zu erhalten. Sollte dann ein berechneter Wert aus diesem Fenster herausfallen, muss die Suche auf der gleichen Tiefe noch einmal mit komplett geöffneten Alpha und Beta gestartet werden. Dies führt allerdings zu mehr Aufwand.
 
-Da ReversiXT ein sehr volatiles Spiel ist, mussten wir eine sehr große Fenstergröße ansetzen, um die Anzahl der kompletten Neusuchen in einen akzeptablen Bereich zu bringen. Dies führte allerdings dazu, dass wir insgesamt so gut wie keinen Zeitgewinn gemacht haben.
+Da ReversiXT sehr volatil ist, mussten wir eine sehr große Fenstergröße ansetzen, um die Anzahl der kompletten Neusuchen in einen akzeptablen Bereich zu bringen. Dies führte allerdings dazu, dass wir insgesamt keinen Zeitgewinn gemacht haben.
 Deswegen haben wir uns entschieden es generell zu deaktivieren.
 
 \subsection{Transposition Tabelle mit Hilfe von Zobrist Hashing}
-Damit unser Client tiefer suchen kann, wollen wir vermeiden, dass wir gleiche Spielfelder mehrfach evaluieren. Um dies zu erreichen müssen wir uns Bewertungen für verschiedene Spielbretter merken.
+Um unseren Client schneller zu machen, wollen wir uns Bewertungen für verschiedene Spielbretter merken.
 Dies haben wir durch eine Hash-Tabelle realisiert, welche für einen gegebenen Hash überprüft, ob wir diese Spielsituation schon einmal gesehen haben und falls ja den Wert dafür zurückzugeben.
 
-Um aus einem Spielbrett einen möglichst einzigartigen Hash in akzeptabler Zeit zu generieren verwenden wir Zobrist Hashing.
+Um aus einem Spielbrett einen möglichst eindeutigen Hash in akzeptabler Zeit zu generieren, verwenden wir Zobrist Hashing.
 
-Dafür erstellen wir am Anfang eine Zobrist Tabelle, welche so groß, wie die Karte ist und 2 tief. Wobei die erste Ebene für unsere Steine und die Zweite Ebene für alle gegnerischen Steine gilt. Außerdem speichern wir noch einen Wert, der dafür steht, ob wir dran sind oder nicht.
+Dafür erstellen wir am Anfang eine Zobrist Tabelle, welche so groß, wie die Map ist und zwei tief. Wobei die erste Ebene für unsere Steine und die zweite Ebene für alle gegnerischen Steine gilt. Außerdem speichern wir noch einen Wert, der dafür steht, ob wir an der Reihe sind oder nicht.
 
-Dann werden diese mit zufälligen 64-Bit Zahlen initialisiert.
-Um nun den Hashwert für eine gegebene Karte zu ermitteln, starten wir bei dem Hashwert von 0 gehen über alle Steine aller Spieler und XOR'n den Wert der für diesen Spieler in der dazugehörigen Tabelle steht drauf. Am Schluss XOR'n wir noch den Extra Wert darauf, wenn wir dran sind.
+Diese werden mit zufälligen 64-Bit Zahlen initialisiert.
+Um nun den Hashwert für eine gegebene Karte zu ermitteln, starten wir bei dem Hashwert von null, gehen über alle Steine aller Spieler und XOR'n den Wert, der für diesen Spieler in der dazugehörigen Tabelle steht darauf. Am Schluss XOR'n wir noch den Extrawert darauf, wenn wir am Zug sind.
 
-Da wir die Zobrist Tabelle nur einmal aufbauen müssen, haben wir uns überlegt, ob wir nicht eine explizit aufgebaute Tabelle übergeben wollen, anstatt einmal am Anfang eine zu generieren.
-Allerdings haben wir uns dagegen entschieden, da der Aufbau einer maximal großen Tabelle gemittelt, über 1.000.000 Versuche, nur 3,7 ms braucht.
+Da wir die Zobrist Tabelle nur einmal aufbauen müssen, haben wir uns überlegt, ob wir nicht eine explizit aufgebaute Tabelle übergeben wollen, anstatt einmal am Anfang eine zu generieren. Allerdings haben wir uns dagegen entschieden, da der Aufbau einer maximal großen Tabelle gemittelt über 10.000 Versuche nur 3,7 ms braucht.
 
-In der nachfolgenden Tabelle sind durchschnittlich erreichte Tiefen aufgeführt. Die 1.Spalte steht für die Kartengröße und die 1.Zeile für die Größe der Transpositionen Tabelle. Null steht hierbei dafür, dass wir ohne Tabelle gerechnet haben.
+% Hier Tabelle mit Gewinn pro Kartengroeße pro Transpositon Tabelle mit Assoziativität;
 
-\begin{table}[!h]
+  \begin{table}[!h]
 \centering
 	\begin{tabular} {| m{1.7cm} | m{3cm} | m{3cm} | m{3cm} | m{3cm}|}
 		\hline
 		\textbf{} &\textbf{0} &\textbf{32000} & \textbf{64000} & \textbf{128000}\\
 		\hline
-		20x20 & 4,6 & 5,07 & 5,175 & 5,2 \\
+		20x20 & 4,7 & 5,07 & 4.95 & 4,95 \\
 		\hline
-		50x50 & 2,3 & 2,36 & 2,7 & 2,8 \\
+		Hits & 0 & 388656 & 458906 & 497381 \\
+		\hline
+		50x50 & X & 2,36 & 2,7 & 3 \\
+		\hline
+		Hits & 0 & 0 & 0 & 0 \\
 		\hline
 	\end{tabular}
-	\caption{Durchschnittlich erreichte Tiefe}
+	\caption{Durchschnittliche Tiefe und Treffer mit Transposition Tabellen}
 	\label{tab:tasks}
 \end{table}
 
-Auf Grund dieser Daten haben wir für eine Transpositionen Tabelle der Größe 128.000 entschieden, welche uns einen durchschnittlichen Tiefengewinn von 0,5 auf großen Karten und einen Gewinn von 0,6 auf kleinen Karten bringt.
-
-
+Aufgrund dieser Daten halten wir in unserer Transposition Tabelle 64.000 Werte, welche uns einen durchschnittlichen Tiefengewinn von 0,5 auf großen Karten und einen Gewinn von 0,4 auf kleinen Karten bringt.
 
 \newpage
 % ----------------------------------------------------------------------------------
 % Kapitel: Fazit
 % ----------------------------------------------------------------------------------
 \section{Fazit}
-Beschreiben Sie in diesem Abschnitt u.a.\ was Ihnen an diesem Fach gefallen hat und welche Verbesserungsvorschläge Sie für künftige Veranstaltungen haben. Was konnten Sie dazulernen, in welchen Bereichen haben Sie sich verbessert. Welche Problemsituationen gab es während der Projekterstellung, wie sind Sie diese angegangen und wie haben Sie diese gelöst. Was haben Sie evtl.\ vermisst.
+Abschließend lässt sich festhalten, dass das Wahlfach \glqq ZOCK - Projekt Client-K.I.s für Brettspiele\grqq{} einen guten ersten Einblick in das umfangreiche Themengebiet der künstlichen Intelligenz gibt. Gleichzeitig bietet es den Studierenden die Möglichkeit an einem Projekt von Anfang bis Ende zu arbeiten und Erfahrungen zu sammeln, als Gruppe an einer Software zu entwickeln. Dies verbesserte die Teamfähigkeit der Arbeitsgruppe und zeigte auf, dass K.I. nicht nur aus maschinellen Lernen oder neuronalen Netzen besteht, sondern dass auch das Vorgehen in einem Suchbaum eine K.I. sein kann.
 
-Abschließend lässt sich festhalten, dass das Wahlfach ZOCK einen guten ersten Einblick in das umfangreiche Themengebiet der künstlichen Intelligenz gibt. Gleichzeitig bietet es den Studierenden die Möglichkeit an einem Projekt von Anfang bis Ende zu arbeiten und Erfahrungen zu sammeln als Gruppe an einer Software zu entwickeln.
+Während der Entwicklung des Clients sind auch Probleme aufgetreten, mit denen umgegangen werden musste. Zum einen ist die Schwierigkeit des Debuggen der Suchbäume zu nennen. Diese konnten nicht dargestellt werden, weshalb sich die Fehlersuche deutlich schwieriger gestaltete. Ebenfalls war es kompliziert bestimmte Situationen, die bspw. zu Disqualifikationen führten, nachzustellen, um sie besser nachvollziehen zu können. Des Weiteren mussten die Map und Heuristik Klassen im Laufe des Projekts aufgrund von Ineffizienz jeweils in einen statischen und dynamischen Teil aufgeteilt werden.
+
+Ein Verbesserungsvorschlag für den Kurs ist die Bereitstellung von Testskripts oder weiteren \glqq bösen\grqq{} Maps, die den Teilnehmern erleichtern könnten zu erkennen, ob ihr Client korrekt spielt und eventuelle Schwachstellen aufzeigen. Dadurch könnten Fehler abgewendet bzw. frühzeitig erkannt werden und mehr Zeit für weiterführende Optimierungen aufgebracht werden.
+
+\newpage
 % ----------------------------------------------------------------------------------------------------------
 % Literatur
 % ----------------------------------------------------------------------------------------------------------
 \renewcommand\refname{Quellenverzeichnis}
-\bibliographystyle{alpha}
+\bibliographystyle{plain}
 \bibliography{quellen}
 \pagebreak
 
