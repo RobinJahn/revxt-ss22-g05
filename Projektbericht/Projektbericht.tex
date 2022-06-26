@@ -346,46 +346,45 @@ Ausgehend davon, dass der beste Zug aus der letzten Tiefe auch in der neuen Tief
 Um Felder, die im Spielverlauf nicht erreichbar sind, nicht in anderen Algorithmen zu berücksichtigen, lassen wir am Anfang diesen Algorithmus laufen. Dieser findet uns die erreichbaren Felder und speichert diese Information in der Karte ab.
 
 \subsection{Aspiration Window}
-Mit Hilfe des Aspiration Windows wollen wir bei Alpha Beta Pruning auf oberster Ebene bessere Werte setzen. Dafür nehmen wir den Wert aus der vorhergegangenen Iteration und addieren bzw. subtrahieren eine Fenstergröße davon, um Alpha, bzw. Beta zu erhalten. Sollte dann ein berechneter Wert aus diesem Fenster herausfallen, muss die Suche auf der gleichen Tiefe noch einmal mit komplett geöffneten Alpha und Beta gestartet werden. Dies führt allerdings zu mehr Aufwand.
+Mit Hilfe des Aspiration Windows wollen wir bei Alpha Beta Pruning auf oberster Ebene konkrete Werte für Alpha und Beta setzen und nicht  -$\infty$ und +$\infty$ . Dafür nehmen wir den Wert aus der vorhergegangenen Iteration und addieren beziehungsweise subtrahieren eine Fenstergröße davon, um \textalpha, beziehungsweise \textbeta\ zu erhalten. Sollte dann ein berechneter Wert nicht in dem Intervall liegen, muss die Suche auf der gleichen Tiefe noch einmal mit komplett geöffneten \textalpha\ und \textbeta\ gestartet werden. Allerdings führt dies zu mehr Aufwand, als die Suche gleich mit -$\infty$ und +$\infty$ zu starten.
 
-Da ReversiXT sehr volatil ist, mussten wir eine sehr große Fenstergröße ansetzen, um die Anzahl der kompletten Neusuchen in einen akzeptablen Bereich zu bringen. Dies führte allerdings dazu, dass wir insgesamt keinen Zeitgewinn gemacht haben.
+Da ReversiXT ein sehr volatiles Spiel ist, mussten wir eine sehr große Fenstergröße ansetzen, um die Anzahl der kompletten Neusuchen in einen akzeptablen Bereich zu bringen. Dies führte allerdings dazu, dass wir insgesamt so gut wie keinen Zeitgewinn gemacht haben.
 Deswegen haben wir uns entschieden es generell zu deaktivieren.
 
 \subsection{Transposition Tabelle mit Hilfe von Zobrist Hashing}
-Um unseren Client schneller zu machen, wollen wir uns Bewertungen für verschiedene Spielbretter merken.
+Damit unser Client tiefer suchen kann, wollen wir vermeiden, dass wir gleiche Spielfelder mehrfach evaluieren. Um dies zu erreichen müssen wir uns Bewertungen für verschiedene Spielbretter merken.
 Dies haben wir durch eine Hash-Tabelle realisiert, welche für einen gegebenen Hash überprüft, ob wir diese Spielsituation schon einmal gesehen haben und falls ja den Wert dafür zurückzugeben.
 
-Um aus einem Spielbrett einen möglichst eindeutigen Hash in akzeptabler Zeit zu generieren, verwenden wir Zobrist Hashing.
+Um aus einem Spielbrett einen möglichst einzigartigen Hash in akzeptabler Zeit zu generieren verwenden wir Zobrist Hashing.
 
-Dafür erstellen wir am Anfang eine Zobrist Tabelle, welche so groß, wie die Map ist und zwei tief. Wobei die erste Ebene für unsere Steine und die zweite Ebene für alle gegnerischen Steine gilt. Außerdem speichern wir noch einen Wert, der dafür steht, ob wir an der Reihe sind oder nicht.
+Dafür erstellen wir am Anfang eine Zobrist Tabelle, welche so groß, wie die Karte ist und 2 tief. Wobei die erste Ebene für unsere Steine und die Zweite Ebene für alle gegnerischen Steine gilt. Außerdem speichern wir noch einen Wert, der dafür steht, ob wir dran sind oder nicht.
 
-Diese werden mit zufälligen 64-Bit Zahlen initialisiert.
-Um nun den Hashwert für eine gegebene Karte zu ermitteln, starten wir bei dem Hashwert von null, gehen über alle Steine aller Spieler und XOR'n den Wert, der für diesen Spieler in der dazugehörigen Tabelle steht darauf. Am Schluss XOR'n wir noch den Extrawert darauf, wenn wir am Zug sind.
+Dann werden diese mit zufälligen 64-Bit Zahlen initialisiert.
+Um nun den Hashwert für eine gegebene Karte zu ermitteln, starten wir bei dem Hashwert von 0 gehen über alle Steine aller Spieler und XOR'n den Wert der für diesen Spieler in der dazugehörigen Tabelle steht drauf. Am Schluss XOR'n wir noch den Extra Wert darauf, wenn wir dran sind.
 
-Da wir die Zobrist Tabelle nur einmal aufbauen müssen, haben wir uns überlegt, ob wir nicht eine explizit aufgebaute Tabelle übergeben wollen, anstatt einmal am Anfang eine zu generieren. Allerdings haben wir uns dagegen entschieden, da der Aufbau einer maximal großen Tabelle gemittelt über 10.000 Versuche nur 3,7 ms braucht.
+Da wir die Zobrist Tabelle nur einmal aufbauen müssen, haben wir uns überlegt, ob wir nicht eine explizit aufgebaute Tabelle übergeben wollen, anstatt einmal am Anfang eine zu generieren.
+Allerdings haben wir uns dagegen entschieden, da der Aufbau einer maximal großen Tabelle gemittelt, über 1.000.000 Versuche, nur 3,7 ms braucht.
 
-% Hier Tabelle mit Gewinn pro Kartengroeße pro Transpositon Tabelle mit Assoziativität;
+In der nachfolgenden Tabelle sind durchschnittlich erreichte Tiefen aufgeführt. Die 1.Spalte steht für die Kartengröße und die 1.Zeile für die Größe der Transpositionen Tabelle. Null steht hierbei dafür, dass wir ohne Tabelle gerechnet haben.
 
-  \begin{table}[!h]
+\begin{table}[!h]
 \centering
 	\begin{tabular} {| m{1.7cm} | m{3cm} | m{3cm} | m{3cm} | m{3cm}|}
 		\hline
 		\textbf{} &\textbf{0} &\textbf{32000} & \textbf{64000} & \textbf{128000}\\
 		\hline
-		20x20 & 4,7 & 5,07 & 4.95 & 4,95 \\
+		20x20 & 4,6 & 5,07 & 5,175 & 5,2 \\
 		\hline
-		Hits & 0 & 388656 & 458906 & 497381 \\
-		\hline
-		50x50 & X & 2,36 & 2,7 & 3 \\
-		\hline
-		Hits & 0 & 0 & 0 & 0 \\
+		50x50 & 2,3 & 2,36 & 2,7 & 2,8 \\
 		\hline
 	\end{tabular}
-	\caption{Durchschnittliche Tiefe und Treffer mit Transposition Tabellen}
+	\caption{Durchschnittlich erreichte Tiefe}
 	\label{tab:tasks}
 \end{table}
 
-Aufgrund dieser Daten halten wir in unserer Transposition Tabelle 64.000 Werte, welche uns einen durchschnittlichen Tiefengewinn von 0,5 auf großen Karten und einen Gewinn von 0,4 auf kleinen Karten bringt.
+Auf Grund dieser Daten haben wir für eine Transpositionen Tabelle der Größe 128.000 entschieden, welche uns einen durchschnittlichen Tiefengewinn von 0,5 auf großen Karten und einen Gewinn von 0,6 auf kleinen Karten bringt.
+
+
 
 \newpage
 % ----------------------------------------------------------------------------------
