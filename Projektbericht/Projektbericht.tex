@@ -345,7 +345,7 @@ Wie schon an anderer Stelle erwähnt kann es Spielfelder geben, bei denen manche
 
 \subsection{Aspiration Window}
 Die Idee des Aspiration-Window Verfahrens ist es, dass bei Alpha Beta Pruning auf oberster Ebene konkrete Werte für Alpha und Beta eingesetzt werden sollen und nicht -$\infty$ und +$\infty$
-Dafür wird der Wert der vorangegangenen Iteration genommen und die Fenstergröße addiert bzw. subtrahiert, wodurch man \textalpha, bzw. \textbeta\ erhält.
+Dafür wird der Wert der vorangegangenen Iteration genommen und die Fenstergröße addiert bzw. subtrahiert, wodurch man \textalpha, bzw. \textbeta\ erhält. Die Fenstergröße ist hierbei einfach ein numerischer Wert.
 Sollte dann ein berechneter Wert nicht in dem Intervall liegen, muss die Suche auf der gleichen Tiefe noch einmal gestartet werden. Diesmal mit komplett geöffneten \textalpha\ und \textbeta\ also -$\infty$ und +$\infty$. Wenn dies eintritt führt es jedoch zu mehr Aufwand als eine Suche, die von Anfang an mit -$\infty$ und +$\infty$ gestartet wurde.
 
 Da ReversiXT ein sehr volatiles Spiel ist, muss eine sehr große Fenstergröße angesetzt werden, um die Anzahl der kompletten Neusuchungen in einen akzeptablen Bereich zu bringen. Dies führt allerdings dazu, dass insgesamt so gut wie kein Zeitgewinn gemacht werden kann.
@@ -364,7 +364,7 @@ Um nun den Hashwert für eine gegebene Karte zu ermitteln, wird bei einem Hash W
 Da die Zobrist Tabelle nur einmal aufgebaut werden muss, kann überlegt werden, ob nicht eine explizit aufgebaute Tabelle verwendet werden sollte, anstatt einmal am Anfang eine zufällige zu generieren.
 Da dies jedoch zu anderen Problemen führen würde und der Aufbau einer maximal großen Tabelle gemittelt über 1.000.000 Versuche durchschnittlich nur 3,7 ms braucht, haben wir uns dagegen entschieden.
 
-In der nachfolgenden Tabelle sind die durchschnittlich erreichten Tiefen aufgeführt. Die erste Spalte steht für die Kartengröße und die erste Zeile für die Größe der Transpositionen Tabelle. Null steht hierbei dafür, dass ohne Tabelle gerechnet wurde.
+In der nachfolgenden Tabelle sind die durchschnittlich erreichten Tiefen aufgeführt. Die erste Spalte steht für die Kartengröße und die erste Zeile für die Größe der Transpositionen Tabelle. Die Größe der Tabelle gibt an, wie viele Evaluierungswerte sich gemerkt werden. Null steht hierbei dafür, dass ohne Tabelle gerechnet wurde.
 
 \begin{table}[!h]
 \centering
