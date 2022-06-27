@@ -205,7 +205,7 @@ Neben der wöchentlichen Vorlesung und Übung der Veranstaltung, wurde jeden Fre
 \newpage
 
 \subsection{Technische Daten}
-In diesem Abschnitt soll auf die verwendeten technischen Mittel eingegangen werden. Das Projekt wurde in der Programmiersprache Java auf dem Stand der 11ten Version umgesetzt. Zum einen wurden in dieser Programmiersprache bereits die meisten Erfahrungen gesammelt. Zum anderen konnten die gängigen Vorteile dieser Programmiersprache genutzt werden, wie z. B. die automatische Speicher- und Heap-Verwaltung oder die Möglichkeit mit \glqq Call by Reference\grqq{} zu arbeiten ohne Pointer zu benutzen.
+In diesem Abschnitt soll auf die verwendeten technischen Mittel eingegangen werden. Das Projekt wurde in der Programmiersprache Java auf dem Stand der 11ten Version umgesetzt. Zum einen wurden in dieser Programmiersprache bereits die meisten Erfahrungen gesammelt. Zum anderen konnten auch die gängigen Vorteile von Java genutzt werden, wie z. B. die automatische Speicher- und Heap-Verwaltung oder die Möglichkeit mit \glqq Call by Reference\grqq{} zu arbeiten ohne Pointer zu benutzen.
 Zu Beginn legte sich die Gruppe fest, einheitlich die Entwicklungsumgebung IntelliJ IDEA der Version 2021.3.3 von JetBrains zu nutzen. Der Vorteil davon war unter anderem, dass diese bereits eine gute Anbindung an Git besaß und somit das Arbeiten in einem gemeinsam Repository signifikant erleichterte.
 Als Betriebssystem wurde hauptsächlich Windows 10 der Version 21H2 verwendet. Außerdem wurde von Robin Jahn eine virtuelle Maschine (VM) eingerichtet, die das Unix Betriebssystem Ubuntu simulierte. Simon Melcher und Alexander Wess nutzten hingegen das Windows Subsystem for Linux (WSL). Einerseits konnte mittels Linux der Server ausgeführt werden, wodurch neuer Code direkt im Spiel ausprobiert werden konnte. Andererseits konnten durch die Verwendung von WLS und der VM unterschiedliche Probleme identifiziert werden, die spezifisch auf einer der Umgebungen aufgetreten sind. Dadurch sollte sichergestellt werden, dass der entwickelte Client fehlerlos über ein Linux Betriebssystem ausgeführt werden konnte und die Kommunikation mit dem Server reibungslos funktionierte.
 
@@ -337,33 +337,34 @@ Die einzelnen Komponenten der Heuristik wurden mithilfe von Multiplikatoren vers
 \section{Optimierungen}
 Wie schon in Kapitel \ref{kap:Spielfeldbewertung} erwähnt, wird für die Berechnung, welcher der möglichen Züge der Beste ist, ein Suchbaum verwendet. Daher spielt die Tiefe, in die bei der Berechnung vorgedrungen werden kann eine sehr große Rolle. Diese gibt an, wie weit die K.I. in die \glqq Zukunft\grqq{} schauen konnte, um die verschiedenen Züge zu bewerten. Je höher also die Tiefe, desto besser kann bewertet werden, welcher Zug gemacht werden sollte. Verfahren, um diese zu erhöhen sind also ein sehr wichtiger Bestandteil von Suchbaum K.I.'s. Optimierungsverfahren wie Alpha-Beata-Prouning, Move Sorting und BRS+ wurden im Rahmen der Vorlesung implementiert. Um nun den eigenen Client noch weiter zu verbessern, wurden weitere Verfahren implementiert, die im Folgenden beschrieben werden.
 
-\subsection{LookAtReturnedMove First}
-Ausgehend davon, dass der beste Zug aus der letzten Tiefe auch in der neuen Tiefe sehr wahrscheinlich ein guter Zug sein wird, schauen wir ihn uns als ersten Zug in der neuen tieferen Tiefe an.
+\subsection{Look at returned move first}
+Wenn ein Spiel auf Zeit gespielt wird, bekommt jeder Spieler für seinen Zug einige Sekunden Rechenzeit. Um sicher zu gehen, dass ein möglichst guter Zug gefunden werden kann, wird das Iterative-Deepening Verfahren verwendet. Beim Vorgehen nach diesem Verfahren wird zuerst ein Zug für Tiefe eins berechnet. Wenn danach noch Zeit übrig ist, wird ein Zug für die nächste Tiefe berechnet und so weiter. Eine Beobachtung, die bei diesem Vorgehen gemacht werden kann ist, dass der beste Zug für die eine Tiefe oft auch der beste Zug für die nächste Tiefe sein wird. Wir können also annehmen, dass der Zug, der für die letzte Tiefe berechnet wurde, auch in der folgenden Tiefe hoch bewertet wird. Wenn dieser Zug nun für die nächste Tiefe jeweils zu Beginn abgehandelt wird, wird am Anfang im Suchbaum ein hoher Wert zurückgegeben. Dies führt dazu, dass das Alpha-Beta-Pruning Verfahren mehr Teilbäume abschneiden kann. Somit benötigt die Berechnung weniger Zeit, die in weitere Berechnungen investiert werden kann.
 
 \subsection{Reachable Fields}
-Um Felder, die im Spielverlauf nicht erreichbar sind, nicht in anderen Algorithmen zu berücksichtigen, lassen wir am Anfang diesen Algorithmus laufen. Dieser findet uns die erreichbaren Felder und speichert diese Information in der Karte ab.
+Wie schon an anderer Stelle erwähnt kann es Spielfelder geben, bei denen manche Felder nicht erreicht werden können. Damit diese nicht andere Berechnungen verfälschen, lassen wir am Anfang einen Algorithmus über das Spielfeld laufen, der alle erreichbaren Felder findet. Diejenigen Felder, die nicht erreicht werden können werden im folgenden Spiel als Wand interpretiert, solange es sich in Phase eins befindet. In der Bombenphase müssen die Felder jedoch als normales Feld interpretiert werden, da es auch möglich ist eine Bombe auf ein unerreichbares Feld zu werfen.
 
 \subsection{Aspiration Window}
-Mit Hilfe des Aspiration Windows wollen wir bei Alpha Beta Pruning auf oberster Ebene konkrete Werte für Alpha und Beta setzen und nicht  -$\infty$ und +$\infty$ . Dafür nehmen wir den Wert aus der vorhergegangenen Iteration und addieren bzw. subtrahieren eine Fenstergröße davon, um \textalpha, bzw. \textbeta\ zu erhalten. Sollte dann ein berechneter Wert nicht in dem Intervall liegen, muss die Suche auf der gleichen Tiefe noch einmal mit komplett geöffneten \textalpha\ und \textbeta\ gestartet werden. Allerdings führt dies zu mehr Aufwand, als die Suche gleich mit -$\infty$ und +$\infty$ zu starten.
+Die Idee des Aspiration-Window Verfahrens ist es, dass bei Alpha Beta Pruning auf oberster Ebene konkrete Werte für Alpha und Beta eingesetzt werden sollen und nicht -$\infty$ und +$\infty$
+Dafür wird der Wert der vorangegangenen Iteration genommen und die Fenstergröße addiert bzw. subtrahiert, wodurch man \textalpha, bzw. \textbeta\ erhält.
+Sollte dann ein berechneter Wert nicht in dem Intervall liegen, muss die Suche auf der gleichen Tiefe noch einmal gestartet werden. Diesmal mit komplett geöffneten \textalpha\ und \textbeta\ also -$\infty$ und +$\infty$. Wenn dies eintritt führt es jedoch zu mehr Aufwand als eine Suche, die von Anfang an mit -$\infty$ und +$\infty$ gestartet wurde.
 
-Da ReversiXT ein sehr volatiles Spiel ist, mussten wir eine sehr große Fenstergröße ansetzen, um die Anzahl der kompletten Neusuchen in einen akzeptablen Bereich zu bringen. Dies führte allerdings dazu, dass wir insgesamt so gut wie keinen Zeitgewinn gemacht haben.
+Da ReversiXT ein sehr volatiles Spiel ist, muss eine sehr große Fenstergröße angesetzt werden, um die Anzahl der kompletten Neusuchungen in einen akzeptablen Bereich zu bringen. Dies führt allerdings dazu, dass insgesamt so gut wie kein Zeitgewinn gemacht werden kann.
 Deswegen haben wir uns entschieden es generell zu deaktivieren.
 
 \subsection{Transposition Tabelle mit Hilfe von Zobrist Hashing}
-Damit unser Client tiefer suchen kann, wollen wir vermeiden, dass wir gleiche Spielfelder mehrfach evaluieren. Um dies zu erreichen, müssen wir uns Bewertungen für verschiedene Spielbretter merken.
-Dies haben wir durch eine Hash-Tabelle realisiert, welche für einen gegebenen Hash überprüft, ob wir diese Spielsituation schon einmal gesehen haben. Wenn dies der Fall ist, wird der gespeicherte Wert dafür zurückzugeben.
+Bei der Evaluierung von Karten kann die Rechenzeit verringert werden, indem bereits berechnete Ergebnisse gespeichert werden. Wenn eine Karte nun evaluiert werden soll, kann geprüft werden, ob bereits ein gespeichertes Ergebnis vorliegt. Dies ist über eine Hash-Tabelle realisierbar, wofür aus einer Karte ein Hashwert gebildet werden muss.
 
 Um aus einem Spielbrett einen möglichst einzigartigen Hash in akzeptabler Zeit zu generieren, verwenden wir Zobrist Hashing.
 
-Dafür erstellen wir am Anfang eine Zobrist Tabelle, welche so groß, wie die Karte ist und zwei tief. Wobei die erste Ebene für unsere Steine und die zweite Ebene für alle gegnerischen Steine gilt. Außerdem speichern wir noch einen Wert, der dafür steht, ob wir an der Reihe sind oder nicht.
+Dafür wird am Anfang eine Zobrist Tabelle erstellt, welche drei Dimensionen besitzt. Die ersten beiden Dimensionen müssen so gewählt werden, dass die Karte darauf abbildbar ist. Die dritte Dimension wird nun dafür verwendet, verschiedene Attribute der Karte abzubilden. In unserem Fall hat die dritte Dimension zwei Elemente, wobei das erste für die eigenen Steine verwendet wird und das zweite für die der Gegner. Zusätzlich dazu wird noch ein Wert gespeichert, der dafür steht, ob der eigene Spieler am Zug ist.
 
-Dann werden diese mit zufälligen 64-Bit Zahlen initialisiert.
-Um nun den Hashwert für eine gegebene Karte zu ermitteln, starten wir bei dem Hashwert von null, gehen über alle Steine aller Spieler und XOR'n den Wert der für diesen Spieler in der dazugehörigen Tabelle steht darauf. Am Schluss XOR'n wir noch den Extrawert darauf, wenn wir am Zug sind.
+Alle Felder der Zobrist Tabelle werden nun mit zufälligen 64-Bit Zahlen initialisiert.
+Um nun den Hashwert für eine gegebene Karte zu ermitteln, wird bei einem Hash Wert von null gestartet. Dann wird in Reihenfolge über jedes Feld der Karte gelaufen und der entsprechende Wert aus der Zobrist Tabelle geholt. Wenn es beispielsweise ein gegnerisches Feld ist, gehört dieses zum zweiten Attribut. Demzufolge wird die Tabelle des zweiten Attributs verwendet und der Wert an den entsprechenden Koordinaten verwendet. Dieser Wert wird nun bitweise mittels des XOR Operators auf den aktuellen Wert gerechnet. Nachdem über alle Felder der Karte iteriert wurde, wird in der selben Weise noch der Wert darauf gerechnet, ob der eigene Spieler am Zug sind.
 
-Da wir die Zobrist Tabelle nur einmal aufbauen müssen, haben wir uns überlegt, ob wir nicht eine explizit aufgebaute Tabelle übergeben wollen, anstatt einmal am Anfang eine zu generieren.
-Allerdings haben wir uns dagegen entschieden, da der Aufbau einer maximal großen Tabelle gemittelt über 1.000.000 Versuche nur 3,7 ms braucht.
+Da die Zobrist Tabelle nur einmal aufgebaut werden muss, kann überlegt werden, ob nicht eine explizit aufgebaute Tabelle verwendet werden sollte, anstatt einmal am Anfang eine zufällige zu generieren.
+Da dies jedoch zu anderen Problemen führen würde und der Aufbau einer maximal großen Tabelle gemittelt über 1.000.000 Versuche durchschnittlich nur 3,7 ms braucht, haben wir uns dagegen entschieden.
 
-In der nachfolgenden Tabelle sind durchschnittlich erreichte Tiefen aufgeführt. Die erste Spalte steht für die Kartengröße und die erste Zeile für die Größe der Transpositionen Tabelle. Null steht hierbei dafür, dass ohne Tabelle gerechnet wurde.
+In der nachfolgenden Tabelle sind die durchschnittlich erreichten Tiefen aufgeführt. Die erste Spalte steht für die Kartengröße und die erste Zeile für die Größe der Transpositionen Tabelle. Null steht hierbei dafür, dass ohne Tabelle gerechnet wurde.
 
 \begin{table}[!h]
 \centering
