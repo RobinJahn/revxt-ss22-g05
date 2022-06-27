@@ -2,16 +2,17 @@ package src;
 
 public class TranspositionTable {
 
-    private int size = 64000;
+    private final int size;
 
     private Transposition[] TranspositionArray;
 
+    private long TranspositionHits = 0;
+    private long TranspositionMiss = 0;
+    private long Replacements = 0;
 
     public TranspositionTable(int size)
     {
         this.size = size;
-
-
         TranspositionArray = new Transposition[size];
     }
 
@@ -33,9 +34,11 @@ public class TranspositionTable {
         {
             if(transposition.depth >= depth && TranspositionArray[index].hash == hash)
             {
+                TranspositionHits++;
                 return transposition.value;
             }
         }
+        TranspositionMiss++;
         return Double.MIN_VALUE+1;
     }
 
@@ -51,6 +54,13 @@ public class TranspositionTable {
 
         TranspositionArray[index] = transposition;
     }
+
+    public long getTranspositionHits()
+    {
+        return TranspositionHits;
+    }
+    public long getTranspositionMiss() { return  TranspositionMiss;}
+    public long getReplacements() { return Replacements;}
 }
 
  class Transposition

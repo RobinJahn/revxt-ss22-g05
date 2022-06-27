@@ -1,9 +1,7 @@
 package src;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
@@ -531,7 +529,11 @@ public class Client{
 					}
 
 					if (printOn || serverLog) {
-						System.out.println("Average Depth hit: " + (searchTree.getTotalDepth()/(double) countOfOwnMoves) );
+						System.out.println("Average Depth hit: " + (searchTree.getTotalDepth()/(double) countOfOwnMoves));
+						System.out.println("Transpositions Hits: " + searchTree.TT.getTranspositionHits());
+						System.out.println("Transpositions Miss: " + searchTree.TT.getTranspositionMiss());
+						System.out.println("Transposition Replacements: " + searchTree.TT.getReplacements());
+						searchTree.ZH.printZobristTable();
 					}
 
 					break;

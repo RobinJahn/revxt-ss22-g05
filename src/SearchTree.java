@@ -73,7 +73,7 @@ public class SearchTree {
 
         //Zobrist Hashing
         ZH = new ZobristHashing(map.getHeight(), map.getWidth(), myPlayerNr);
-        TT = new TranspositionTable(64000);
+        TT = new TranspositionTable(128000);
         //Aspiration Window
         AW = new AspirationWindow(Double.MIN_VALUE,Double.MAX_VALUE,1000);
     }
@@ -378,6 +378,8 @@ public class SearchTree {
             catch (TimeoutException te){
                 //end of timing
                 totalTime = System.nanoTime() - startTime;
+                //Reset Approximation if we went too low;
+                approximation = 1;
                 if (depth == 1) {
                     timeForLastDepth1 = totalTime + timeOffsetCatch;
 

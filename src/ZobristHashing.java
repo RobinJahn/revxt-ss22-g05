@@ -68,4 +68,17 @@ public class ZobristHashing {
         return hashValue;
     }
 
+    public void printZobristTable()
+    {
+        System.out.println("Zobrist Table: ");
+        for(int j = 0; j < 2; j++)
+        {
+            for(int i = 0; i < size;i++)
+            {
+                System.out.print(zobristTable[i][j] + ",");
+            }
+            System.out.println();
+        }
+        System.out.println(notMyTurn);
+    }
 }
