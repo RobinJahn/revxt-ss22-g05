@@ -147,6 +147,82 @@ public class SearchTree {
         return moveToMake;
     }
 
+    public int[] getBombPosition(Map map , long upperTimeLimit)
+    {
+        this.upperTimeLimit = upperTimeLimit;
+        PositionAndInfo bestMove;
+        Position currMove;
+        ArrayList<int[]> validMoves = Map.getPositionsToSetABomb(map);
+
+        bestMove = new PositionAndInfo(validMoves.get(0));
+        bestMove.info = 0;
+        currMove = new Position(validMoves.get(0));
+
+        double bestValue = Double.MIN_VALUE;
+        long value;
+
+        try{
+            for (int[] move : validMoves)
+            {
+                if(timed && (upperTimeLimit - System.nanoTime()<0)) {
+                    if (printOn || serverLog) System.out.println("Out of Time - in getBombPosition - Going over valid Moves");
+                    throw new TimeoutException();
+                }
+                Map nextMap = new Map(map,false);
+                Map.updateMapAfterBombingBFS(move[0],move[1],myPlayerNr,nextMap);
+                //value = Heuristic.fastEvaluate(nextMap,myPlayerNr);
+                value = heuristicForSimulation.bombEvaluate(nextMap);
+                if(value > bestValue)
+                {
+                    bestValue = value;
+                    currMove.x = move[0];
+                    currMove.y = move[1];
+                }
+            }
+        }
+        catch (TimeoutException TE)
+        {
+            return bestMove.toIntArray();
+        }
+        bestMove = new PositionAndInfo(currMove.x,currMove.y,0);
+        if(printOn) System.out.println("Returned Move: " + "X: "+ (bestMove.x-1) + " Y: " + (bestMove.y-1));
+        return bestMove.toIntArray();
+    }
+
+    /*
+    public double getBombRecursive(Map map, double bestValue, int depth, int maxDepth) throws TimeoutException
+    {
+        double value;
+        Map nextMap;
+        for(;map.getBombsForPlayer(myPlayerNr) > 0 && depth < maxDepth ; depth++)
+        {
+            if(timed && (upperTimeLimit - System.nanoTime()<0)) {
+                if (printOn || serverLog) System.out.println("Out of Time - in getBombRecursive");
+                throw new TimeoutException();
+            }
+
+            ArrayList<int[]> validMoves = Map.getPositionsToSetABomb(map);
+
+            for (int[] move : validMoves)
+            {
+                if(timed && (upperTimeLimit - System.nanoTime()<0)) {
+                    if (printOn || serverLog) System.out.println("Out of Time - in getBombRecursive - Going over valid Moves");
+                    throw new TimeoutException();
+                }
+                nextMap = new Map(map,false);
+                Map.updateMapAfterBombingBFS(move[0],move[1],myPlayerNr,nextMap);
+                value = Heuristic.fastEvaluate(nextMap,myPlayerNr);
+                if(value > bestValue)
+                {
+                    bestValue = value;
+                }
+                getBombRecursive(nextMap,bestValue,depth,maxDepth-1);
+            }
+        }
+        return bestValue;
+    }
+    */
+
     public int getTotalDepth()
     {
         return  totalDepth;

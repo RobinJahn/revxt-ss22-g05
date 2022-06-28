@@ -329,8 +329,15 @@ public class Client{
 
 					//random move at first but prevents disqualifying
 					if (firstMove && timed) {
-
-						randomPos = map.getRandomMove();
+						if(firstPhase)
+						{
+							randomPos = map.getRandomMove();
+						}
+						else {
+							setABomb(upperTimeLimit);
+							firstMove = false;
+							continue;
+						}
 
 						if (printOn || serverLog) System.out.println("Made random first Move " + Arrays.toString(randomPos));
 						serverM.sendMove(randomPos[0], randomPos[1], randomPos[2], myPlayerNr);
@@ -667,7 +674,7 @@ public class Client{
         //get a move
         if (calculateMove)
 		{
-				validPosition = searchTree.getMove(map, timed, depth, phaseOne, upperTimeLimit, moveCounter);
+				validPosition = searchTree.getBombPosition(map,upperTimeLimit);
         }
         //let player pick a move
         else {

@@ -239,6 +239,12 @@ public class Heuristic {
         return result;
     }
 
+    public long bombEvaluate(Map map)
+    {
+        this.map = map;
+        return (long)countStonesBombPhase();
+    }
+
     public static ArrayList<Double> fastEvalAll(ArrayList<Map> mapList, int myPlayerNr){
         ArrayList<Double> result = new ArrayList<>();
         for (Map map : mapList){

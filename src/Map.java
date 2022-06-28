@@ -1,8 +1,6 @@
 package src;
 
 import java.util.*;
-import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 public class Map{
 
@@ -1897,7 +1895,6 @@ public class Map{
     public static ArrayList<int[]> getPositionsToSetABomb(Map map) {
         ArrayList<int[]> validMoves = new ArrayList<>();
         char fieldValue;
-        int accuracy = 2; //TODO: set accuracy by fill Percentage
 
         //if player has no bomb's return empty array
         if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) {
@@ -1905,30 +1902,15 @@ public class Map{
             return validMoves; //returns empty array
         }
 
-
-        //gets the possible positions to set a bomb at
-        for (int y = 0; y < map.getHeight(); y += accuracy) {
-            for (int x = 0; x < map.getWidth(); x += accuracy) {
-                fieldValue = map.getCharAt(x, y);
-                if (fieldValue != '-' && fieldValue != 't') {
-                    validMoves.add(new int[]{x, y});
-                }
-            }
-        }
-
-        if (validMoves.isEmpty()){
-            accuracy = 1;
-
             //gets the possible positions to set a bomb at
-            for (int y = 0; y < map.getHeight(); y += accuracy) {
-                for (int x = 0; x < map.getWidth(); x += accuracy) {
+            for (int y = 0; y < map.getHeight(); y ++) {
+                for (int x = 0; x < map.getWidth(); x ++) {
                     fieldValue = map.getCharAt(x, y);
                     if (fieldValue != '-' && fieldValue != 't') {
                         validMoves.add(new int[]{x, y});
                     }
                 }
             }
-        }
         return validMoves;
     }
 
