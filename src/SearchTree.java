@@ -158,7 +158,7 @@ public class SearchTree {
         bestMove.info = 0;
         currMove = new Position(validMoves.get(0));
 
-        double bestValue = Double.MIN_VALUE;
+        long bestValue = Long.MIN_VALUE;
         long value;
 
         try{
