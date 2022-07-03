@@ -1,6 +1,5 @@
 package src;
 
-import java.io.PipedOutputStream;
 import java.util.*;
 
 public class Map{
@@ -805,6 +804,39 @@ public class Map{
 
     public int getCountOfReachableFields(){
         return staticMap.countOfReachableFields;
+    }
+
+    public int getCountOfReachableBonusFields()
+    {
+        int erg = 0;
+        for(int y = 0;y< staticMap.height;y++)
+        {
+            for(int x = 0; x <staticMap.width;x++)
+            {
+                if(staticMap.map[x][y] == 'b' && staticMap.reachableFieldMatrix[x][y] == 'R')
+                {
+                    erg++;
+                }
+            }
+        }
+        return erg;
+    }
+
+    public ArrayList<Position> getReachableBonusFields()
+    {
+        ArrayList<Position> Fields = new ArrayList<>();
+        for(int y = 0;y< staticMap.height;y++)
+        {
+            for(int x = 0; x <staticMap.width;x++)
+            {
+                if(staticMap.map[y][x] == 'b' && staticMap.reachableFieldMatrix[y][x] == 'R')
+                {
+                    Position pos = new Position(x,y);
+                    Fields.add(pos);
+                }
+            }
+        }
+        return Fields;
     }
 
     public double getFillPercentage()
