@@ -1,5 +1,6 @@
 package src;
 
+import java.io.PipedOutputStream;
 import java.util.*;
 
 public class Map{
@@ -717,6 +718,7 @@ public class Map{
         ArrayList<int[]> resultList = new ArrayList<>();
         ArrayList<int[]> overwriteMoves = new ArrayList<>();
         char currChar;
+        int bombOrOverwrite;
 
         if (phaseOne) {
             //get Valid Moves
@@ -728,8 +730,8 @@ public class Map{
                         resultList.add(new int[]{pos.x, pos.y, 0});
                         break;
                     case 'b':
-                        resultList.add(new int[]{pos.x, pos.y, 20});
-                        resultList.add(new int[]{pos.x, pos.y, 21});
+                        bombOrOverwrite = (heuristic == null) ? 21 : heuristic.selectBombOrOverwrite();
+                        resultList.add(new int[]{pos.x, pos.y, bombOrOverwrite});
                         break;
                     case 'c':
                         for (int playerNr = 1; playerNr <= staticMap.anzPlayers; playerNr++) {
@@ -745,14 +747,14 @@ public class Map{
             //get Overwrite Moves
             if (getOverwriteStonesForPlayer(playerId) > 0) {
                 for (Position pos : OverwriteMoves.get(playerId - 1).keySet()) {
-                    if (heuristic.evaluateOverwriteMove(pos))
+                    if (heuristic != null && heuristic.evaluateOverwriteMove(pos))
                         resultList.add(new int[]{pos.x, pos.y, 0});
                     else
                         overwriteMoves.add(new int[]{pos.x, pos.y, 0});
                 }
 
                 for (Position pos : expansionFields) {
-                    if (heuristic.evaluateOverwriteMove(pos))
+                    if (heuristic != null && heuristic.evaluateOverwriteMove(pos))
                         resultList.add(new int[]{pos.x, pos.y, 0});
                     else
                         overwriteMoves.add(new int[]{pos.x, pos.y, 0});
@@ -1360,7 +1362,8 @@ public class Map{
         posAndR = arrow.positionsWithDirection.get(0);
         Position StartingPos = new Position(posAndR[0], posAndR[1]);
 
-        Integer newR = direction;
+        Position SecondPos = null;
+        int newR = direction;
         Integer nextR;
         char currChar;
         boolean firstStep = true;
@@ -1368,6 +1371,9 @@ public class Map{
         //check if it continues the arrow
         if (arrow.positionsWithDirection.size() >= 2){
             firstStep = false;
+            //get second position if lenth of arrow is 2 or more
+            posAndR = arrow.positionsWithDirection.get(1);
+            SecondPos = new Position(posAndR[0], posAndR[1]);
         }
 
         //go in one direction
@@ -1412,9 +1418,12 @@ public class Map{
 
             //if it's another player or 'x'
             arrow.positionsWithDirection.add(new int[]{currPos.x, currPos.y, newR});
+            if (firstStep) {
+                SecondPos = new Position(currPos.x, currPos.y);
+            }
 
-            //if it's not the first step an OverWrite move can be made
-            if (!firstStep) {
+            //if it's not the first step and the currPos is not the second pos an OverWrite move can be made
+            if (!firstStep && !currPos.equals(SecondPos)) {
                 addOverwritePosition(arrowOfPlayer, currPos.clone());
             }
 

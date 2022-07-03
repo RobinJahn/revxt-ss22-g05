@@ -563,10 +563,15 @@ public class Client{
 		//calculated Move
 		int[] validPosition;
 		final boolean phaseOne = true;
+		final boolean randomMove = false;
 
 		//make a calculated move
-		validPosition = searchTree.getMove(map, timed, depth, phaseOne, upperTimeLimit, moveCounter);
-		//validPosition = validMoves.get( random.nextInt(validMoves.size()) ); //random move
+		if (!randomMove) {
+			validPosition = searchTree.getMove(map, timed, depth, phaseOne, upperTimeLimit, moveCounter);
+		}
+		else {
+			validPosition = map.getRandomMove();
+		}
 
 		//let player enter a move
 		if (!calculateMove) {
