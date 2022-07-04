@@ -813,7 +813,7 @@ public class Map{
         {
             for(int x = 0; x <staticMap.width;x++)
             {
-                if(staticMap.map[x][y] == 'b' && staticMap.reachableFieldMatrix[x][y] == 'R')
+                if(staticMap.map[y][x] == 'b' && staticMap.reachableFieldMatrix[y][x] == 'R')
                 {
                     erg++;
                 }
