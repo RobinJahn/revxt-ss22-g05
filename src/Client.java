@@ -618,10 +618,6 @@ public class Client{
 				}
 			}
 		}
-		if(map.getCharAt(positionToSet)=='x')
-		{
-			map.decreaseOverrideStonesOfPlayer();
-		}
 		serverM.sendMove(positionToSet.x,positionToSet.y,0,myPlayerNr);
 	}
 
