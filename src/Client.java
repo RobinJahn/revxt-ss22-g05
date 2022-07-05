@@ -278,8 +278,8 @@ public class Client{
 		boolean gameOngoing = true;
 		boolean firstPhase = true;
 		boolean firstMove = true;
-		boolean CheeseMode = isMapCheeseAble();
-		if((printOn||serverLog)&&CheeseMode) System.out.println("Activate CheeseMode");
+		boolean cheeseMode = isMapCheeseAble();
+		if((printOn||serverLog)&&cheeseMode) System.out.println("Activate cheeseMode");
 		int[] timeAndDepth;
 		int[] randomPos;
 		moveCounter = 0;
@@ -291,7 +291,7 @@ public class Client{
 
 		int countOfOwnMoves = 0;
 		int cheeseCounter = 0;
-		Position NextPos = new Position(-1,-1);
+		Position followupPos = new Position(-1,-1);
 
 		if (extendedPrint) System.out.println(map.toString(null,true,useColors));
 
@@ -336,7 +336,7 @@ public class Client{
 					map.setPlayer(myPlayerNr);
 
 					//random move at first if no cheese found but prevents disqualifying
-					if (firstMove && timed && !CheeseMode) {
+					if (firstMove && timed && !cheeseMode) {
 						if(firstPhase)
 						{
 							randomPos = map.getRandomMove();
@@ -353,20 +353,20 @@ public class Client{
 						continue;
 					}
 					//Cheese Move if one is found
-					else if(firstMove && cheeseCounter == 0)
+					else if(cheeseMode && firstMove && cheeseCounter == 0)
 					{
-						firstCheeseMove(NextPos);
+						firstCheeseMove(followupPos);
 						firstMove = false;
 						cheeseCounter++;
 						continue;
 					}
 					//follow Up to Cheese Move
-					if(CheeseMode && cheeseCounter == 1)
+					if(cheeseMode && cheeseCounter == 1)
 					{
-						CheeseMode = false;
-						if(NextPos.x != -1 && map.getCharAt(NextPos) == 'b')
+						cheeseMode = false;
+						if(followupPos.x != -1 && map.getCharAt(followupPos) == 'b')
 						{
-							serverM.sendMove(NextPos.x, NextPos.y,20,myPlayerNr);
+							serverM.sendMove(followupPos.x, followupPos.y,20,myPlayerNr);
 							continue;
 						}
 					}
@@ -481,7 +481,7 @@ public class Client{
 								//System.out.println(map.toString(validMovesByArrows, false, useColors));
 
 								//check if arrows are correct
-								/*
+
 								isCorrect = map.checkForReferenceInAffectedArrows();
 								if (!isCorrect) allCorrect = false;
 								System.out.println("Reference in Affected Arrows: " + isCorrect);
@@ -495,8 +495,6 @@ public class Client{
 								if (!isCorrect) allCorrect = false;
 								System.out.println("All overwrite Moves are correct (other way): " + isCorrect);
 								System.out.println();
-								*/
-
 
 								if (!allCorrect) return;
 							}
