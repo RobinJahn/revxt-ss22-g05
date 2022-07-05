@@ -411,6 +411,8 @@ public class Client{
 					posToSetKeystone.y = moveInfos[1] + 1; //index shift
 					int additionalInfo = moveInfos[2];
 					int moveOfPlayer = moveInfos[3];
+					boolean byColorAndByArrowMatch = true;
+					final boolean check = false;
 
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
 
@@ -458,10 +460,18 @@ public class Client{
 					if (firstPhase) Map.updateMapWithMove(posToSetKeystone, additionalInfo, moveOfPlayer, map, printOn);
 					else Map.updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, moveOfPlayer, map);
 
+					if (serverLog && Map.useArrows && firstPhase && check){
+						byColorAndByArrowMatch = compareValidMoves(map, null);
+						System.out.println("Moves by color and moves by arrow match: " + byColorAndByArrowMatch);
+						if (!byColorAndByArrowMatch){
+							return;
+						}
+					}
+
 					if (printOn) {
 						if (firstPhase && Map.useArrows) {
 							ArrayList<int[]> validMovesByOwnColor = null;
-							boolean byColorAndByArrowMatch;
+
 							boolean isCorrect;
 							boolean allCorrect = true;
 							//calculate possible moves
@@ -472,7 +482,7 @@ public class Client{
 								System.err.println("Something went wrong - timeout exception was thrown even if no time limit was set");
 							}
 
-							byColorAndByArrowMatch = compareValidMoves(validMovesByOwnColor);
+							byColorAndByArrowMatch = compareValidMoves(map, heuristic);
 							System.out.println("Moves by color and moves by arrow match: " + byColorAndByArrowMatch);
 							//prints map
 							if (!byColorAndByArrowMatch) {
@@ -494,7 +504,6 @@ public class Client{
 								System.out.println(map.toString(map.getValidMovesByArrows(heuristic), false, useColors));
 
 								//check if arrows are correct
-								final boolean check = false;
 								if (check) {
 									isCorrect = map.checkForReferenceInAffectedArrows();
 									if (!isCorrect) allCorrect = false;
@@ -825,12 +834,22 @@ public class Client{
 		serverM.sendMove(validPosition[0], validPosition[1], 0, myPlayerNr);
 	}
 
-	private boolean compareValidMoves(ArrayList<int[]> validMoves) {
-		if (!Map.useArrows || validMoves == null) return true;
+	private boolean compareValidMoves(Map map, Heuristic heuristic) {
+		if (!Map.useArrows) return true;
+		ArrayList<int[]> validMoves = null;
 		boolean contains;
 		boolean containsAll = true;
 		ArrayList<int[]> validMovesByColorExtra = new ArrayList<>();
 		ArrayList<int[]> validMovesByArrowExtra = new ArrayList<>();
+
+		try {
+			validMoves = Map.getValidMoves(map, false, false, false, Long.MAX_VALUE, heuristic);
+		} catch (ExceptionWithMove e) {
+			e.printStackTrace();
+		}
+		if (validMoves == null){
+			return false;
+		}
 
 		for (int[] posAndR1 : validMoves){
 			contains = false;
