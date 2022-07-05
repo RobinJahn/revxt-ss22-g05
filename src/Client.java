@@ -628,7 +628,7 @@ public class Client{
 		if(map.getOverwriteStonesForPlayer(myPlayerNr) >= 1 ) {
 			if (map.getCountOfReachableBonusFields() >= 1 ) {
 				//if approximatly 80% of the map can be bombed
-				if (map.getCountOfReachableFields() <= ( (map.getBombsForPlayer(myPlayerNr) * map.getAnzPlayers() + map.getCountOfReachableBonusFields()) * ((map.getExplosionRadius()*2+1)*(map.getExplosionRadius()*2+1)) * 0.8))
+				if (map.getCountOfReachableFields() <= ( (map.getBombsForPlayer(myPlayerNr) * map.getAnzPlayers() + ((double)map.getCountOfReachableBonusFields()/map.getAnzPlayers())) * ((map.getExplosionRadius()*2+1)*(map.getExplosionRadius()*2+1)) * 0.8))
 				{
 					return true;
 				}
