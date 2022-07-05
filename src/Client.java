@@ -349,9 +349,20 @@ public class Client{
 							cheeseMode = false;
 							if (followupPos.x != -1 && map.getCharAt(followupPos) == 'b') {
 
-								if (printOn || serverLog) System.out.println("Cheese Move: " + followupPos + " - Aquire Bonus Field - Note: UR DOOMED");
-
-								serverM.sendMove(followupPos.x, followupPos.y, 20, myPlayerNr);
+								if(map.getCountOfReachableBonusFields() > 1)
+								{
+									//If there are more BonusFields to acquire take an OverWrite Stone
+									cheeseMode = true;
+									cheeseCounter = 0;
+									if (printOn || serverLog) System.out.println("Cheese Move: " + followupPos + " - Aquire Bonus Field (Overwrite)");
+									serverM.sendMove(followupPos.x, followupPos.y, 21, myPlayerNr);
+								}
+								else
+								{
+									//If this is the last BonusField take a Bomb
+									if (printOn || serverLog) System.out.println("Cheese Move: " + followupPos + " - Aquire Bonus Field (Bomb) - Note: UR DOOMED");
+									serverM.sendMove(followupPos.x, followupPos.y, 20, myPlayerNr);
+								}
 								continue;
 							}
 						}
