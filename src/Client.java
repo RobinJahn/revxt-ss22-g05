@@ -3,6 +3,7 @@ package src;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class Client{
@@ -244,9 +245,9 @@ public class Client{
 		//default multipliers
 		if (multipliers == null) {
 			multipliers = new double[][]{
-					{3, 2, 9, 5, 2},
+					{3, 2, 9, 5, 5},
 					{9, 0, 9, 3, 2},
-					{5, 7, 7, 2, 2}
+					{5, 7, 7, 2, 9}
 			};
 		}
 
@@ -292,6 +293,12 @@ public class Client{
 
 		while (gameOngoing) {
 
+			try {
+				TimeUnit.MILLISECONDS.sleep(10);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+
 			if (printOn) System.out.print("\nWaiting for Message - ");
 			messageType = serverM.waitForMessage();
 
@@ -327,6 +334,9 @@ public class Client{
 
 					if (depth == 0) depth = Integer.MAX_VALUE;
 
+					//set me as the player
+					map.setPlayer(myPlayerNr);
+
 					//random move at first but prevents disqualifying
 					if (firstMove && timed) {
 						if(firstPhase)
@@ -347,9 +357,6 @@ public class Client{
 
 					//Staging
 					if(printOn) System.out.println("Fill Percentage: " + String.format("%.2f",map.getFillPercentage()*100) + "%");
-
-					//set me as the player
-					map.setPlayer(myPlayerNr);
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) {
@@ -427,6 +434,8 @@ public class Client{
 						if (firstPhase && Map.useArrows) {
 							ArrayList<int[]> validMovesByArrows;
 							ArrayList<int[]> validMovesByOwnColor = null;
+							boolean isCorrect;
+							boolean allCorrect = true;
 							//calculate possible moves
 							validMovesByArrows = map.getValidMovesByArrows(firstPhase, heuristic);
 							try {
@@ -444,33 +453,51 @@ public class Client{
 								System.out.println(map.toString(map.getValidMovesByArrows(firstPhase, heuristic), false, useColors));
 
 								//check if arrows are correct
+
 								System.out.println("Reference in Affected Arrows: " + map.checkForReferenceInAffectedArrows());
 								System.out.println("All valid Moves are correct: " + map.checkValidMoves());
 								System.out.println("All overwrite Moves are correct: " + map.checkOverwriteMoves());
+								System.out.println("All overwrite Moves are correct (other way): " + map.checkOverwriteMovesTheOtherWay());
 								System.out.println();
+
 
 								return;
 							} else {
-								System.out.println(map.toString(validMovesByArrows, false, useColors));
+								//System.out.println(map.toString(validMovesByArrows, false, useColors));
 
 								//check if arrows are correct
-								System.out.println("Reference in Affected Arrows: " + map.checkForReferenceInAffectedArrows());
-								System.out.println("All valid Moves are correct: " + map.checkValidMoves());
-								System.out.println("All overwrite Moves are correct: " + map.checkOverwriteMoves());
+								/*
+								isCorrect = map.checkForReferenceInAffectedArrows();
+								if (!isCorrect) allCorrect = false;
+								System.out.println("Reference in Affected Arrows: " + isCorrect);
+								isCorrect = map.checkValidMoves();
+								if (!isCorrect) allCorrect = false;
+								System.out.println("All valid Moves are correct: " + isCorrect);
+								isCorrect = map.checkOverwriteMoves();
+								if (!isCorrect) allCorrect = false;
+								System.out.println("All overwrite Moves are correct: " + isCorrect);
+								isCorrect = map.checkOverwriteMovesTheOtherWay();
+								if (!isCorrect) allCorrect = false;
+								System.out.println("All overwrite Moves are correct (other way): " + isCorrect);
 								System.out.println();
+								*/
+
+
+								if (!allCorrect) return;
 							}
 
 						}
 						else {
 							ArrayList<int[]> validMoves;
 							validMoves = null;
-							try {
-								validMoves = Map.getValidMoves(map, timed, printOn, serverLog, Long.MAX_VALUE, heuristic);
+							if (firstPhase) {
+								try {
+									validMoves = Map.getValidMoves(map, timed, printOn, serverLog, Long.MAX_VALUE, heuristic);
+								} catch (TimeoutException e) {
+									System.err.println("Something went wrong - timeout exception was thrown even if no time limit was set");
+								}
 							}
-							catch (TimeoutException e){
-								System.err.println("Something went wrong - timeout exception was thrown even if no time limit was set");
-							}
-							System.out.println(map.toString(validMoves, false, useColors));
+							//System.out.println(map.toString(validMoves, false, useColors));
 						}
 
 						double valueOfMap;

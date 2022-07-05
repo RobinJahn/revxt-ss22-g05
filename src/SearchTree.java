@@ -530,7 +530,7 @@ public class SearchTree {
 
     private int[] getMoveWithMCTS(Map map, boolean phaseOne, ArrayList<int[]> validMoves){
 
-        int[] saveMove = map.getRandomMove();
+        int[] saveMove = map.getRandomMove(); //TODO: check if player is set correctly
 
         MctsNode rootNode;
         rootNode = new MctsNode(map, null, null, (ArrayList<int[]>) validMoves.clone(), phaseOne);
@@ -644,7 +644,7 @@ public class SearchTree {
         //first phase
         if (phaseOne) {
             while (!map.isTerminal()) {
-                a = map.getRandomMove();
+                a = map.getRandomMove();  //TODO: check if player is set correctly
                 map = simulateMove(map, a, phaseOne);
 
                 // Out of Time ?

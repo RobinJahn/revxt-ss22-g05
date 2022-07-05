@@ -1216,8 +1216,13 @@ public class Map{
     private Arrow deleteArrowFrom(Arrow oldArrow, int arrowOfPlayer, int from, int newPlayerOnField){
         int[] posAndR;
         Position currPos;
-
+        Position secondPos = null;
         Arrow copyOfArrow = oldArrow.clone();
+
+        if (oldArrow.positionsWithDirection.size() >= 1){
+            posAndR = oldArrow.positionsWithDirection.get(1);
+            secondPos = new Position(posAndR[0], posAndR[1]);
+        }
 
         //delete valid move created by this arrow
         if (oldArrow.createsValidMove){
@@ -1243,19 +1248,21 @@ public class Map{
             }
 
             //delete overwrite moves created by this arrow - index 0 and 1 don't create an OverWrite move - index = size-1 sometimes
-            if (counter >= 2){
-                currPos = new Position(posAndR[0],posAndR[1]);
+            currPos = new Position(posAndR[0],posAndR[1]);
+            if (counter >= 2 && !currPos.equals(secondPos)){
 
-                //checks if the Position, the arrow points to is one of the players stones -> if so delete overwrite move
+                //if it's the last position of the arrow
                 if (counter == oldArrow.positionsWithDirection.size()-1){
+                    //checks if the Position, the arrow points to is one of the players stones -> if so delete overwrite move
 
                     // if the position isn't the one we colored in this call get the player from the map
+                    // else take the one given. (overwrites it, but it gets called only once anyway)
                     if (from != counter) {
                         newPlayerOnField = map[currPos.y][currPos.x]-'0';
                     }
 
                     //if the arrow points to a position where we are, delete the position
-                    if (newPlayerOnField == arrowOfPlayer){
+                    if (newPlayerOnField >= 1 && newPlayerOnField <= getAnzPlayers()){ //if (newPlayerOnField == arrowOfPlayer){
                         removeOverwritePosition(arrowOfPlayer, currPos);
                     }
                 }
@@ -1604,9 +1611,18 @@ public class Map{
         boolean correct = true;
         boolean isOneOfThem;
         int arrowOfPlayer;
+        Position SecondPos = null;
+
 
         //for every arrow
         for (Arrow arrow : allArrows){
+
+            //get Second Pos
+            if (arrow.positionsWithDirection.size() >= 2) {
+                posAndR = arrow.positionsWithDirection.get(1);
+                SecondPos = new Position(posAndR[0], posAndR[1]);
+            }
+
             //get player
             posAndR = arrow.positionsWithDirection.get(0);
             arrowOfPlayer = map[posAndR[1]][posAndR[0]]-'0';
@@ -1615,11 +1631,16 @@ public class Map{
             for (int i = 2; i < arrow.positionsWithDirection.size(); i++) {
                 //get position
                 posAndR = arrow.positionsWithDirection.get(i);
+
+                if (SecondPos.equals(new Position(posAndR[0], posAndR[1]))) continue;
+
                 //reset
                 isOneOfThem = false;
 
+                //if it's the last element
                 if (i == arrow.positionsWithDirection.size()-1){
                     char charAtPos = map[posAndR[1]][posAndR[0]];
+                    //if the stone at that position is not the color of the current player
                     if (charAtPos != arrowOfPlayer+'0'){
                         continue;
                     }
@@ -1635,6 +1656,47 @@ public class Map{
             }
         }
 
+        return true;
+    }
+
+    public boolean checkOverwriteMovesTheOtherWay(){
+        int counter;
+        int[] currPosAndDir;
+        Position currPos;
+        Position secondPos = null;
+        char currStartChar;
+
+        for (int playerNr = 1; playerNr <= getAnzPlayers(); playerNr++) {
+            for (Position overwritePos : OverwriteMoves.get(playerNr-1).keySet()) {
+                counter = 0;
+                for (Arrow arrow : getAllArrows()){
+                    //to short?
+                    if (arrow.positionsWithDirection.size() <= 2) continue;
+
+                    //right player?
+                    currPosAndDir = arrow.positionsWithDirection.get(0);
+                    currStartChar = map[currPosAndDir[1]][currPosAndDir[0]];
+                    if (currStartChar-'0' != playerNr) continue;
+
+                    //set second pos
+                    currPosAndDir = arrow.positionsWithDirection.get(1);
+                    secondPos = new Position(currPosAndDir[0], currPosAndDir[1]);
+
+                    //go over the relevant positions
+                    for (int i = 2; i < arrow.positionsWithDirection.size(); i++){
+                        //get position
+                        currPosAndDir = arrow.positionsWithDirection.get(i);
+                        currPos = new Position(currPosAndDir[0], currPosAndDir[1]);
+
+                        //check if it's relevant
+                        if (currPos.equals(overwritePos) && !currPos.equals(secondPos)) counter++;
+                    }
+                }
+                if (counter != OverwriteMoves.get(playerNr-1).get(overwritePos)) {
+                    return false;
+                }
+            }
+        }
         return true;
     }
 
@@ -1939,17 +2001,22 @@ public class Map{
         boolean isOverwriteMove;
         char currChar = map.getCharAt(pos);
 
-
-
         //check if it's out of the map
         if (currChar == '-' || currChar == 't') return false;
 
         //check if it's an expansions field
-        if (currChar == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) return true;
+        if (currChar == 'x'){
+            if (map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) return true; //no need to check if ti's a valid move
+            else return false;
+        }
 
         //check if it is an overwrite-move and if we have enough overwrite stones
-        isOverwriteMove = currChar != '0' && Character.isDigit(currChar);
+        isOverwriteMove = (currChar != '0' && Character.isDigit(currChar));
         if (isOverwriteMove && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) <= 0) return false;
+        //else check if the overwrite-move is possible
+
+
+
 
         //go over every direction that needs to be checked
         for (Integer r : directions){
