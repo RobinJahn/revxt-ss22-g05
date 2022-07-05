@@ -15,7 +15,7 @@ public class ZobristHashing {
     final private long notMyTurn;
 
     /**
-     *
+     * Instantiates a Zobrist Table, of the size of height*width and depth 2, and fills it with random long Values. Also generates a random long Value for it being not my Turn.
      * @param height The height of the Map for which to create a Zobrist Table for.
      * @param width The width of the Map for which to create a Zobrist Table for.
      * @param playerNumber The Player Number of the Client for this map.
@@ -40,7 +40,7 @@ public class ZobristHashing {
     }
 
     /**
-     *
+     * Given a map this function returns the hash Value for it by using the xor function, Zobrist Table and Map
      * @param map Is the Map for which a hash is to generate.
      * @return Returns the Hashed Value of a given Map.
      */
