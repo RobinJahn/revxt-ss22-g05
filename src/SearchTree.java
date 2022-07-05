@@ -415,7 +415,7 @@ public class SearchTree {
                 currMove = getMoveByDepth(map, phaseOne, validMoves, statistic);
                 //end of timing
                 totalTime = System.nanoTime() - startTime;
-                statistic.totalComputationTime += totalTime;
+                statistic.addTotalComputationTime(totalTime);
             }
             //if it noticed we have no more time
             catch (TimeoutException te){
@@ -448,7 +448,7 @@ public class SearchTree {
             //time comparison prints
             if (printOn) System.out.println("Expected Time needed for this depth: " + timeNextDepth/ 1_000_000 + "ms");
             if (printOn || serverLog){
-                System.out.println("Actual time needed: " + (double)statistic.totalComputationTime/ 1_000_000 + "ms");
+                System.out.println("Actual time needed: " + (double)statistic.getTotalComputationTime()/ 1_000_000 + "ms");
                 System.out.println("Approximation: " + approximation);
             }
 
@@ -458,17 +458,17 @@ public class SearchTree {
             }
 
             //calculate time needed for the next depth //TODO: refine so that only the first ever move don't get approximated
-            totalNodesToGoOver = statistic.totalNodesSeen * statistic.branchFactor();
+            totalNodesToGoOver = statistic.getTotalNodesSeen() * statistic.branchFactor();
 
             if (timeNextDepth == 0) {
                 timeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime());
             }
             else {
-                approximation = (approximation + ((double)statistic.totalComputationTime /timeNextDepth) ) / 2;
+                approximation = (approximation + ((double)statistic.getTotalComputationTime() /timeNextDepth) ) / 2;
                 timeNextDepth = Math.round(totalNodesToGoOver * statistic.getAverageComputationTime() * approximation);
             }
 
-            if (depth == 1) timeForLastDepth1 = statistic.totalComputationTime;
+            if (depth == 1) timeForLastDepth1 = statistic.getTotalComputationTime();
 
             //prints after one depth
             if (printOn) {

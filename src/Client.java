@@ -349,7 +349,7 @@ public class Client{
 							cheeseMode = false;
 							if (followupPos.x != -1 && map.getCharAt(followupPos) == 'b') {
 
-								if(map.getCountOfReachableBonusFields() > 1)
+								if(map.getCountOfReachableBonusFields(map) > 1)
 								{
 									//If there are more BonusFields to acquire take an OverWrite Stone
 									cheeseMode = true;
@@ -626,9 +626,9 @@ public class Client{
 	{
 		//if bonus fields are reachable
 		if(map.getOverwriteStonesForPlayer(myPlayerNr) >= 1 ) {
-			if (map.getCountOfReachableBonusFields() >= 1 ) {
+			if (map.getCountOfReachableBonusFields(map) >= 1 ) {
 				//if approximatly 80% of the map can be bombed
-				if (map.getCountOfReachableFields() <= ( (map.getBombsForPlayer(myPlayerNr) * map.getAnzPlayers() + map.getCountOfReachableBonusFields()) * ((map.getExplosionRadius()*2+1)*(map.getExplosionRadius()*2+1)) * 0.8))
+				if (map.getCountOfReachableFields() <= ( (map.getBombsForPlayer(myPlayerNr) * map.getAnzPlayers() + map.getCountOfReachableBonusFields(map)) * ((map.getExplosionRadius()*2+1)*(map.getExplosionRadius()*2+1)) * 0.8))
 				{
 					return true;
 				}
@@ -647,7 +647,7 @@ public class Client{
 		int length;
 		char currChar;
 
-		for (Position p : map.getReachableBonusFields())
+		for (Position p : map.getReachableBonusFields(map))
 		{
 			for(int r = 0; r < 8; r++)
 			{

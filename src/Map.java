@@ -779,14 +779,14 @@ public class Map{
         return staticMap.countOfReachableFields;
     }
 
-    public int getCountOfReachableBonusFields()
+    public int getCountOfReachableBonusFields(Map map)
     {
         int erg = 0;
         for(int y = 0;y< staticMap.height;y++)
         {
             for(int x = 0; x <staticMap.width;x++)
             {
-                if(staticMap.map[y][x] == 'b' && staticMap.reachableFieldMatrix[y][x] == 'R')
+                if(map.getCharAt(x,y) == 'b' && staticMap.reachableFieldMatrix[y][x] == 'R')
                 {
                     erg++;
                 }
@@ -795,14 +795,14 @@ public class Map{
         return erg;
     }
 
-    public ArrayList<Position> getReachableBonusFields()
+    public ArrayList<Position> getReachableBonusFields(Map map)
     {
         ArrayList<Position> Fields = new ArrayList<>();
         for(int y = 0;y< staticMap.height;y++)
         {
             for(int x = 0; x <staticMap.width;x++)
             {
-                if(staticMap.map[y][x] == 'b' && staticMap.reachableFieldMatrix[y][x] == 'R')
+                if(map.getCharAt(x,y) == 'b' && staticMap.reachableFieldMatrix[y][x] == 'R')
                 {
                     Position pos = new Position(x,y);
                     Fields.add(pos);
