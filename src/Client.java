@@ -491,7 +491,7 @@ public class Client{
 
 								return;
 							} else {
-								//System.out.println(map.toString(map.getValidMovesByArrows(firstPhase, heuristic), false, useColors));
+								System.out.println(map.toString(map.getValidMovesByArrows(heuristic), false, useColors));
 
 								//check if arrows are correct
 								final boolean check = false;
@@ -603,7 +603,7 @@ public class Client{
 					break;
 				}
 
-				case -1:
+				case -1: //Invalid Message
 				{
 					gameOngoing = false;
 					System.err.println("Server closed connection or a message was received that couldn't be handled");

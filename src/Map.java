@@ -1180,7 +1180,7 @@ public class Map{
     }
 
 
-    //  METHODS FOR MOVE CARRY ALONG
+    //  METHODS FOR MOVE CARRY ALONG -----------------------------------------------------------------------------------
 
     private void firstCreation(int x, int y, int newPlayer){
         for (int r = 0; r <= 7; r++){
@@ -1768,7 +1768,7 @@ public class Map{
         }
     }
 
-    // OTHER
+    // OTHER -----------------------------------------------------------------------------------------------------------
 
     //  function to do a step on the map
     public Integer doAStep(Position pos, int r){
