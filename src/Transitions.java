@@ -3,19 +3,41 @@ package src;
 import java.util.HashMap;
 
 public class Transitions {
+    /**
+     * Calculates the Transition given its Parameters
+     * @param x X-Position
+     * @param y Y-Position
+     * @param r Direction
+     * @return The TransitionValue
+     */
     public static char saveInChar(int x, int y, int r){
         char mem = (char) (1000 * (short)x + 10 * (short)y + (short)r);
         return mem;
     }
 
+    /**
+     * Calculates the X-Position of a given Transition Point
+     * @param mem The Transition
+     * @return Returns X-Position
+     */
     public static int getX(char mem){
          return mem / 1000;
     }
 
+    /**
+     * Calculates the Y-Position of a given Transition Point
+     * @param mem The Transition
+     * @return Returns Y-Position
+     */
     public static int getY(char mem) {
         return (mem%1000)/10;
     }
 
+    /**
+     * Calculates the Direction of a given Transition Point
+     * @param mem The Transition
+     * @return Returns the Direction
+     */
     public static int getR(char mem) {
         return mem%10;
     }
@@ -31,24 +53,29 @@ public class Transitions {
 
         return x1 + " " + y1 + " " + r1 + " <-> " + x2 + " " + y2 + " " + r2 + '\n';
     }
-    
-    public static String AllToString(HashMap<Character,Character> Hmap)
+
+    /**
+     * Returns a formatted String containing all Transitions of the Map.
+     * @param hashMap all Transitions in a Hash Map.
+     * @return Returns a formatted Sting off all Transitions
+     */
+    public static String AllToString(HashMap<Character,Character> hashMap)
     {
-    	String ergebnis ="";
+    	String result = "";
     	
-    	 char[] tr = new char [Hmap.size()];
+    	 char[] tr = new char [hashMap.size()];
          int num = 0;
-         for (Character kombi : Hmap.keySet())
+         for (Character combination : hashMap.keySet())
          {
-         	tr[num]=kombi;
+         	tr[num]=combination;
          	num++;
          }
          for(int i = 0;i<tr.length;i++)
          {
          	if(tr[i]!= 0)
          	{
-         		char char2 = Hmap.get(tr[i]);
-         		ergebnis += Transitions.pairToString(tr[i], char2);
+         		char char2 = hashMap.get(tr[i]);
+         		result += Transitions.pairToString(tr[i], char2);
          		for(int j = 0;j<tr.length;j++)
          		{
          			if(char2 == tr[j])
@@ -59,7 +86,7 @@ public class Transitions {
          		}
          	}
          }
-    	return ergebnis;
+    	return result;
     }
 
     private static String pairToStringWithIndexShift(Character char1 , Character char2) {
@@ -74,6 +101,11 @@ public class Transitions {
         return x1 + " " + y1 + " " + r1 + " <-> " + x2 + " " + y2 + " " + r2 + '\n';
     }
 
+    /**
+     * Returns a formatted String containing all Transitions of the Map without our internal IndexShift.
+     * @param Hmap all Transitions in a Hash Map.
+     * @return Returns a formatted Sting off all Transitions
+     */
     public static String AllToStringWithIndexShift(HashMap<Character,Character> Hmap)
     {
         String ergebnis ="";
