@@ -3,7 +3,6 @@ package src;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class Client{
@@ -279,7 +278,6 @@ public class Client{
 		boolean firstPhase = true;
 		boolean firstMove = true;
 		boolean cheeseMode = isMapCheeseAble();
-		if((printOn||serverLog)&&cheeseMode) System.out.println("Activate cheeseMode");
 		int[] timeAndDepth;
 		int[] randomPos;
 		moveCounter = 0;
@@ -288,11 +286,11 @@ public class Client{
 		long startTime;
 		ClientServerComparator CSC = null;
 		if (compare_to_Server) CSC = new ClientServerComparator(map.getWidth());
-
 		int countOfOwnMoves = 0;
 		int cheeseCounter = 0;
 		Position followupPos = new Position(-1,-1);
 
+		if((printOn||serverLog)&&cheeseMode) System.out.println("Activate cheeseMode");
 		if (extendedPrint) System.out.println(map.toString(null,true,useColors));
 
 		while (gameOngoing) {
@@ -316,6 +314,7 @@ public class Client{
 					timeAndDepth = serverM.readRestOfMoveRequest();
 					time = timeAndDepth[0];
 					depth = timeAndDepth[1];
+					countOfOwnMoves++;
 
 					if (time == -1 || depth == -1) {
 						System.err.println("Time and Depth couldn't be read");
@@ -335,8 +334,31 @@ public class Client{
 					//set me as the player
 					map.setPlayer(myPlayerNr);
 
+
+					//Cheese Move if one is found
+					if(cheeseMode) {
+						//first move
+						if (cheeseCounter == 0 && makeFirstCheeseMove(followupPos)) {
+							firstMove = false;
+							cheeseCounter++;
+							continue;
+						}
+
+						//follow Up to Cheese Move
+						if (cheeseCounter == 1) {
+							cheeseMode = false;
+							if (followupPos.x != -1 && map.getCharAt(followupPos) == 'b') {
+
+								if (printOn || serverLog) System.out.println("Cheese Move: " + followupPos + " - Aquire Bonus Field - Note: UR DOOMED");
+
+								serverM.sendMove(followupPos.x, followupPos.y, 20, myPlayerNr);
+								continue;
+							}
+						}
+					}
+
 					//random move at first if no cheese found but prevents disqualifying
-					if (firstMove && timed && !cheeseMode) {
+					if (firstMove && timed) {
 						if(firstPhase)
 						{
 							randomPos = map.getRandomMove();
@@ -352,26 +374,6 @@ public class Client{
 						firstMove = false;
 						continue;
 					}
-					//Cheese Move if one is found
-					else if(cheeseMode && firstMove && cheeseCounter == 0)
-					{
-						firstCheeseMove(followupPos);
-						firstMove = false;
-						cheeseCounter++;
-						continue;
-					}
-					//follow Up to Cheese Move
-					if(cheeseMode && cheeseCounter == 1)
-					{
-						cheeseMode = false;
-						if(followupPos.x != -1 && map.getCharAt(followupPos) == 'b')
-						{
-							serverM.sendMove(followupPos.x, followupPos.y,20,myPlayerNr);
-							continue;
-						}
-					}
-					//Staging
-					if(printOn) System.out.println("Fill Percentage: " + String.format("%.2f",map.getFillPercentage()*100) + "%");
 
 					//Handle Move Request - Both functions print the map with the possible moves marked
 					if (firstPhase) {
@@ -379,7 +381,6 @@ public class Client{
 					} else {
 						setABomb(upperTimeLimit);
 					}
-					countOfOwnMoves++;
 					break;
 				}
 
@@ -399,6 +400,7 @@ public class Client{
 					posToSetKeystone.y = moveInfos[1] + 1; //index shift
 					int additionalInfo = moveInfos[2];
 					int moveOfPlayer = moveInfos[3];
+
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
 
 					if (compare_to_Server) {
@@ -452,7 +454,6 @@ public class Client{
 							boolean isCorrect;
 							boolean allCorrect = true;
 							//calculate possible moves
-							validMovesByArrows = map.getValidMovesByArrows(firstPhase, heuristic);
 							try {
 								validMovesByOwnColor = Map.getFieldsByOwnColor(map, timed, printOn, serverLog, Long.MAX_VALUE, heuristic);
 							}
@@ -481,7 +482,7 @@ public class Client{
 								//System.out.println(map.toString(validMovesByArrows, false, useColors));
 
 								//check if arrows are correct
-
+								/*
 								isCorrect = map.checkForReferenceInAffectedArrows();
 								if (!isCorrect) allCorrect = false;
 								System.out.println("Reference in Affected Arrows: " + isCorrect);
@@ -497,6 +498,7 @@ public class Client{
 								System.out.println();
 
 								if (!allCorrect) return;
+								*/
 							}
 
 						}
@@ -510,12 +512,14 @@ public class Client{
 									System.err.println("Something went wrong - timeout exception was thrown even if no time limit was set");
 								}
 							}
+							else {
+								validMoves = Map.getPositionsToSetABomb(map);
+							}
 							System.out.println(map.toString(validMoves, false, useColors));
 						}
 
-						double valueOfMap;
-
 						//calculate value of map and print it
+						double valueOfMap;
 						try
 						{
 							 valueOfMap = (double) Math.round(heuristic.evaluate(firstPhase,timed, serverLog, Long.MAX_VALUE) * 100) / 100;
@@ -586,7 +590,8 @@ public class Client{
 					break;
 				}
 
-				case -1: {
+				case -1:
+				{
 					gameOngoing = false;
 					System.err.println("Server closed connection or a message was received that couldn't be handled");
 					break;
@@ -597,9 +602,11 @@ public class Client{
 	//Cheese Detection
 	private boolean isMapCheeseAble()
 	{
+		//if bonus fields are reachable
 		if(map.getOverwriteStonesForPlayer(myPlayerNr) >= 1 ) {
 			if (map.getCountOfReachableBonusFields() >= 1 ) {
-				if (map.getCountOfReachableFields() <= (((map.getExplosionRadius()*2+1)*(map.getExplosionRadius()*2+1))*0.8))
+				//if approximatly 80% of the map can be bombed
+				if (map.getCountOfReachableFields() <= ( (map.getBombsForPlayer(myPlayerNr) * map.getAnzPlayers() + map.getCountOfReachableBonusFields()) * ((map.getExplosionRadius()*2+1)*(map.getExplosionRadius()*2+1)) * 0.8))
 				{
 					return true;
 				}
@@ -609,13 +616,15 @@ public class Client{
 	}
 
 	//CheeseMode
-	private void firstCheeseMove(Position NextPos)
+	private boolean makeFirstCheeseMove(Position followupPos)
 	{
-		Position positionToSet = new Position(0,0);
+		Position positionToSetTo = new Position(-1,-1);
 		int maxLength = 0;
 		Position newPos;
 		Integer newR;
 		int length;
+		char currChar;
+
 		for (Position p : map.getReachableBonusFields())
 		{
 			for(int r = 0; r < 8; r++)
@@ -623,21 +632,29 @@ public class Client{
 				newPos = p.clone();
 				length = 0;
 				newR = r;
-				while (newR != null)
+				do
 				{
 					length++;
-					if(length > 2 && length > maxLength && (map.getCharAt(newPos)=='x'||map.getCharAt(newPos) == '0'))
+					if(length > 2 && length > maxLength && map.getCharAt(newPos)=='x')
 					{
-						positionToSet = newPos.clone();
+						positionToSetTo = newPos.clone();
 						maxLength = length;
-						NextPos.x = p.x;
-						NextPos.y = p.y;
+						followupPos.x = p.x;
+						followupPos.y = p.y;
 					}
 					newR = map.doAStep(newPos,newR);
-				}
+					currChar = map.getCharAt(newPos);
+				} while (newR != null && (currChar=='x' || (Character.isDigit(currChar) && currChar != '0')));
 			}
 		}
-		serverM.sendMove(positionToSet.x,positionToSet.y,0,myPlayerNr);
+		if (positionToSetTo.equals(new Position(-1, -1))){
+			return false;
+		}
+
+		if (printOn || serverLog) System.out.println("Cheese Move: " + positionToSetTo);
+
+		serverM.sendMove(positionToSetTo.x,positionToSetTo.y,0,myPlayerNr);
+		return true;
 	}
 
 	//phase 1
