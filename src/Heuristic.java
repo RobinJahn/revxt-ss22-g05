@@ -356,9 +356,9 @@ public class Heuristic {
             }
 
             if (myColorI == map.getCurrentlyPlayingI()) {
-                myPossibleMoves = Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit, this).size();
+                myPossibleMoves = Map.getCountOfMovesForPalyer(map, timed, UpperTimeLimit);
             } else {
-                possibleMovesOfEnemies += Map.getValidMoves(map,timed,printOn,ServerLog,UpperTimeLimit, this).size(); //TODO: Make valid Moves contain all moves from beginning on
+                possibleMovesOfEnemies += Map.getCountOfMovesForPalyer(map, timed, UpperTimeLimit);
             }
             map.nextPlayer();
         } //resets to currently playing

@@ -305,7 +305,7 @@ public class SearchTree {
                     heuristicForSimulation.updateMap(nextMap);
                     if(useZH)
                     {
-                        evaluation = Zobrist(nextMap);
+                        evaluation = Zobrist(nextMap, phaseOneAfterNextMove);
                     }
                     else {
                         evaluation = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, serverLog, upperTimeLimit);
@@ -785,7 +785,7 @@ public class SearchTree {
                 if (depth >= this.depth - 1) {
                     if(useZH)
                     {
-                        evaluation = Zobrist(nextMap);
+                        evaluation = Zobrist(nextMap, phaseOneAfterNextMove);
                     }
                     else
                     {
@@ -877,7 +877,7 @@ public class SearchTree {
         return currBestValue;
     }
 
-    private double Zobrist(Map map) throws TimeoutException{
+    private double Zobrist(Map map, boolean phaseOneAfterNextMove) throws TimeoutException{
 
         long hash = ZH.hash(map);
         double value = TT.lookUp(hash,depth);
@@ -895,7 +895,7 @@ public class SearchTree {
         else
         {
             heuristicForSimulation.updateMap(map);
-            value = heuristicForSimulation.evaluate(true, timed, serverLog, upperTimeLimit); //computing-intensive
+            value = heuristicForSimulation.evaluate(phaseOneAfterNextMove, timed, serverLog, upperTimeLimit); //computing-intensive
             TT.add(hash,depth,value);
         }
         return value;

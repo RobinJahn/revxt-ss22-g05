@@ -709,85 +709,58 @@ public class Map{
         return result;
     }
 
-    public ArrayList<int[]> getValidMovesByArrows(boolean phaseOne, Heuristic heuristic){
-        return getValidMovesByArrows(currentlyPlaying, phaseOne, heuristic);
+    public ArrayList<int[]> getValidMovesByArrows(Heuristic heuristic){
+        return getValidMovesByArrows(currentlyPlaying, heuristic);
     }
 
-    private ArrayList<int[]> getValidMovesByArrows(int playerId, boolean phaseOne, Heuristic heuristic){
+    private ArrayList<int[]> getValidMovesByArrows(int playerId, Heuristic heuristic){
         ArrayList<int[]> resultList = new ArrayList<>();
         ArrayList<int[]> overwriteMoves = new ArrayList<>();
         char currChar;
         int bombOrOverwrite;
 
-        if (phaseOne) {
-            //get Valid Moves
-            for (Position pos : ValidMoves.get(playerId - 1).keySet()) {
-                currChar = getCharAt(pos);
-                switch (currChar) {
-                    case '0':
-                    case 'i':
-                        resultList.add(new int[]{pos.x, pos.y, 0});
-                        break;
-                    case 'b':
-                        bombOrOverwrite = (heuristic == null) ? 21 : heuristic.selectBombOrOverwrite();
-                        resultList.add(new int[]{pos.x, pos.y, bombOrOverwrite});
-                        break;
-                    case 'c':
-                        for (int playerNr = 1; playerNr <= staticMap.anzPlayers; playerNr++) {
-                            resultList.add(new int[]{pos.x, pos.y, playerNr});
-                        }
-                        break;
-                    default:
-                        System.err.println("Valid Move was on another field: " + pos + "=" + currChar);
-                        break;
-                }
-            }
 
-            //get Overwrite Moves
-            if (getOverwriteStonesForPlayer(playerId) > 0) {
-                for (Position pos : OverwriteMoves.get(playerId - 1).keySet()) {
-                    if (heuristic != null && heuristic.evaluateOverwriteMove(pos))
-                        resultList.add(new int[]{pos.x, pos.y, 0});
-                    else
-                        overwriteMoves.add(new int[]{pos.x, pos.y, 0});
-                }
-
-                for (Position pos : expansionFields) {
-                    if (heuristic != null && heuristic.evaluateOverwriteMove(pos))
-                        resultList.add(new int[]{pos.x, pos.y, 0});
-                    else
-                        overwriteMoves.add(new int[]{pos.x, pos.y, 0});
-                }
-            }
-
-            if (resultList.isEmpty())
-                return overwriteMoves;
-
-        }
-
-        //if we are in the bomb Phase
-        else {
-            char fieldValue;
-            int accuracy = 2;
-
-            //if player has no bomb's return empty array
-            if (getBombsForPlayer(playerId) == 0) {
-                return resultList; //returns empty array
-            }
-
-            while (resultList.isEmpty()) {
-                //gets the possible positions to set a bomb at
-                for (int y = 0; y < staticMap.height; y += accuracy) {
-                    for (int x = 0; x < staticMap.width; x += accuracy) {
-                        fieldValue = getCharAt(x, y);
-                        if (fieldValue != '-' && fieldValue != 't') {
-                            resultList.add(new int[]{x, y});
-                        }
+        //get Valid Moves
+        for (Position pos : ValidMoves.get(playerId - 1).keySet()) {
+            currChar = getCharAt(pos);
+            switch (currChar) {
+                case '0':
+                case 'i':
+                    resultList.add(new int[]{pos.x, pos.y, 0});
+                    break;
+                case 'b':
+                    bombOrOverwrite = (heuristic == null) ? 21 : heuristic.selectBombOrOverwrite();
+                    resultList.add(new int[]{pos.x, pos.y, bombOrOverwrite});
+                    break;
+                case 'c':
+                    for (int playerNr = 1; playerNr <= staticMap.anzPlayers; playerNr++) {
+                        resultList.add(new int[]{pos.x, pos.y, playerNr});
                     }
-                }
-                accuracy = 1; //could be changed to accuracy-- if it should have more procedural steps
+                    break;
+                default:
+                    System.err.println("Valid Move was on another field: " + pos + "=" + currChar);
+                    break;
             }
         }
+
+        //get Overwrite Moves
+        if (getOverwriteStonesForPlayer(playerId) > 0) {
+            for (Position pos : OverwriteMoves.get(playerId - 1).keySet()) {
+                if (heuristic != null && heuristic.evaluateOverwriteMove(pos))
+                    resultList.add(new int[]{pos.x, pos.y, 0});
+                else
+                    overwriteMoves.add(new int[]{pos.x, pos.y, 0});
+            }
+
+            for (Position pos : expansionFields) {
+                if (heuristic != null && heuristic.evaluateOverwriteMove(pos))
+                    resultList.add(new int[]{pos.x, pos.y, 0});
+                else
+                    overwriteMoves.add(new int[]{pos.x, pos.y, 0});
+            }
+        }
+
+        if (resultList.isEmpty()) return overwriteMoves;
 
         return resultList;
     }
@@ -1473,6 +1446,54 @@ public class Map{
         arrow.positionsWithDirection.add(new int[]{currPos.x, currPos.y, newR});
     }
 
+    public void colorMapByArrows(Position pos){
+        boolean isOverwriteMove;
+        char charAtPos = getCharAt(pos);
+        Position secondPos;
+        Position currPos;
+        int[] posAndR;
+
+        isOverwriteMove = charAtPos != '0' && Character.isDigit(charAtPos);
+
+        if (!isOverwriteMove) {
+
+            //normal move
+            Arrow[] arrows = AffectedArrows[pos.y][pos.x][getCurrentlyPlayingI() - 1].clone();
+            for (int i = 0; i < arrows.length; i++) {
+                Arrow arrow = arrows[i];
+                if (arrow != null && arrow.createsValidMove) {
+                    for (int[] posAndR2 : arrow.positionsWithDirection) {
+                        setCharAt(posAndR2[0], posAndR2[1], (char) ('0' + getCurrentlyPlayingI()));
+                    }
+                }
+            }
+        }
+        else {
+            //overwrite move
+            Arrow[] arrows = AffectedArrows[pos.y][pos.x][getCurrentlyPlayingI() - 1];
+            for (int arrowIndex = 0; arrowIndex < arrows.length; arrowIndex++) {
+                Arrow arrow = arrows[arrowIndex];
+                if (arrow == null) continue;
+                //get second Pos
+                posAndR = arrow.positionsWithDirection.get(1);
+                secondPos = new Position(posAndR[0], posAndR[1]);
+
+                //go through positions
+                for (int posIndex = 0; posIndex < arrow.positionsWithDirection.size(); posIndex++) {
+                    posAndR = arrow.positionsWithDirection.get(posIndex);
+                    currPos = new Position(posAndR[0], posAndR[1]);
+                    if (posIndex >= 2 && currPos.equals(pos) && !currPos.equals(secondPos)) {
+                        for (int posToColorIndex = posIndex; posToColorIndex >= 0; posToColorIndex--) {
+                            posAndR = arrow.positionsWithDirection.get(posToColorIndex);
+                            setCharAt(posAndR[0], posAndR[1], (char) ('0' + getCurrentlyPlayingI()));
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
     //      Helping methods for Move Carry along
 
     private void addValidPosition(int arrowOfPlayer, Position currPos) {
@@ -1891,17 +1912,23 @@ public class Map{
      * @param map the map on which it is placed
      */
     public static void colorMap(Position pos, Map map){
-        Set<Position> positionsToColor; //doesn't store duplicates
 
-        if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
-            map.setCharAt(pos.x, pos.y, map.getCurrentlyPlayingC());
+        if (useArrows){
+            map.colorMapByArrows(pos);
         }
+        else {
+            Set<Position> positionsToColor; //doesn't store duplicates
 
-        positionsToColor = getPositionsToColor(pos, map);
+            if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
+                map.setCharAt(pos.x, pos.y, map.getCurrentlyPlayingC());
+            }
 
-        //colors the positions
-        for (Position posToColor : positionsToColor) {
-            map.setCharAt(posToColor.x, posToColor.y, map.getCurrentlyPlayingC());
+            positionsToColor = getPositionsToColor(pos, map);
+
+            //colors the positions
+            for (Position posToColor : positionsToColor) {
+                map.setCharAt(posToColor.x, posToColor.y, map.getCurrentlyPlayingC());
+            }
         }
     }
 
@@ -1986,7 +2013,7 @@ public class Map{
         }
 
         if (useArrows){
-            everyPossibleMove = map.getValidMovesByArrows(map.getCurrentlyPlayingI(), true, heuristic);
+            everyPossibleMove = map.getValidMovesByArrows(heuristic);
         }
         else {
             everyPossibleMove = getFieldsByOwnColor(map, timed, printOn, serverLog, upperTimeLimit, heuristic);
@@ -2001,7 +2028,6 @@ public class Map{
 
         //if player has no bomb's return empty array
         if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) {
-            System.err.println("Something's wrong - Player has no Bombs but server wants player to place one");
             return validMoves; //returns empty array
         }
 
@@ -2320,6 +2346,17 @@ public class Map{
         myStoneCount += map.getCountOfStonesOfPlayer(playerNr);
 
         return (double) myStoneCount / ((double)enemyStoneCount / (map.staticMap.anzPlayers - 1));
+    }
+
+    public static int getCountOfMovesForPalyer(Map map, boolean timed, long upperTimeLimit) throws ExceptionWithMove {
+        int count = 0;
+
+        if (useArrows){
+            return map.ValidMoves.get(map.getCurrentlyPlayingI()-1).size();
+        }
+        else {
+            return getValidMoves(map, timed, false, false, upperTimeLimit, null).size();
+        }
     }
 }
 

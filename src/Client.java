@@ -460,8 +460,8 @@ public class Client{
 
 					if (printOn) {
 						if (firstPhase && Map.useArrows) {
-							ArrayList<int[]> validMovesByArrows;
 							ArrayList<int[]> validMovesByOwnColor = null;
+							boolean byColorAndByArrowMatch;
 							boolean isCorrect;
 							boolean allCorrect = true;
 							//calculate possible moves
@@ -472,12 +472,14 @@ public class Client{
 								System.err.println("Something went wrong - timeout exception was thrown even if no time limit was set");
 							}
 
+							byColorAndByArrowMatch = compareValidMoves(validMovesByOwnColor);
+							System.out.println("Moves by color and moves by arrow match: " + byColorAndByArrowMatch);
 							//prints map
-							if (!compareValidMoves(firstPhase, validMovesByOwnColor)) {
+							if (!byColorAndByArrowMatch) {
 								System.out.println("With own color");
 								System.out.println(map.toString(validMovesByOwnColor, false, useColors));
 								System.out.println("With move carry along");
-								System.out.println(map.toString(map.getValidMovesByArrows(firstPhase, heuristic), false, useColors));
+								System.out.println(map.toString(map.getValidMovesByArrows(heuristic), false, useColors));
 
 								//check if arrows are correct
 
@@ -487,29 +489,29 @@ public class Client{
 								System.out.println("All overwrite Moves are correct (other way): " + map.checkOverwriteMovesTheOtherWay());
 								System.out.println();
 
-
 								return;
 							} else {
-								//System.out.println(map.toString(validMovesByArrows, false, useColors));
+								//System.out.println(map.toString(map.getValidMovesByArrows(firstPhase, heuristic), false, useColors));
 
 								//check if arrows are correct
-								/*
-								isCorrect = map.checkForReferenceInAffectedArrows();
-								if (!isCorrect) allCorrect = false;
-								System.out.println("Reference in Affected Arrows: " + isCorrect);
-								isCorrect = map.checkValidMoves();
-								if (!isCorrect) allCorrect = false;
-								System.out.println("All valid Moves are correct: " + isCorrect);
-								isCorrect = map.checkOverwriteMoves();
-								if (!isCorrect) allCorrect = false;
-								System.out.println("All overwrite Moves are correct: " + isCorrect);
-								isCorrect = map.checkOverwriteMovesTheOtherWay();
-								if (!isCorrect) allCorrect = false;
-								System.out.println("All overwrite Moves are correct (other way): " + isCorrect);
-								System.out.println();
+								final boolean check = false;
+								if (check) {
+									isCorrect = map.checkForReferenceInAffectedArrows();
+									if (!isCorrect) allCorrect = false;
+									System.out.println("Reference in Affected Arrows: " + isCorrect);
+									isCorrect = map.checkValidMoves();
+									if (!isCorrect) allCorrect = false;
+									System.out.println("All valid Moves are correct: " + isCorrect);
+									isCorrect = map.checkOverwriteMoves();
+									if (!isCorrect) allCorrect = false;
+									System.out.println("All overwrite Moves are correct: " + isCorrect);
+									isCorrect = map.checkOverwriteMovesTheOtherWay();
+									if (!isCorrect) allCorrect = false;
+									System.out.println("All overwrite Moves are correct (other way): " + isCorrect);
+									System.out.println();
 
-								if (!allCorrect) return;
-								*/
+									if (!allCorrect) return;
+								}
 							}
 
 						}
@@ -823,7 +825,7 @@ public class Client{
 		serverM.sendMove(validPosition[0], validPosition[1], 0, myPlayerNr);
 	}
 
-	private boolean compareValidMoves(boolean phaseOne, ArrayList<int[]> validMoves) {
+	private boolean compareValidMoves(ArrayList<int[]> validMoves) {
 		if (!Map.useArrows || validMoves == null) return true;
 		boolean contains;
 		boolean containsAll = true;
@@ -832,7 +834,7 @@ public class Client{
 
 		for (int[] posAndR1 : validMoves){
 			contains = false;
-			for (int[] posAndR2 : map.getValidMovesByArrows(phaseOne, heuristic)){
+			for (int[] posAndR2 : map.getValidMovesByArrows(heuristic)){
 				if (Arrays.compare(posAndR1, posAndR2) == 0) {
 					contains = true;
 					break;
@@ -844,7 +846,7 @@ public class Client{
 			}
 		}
 
-		for (int[] posAndR1 : map.getValidMovesByArrows(phaseOne, heuristic)){
+		for (int[] posAndR1 : map.getValidMovesByArrows(heuristic)){
 			contains = false;
 			for (int[] posAndR2 : validMoves){
 				if (Arrays.compare(posAndR1, posAndR2) == 0) {
