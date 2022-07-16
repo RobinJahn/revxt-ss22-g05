@@ -23,11 +23,16 @@ public class StaticMap {
     public int countOfReachableFields;
 
     //private
-    private boolean importedCorrectly;
+    private final boolean importedCorrectly;
     private ArrayList<HashSet<Position>> initialStonesPerPlayer = new ArrayList<>();
     private HashSet<Position> initialExpansionFields = new HashSet<>();
 
 
+    /**
+     * This Constructor initializes the Static Map
+     * @param mapByteArray The Map in a ByteArray Format
+     * @param serverLog Indicates if we use Server Log
+     */
     public StaticMap(byte[] mapByteArray, boolean serverLog){
         importedCorrectly = importMap(mapByteArray);
         if (!importedCorrectly) {
@@ -213,30 +218,47 @@ public class StaticMap {
 
     //GETTER
 
+    /**
+     * Returns if the Map was Imported Correctly or not.
+     * @return Returns true if the Map was imported Correctly and false otherwise
+     */
     public boolean wasImportedCorrectly() {
         return importedCorrectly;
     }
 
+    /**
+     * This Function returns the Initial Stones Per Player in an ArrayList of Hashsets of Positions.
+     * @return Returns an Arraylist of one Hashset per Player with their Initial Stones.
+     */
     public ArrayList<HashSet<Position>> getInitialStonesPerPlayer(){
         ArrayList<HashSet<Position>> result = initialStonesPerPlayer;
         initialStonesPerPlayer = null;
         return result;
     }
 
+    /**
+     * This Function returns the Initial ExpansionFields in a HashSet
+     * @return Returns a Hashset with the Initial ExpansionFields
+     */
     public HashSet<Position> getInitialExpansionFields(){
         HashSet<Position> result = initialExpansionFields;
         initialExpansionFields = null;
         return result;
     }
 
+    /**
+     * Checks for a Transition given the Position and Rotation.
+     * @param pos The Current Position
+     * @param rotation The Rotation in which we are going.
+     * @return Returns true if a Transition starts from the given Position in the given Direction
+     */
     public boolean checkForTransition(Position pos, int rotation){
         Character transitionStart = Transitions.saveInChar(pos.x, pos.y, rotation);
         Character transitionEnd;
 
         transitionEnd = transitions.get(transitionStart);
 
-        if (transitionEnd == null) return false;
-        else return true;
+        return transitionEnd != null;
     }
 
     //IMPORT FUNCTIONS
@@ -390,14 +412,6 @@ public class StaticMap {
             //convert transition infos into a char
             buffer = Transitions.saveInChar(transitionsBuffer[0],transitionsBuffer[1],transitionsBuffer[2]);
             buffer2 = Transitions.saveInChar(transitionsBuffer[6],transitionsBuffer[7],transitionsBuffer[8]);
-        	/*
-        	for(int i = 0; i< transitionsBuffer.length;i++)
-        	{
-        		System.out.println(transitionsBuffer[i]);
-        	}
-
-        	System.out.println((int)buffer + " , " + (int)buffer2);
-        	*/
             //Add transition to hash Map
             transitions.put(buffer, buffer2);
             transitions.put(buffer2, buffer);
@@ -429,6 +443,12 @@ public class StaticMap {
     }
 
     //Helper
+
+    /**
+     * This function Calculates the Amount of Reachable Fields in the Map.
+     * @param serverLog Indicates whether we compare to the Server or not.
+     * @return The Number of ReachableFields
+     */
 
     private int findReachableFields(boolean serverLog)
     {
