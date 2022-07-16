@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class StaticHeuristicPerPhase {
 
-    private final ArrayList<StaticHeurisic> staticHeuristicPerPhase;
+    private final ArrayList<StaticHeuristic> staticHeuristicPerPhase;
     private final int height;
     private final int width;
     private final int fieldValueIndex = 2;
@@ -63,7 +63,7 @@ public class StaticHeuristicPerPhase {
 
         //create static Heuristics
         for (int phase = 0; phase < multiplier.length; phase++){
-            staticHeuristicPerPhase.add(new StaticHeurisic(map, specialFields, (int)multiplier[phase][wavesIndex]));
+            staticHeuristicPerPhase.add(new StaticHeuristic(map, specialFields, (int)multiplier[phase][wavesIndex]));
         }
 
         //set infos in static Heuristics
@@ -101,14 +101,14 @@ public class StaticHeuristicPerPhase {
     //initialize Matrices per Phase
 
     private void setStaticInfos() {
-        StaticHeurisic sh;
+        StaticHeuristic sh;
 
         //add matrices
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 if (staticMatrix[y][x] == Double.NEGATIVE_INFINITY) {
-                    for (StaticHeurisic staticHeurisic : staticHeuristicPerPhase) {
-                        staticHeurisic.matrix[y][x] = Double.NEGATIVE_INFINITY;
+                    for (StaticHeuristic staticHeuristic : staticHeuristicPerPhase) {
+                        staticHeuristic.matrix[y][x] = Double.NEGATIVE_INFINITY;
                     }
                     continue;
                 }
@@ -133,10 +133,10 @@ public class StaticHeuristicPerPhase {
 
 
         //evaluate every position by its neighbours
-        for (StaticHeurisic staticHeurisic : staticHeuristicPerPhase) {
+        for (StaticHeuristic staticHeuristic : staticHeuristicPerPhase) {
             //TODO: only do this when multiplier says so
-            staticHeurisic.setFieldsWithHighValues();
-            staticHeurisic.createWaves();
+            staticHeuristic.setFieldsWithHighValues();
+            staticHeuristic.createWaves();
             //staticHeuristic.setFieldsForOverwriteMoves();
         }
     }
