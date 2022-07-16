@@ -5,39 +5,33 @@ import java.util.ArrayList;
 public class StaticHeuristicPerPhase {
 
     private final ArrayList<StaticHeurisic> staticHeuristicPerPhase;
-
     private final int height;
     private final int width;
-
-    private final int stonesIndex = 0;
-    private final int movesIndex = 1;
     private final int fieldValueIndex = 2;
     private final int edgesIndex = 3;
-    private final int wavesIndex = 4;
-
-    private final boolean extendedPrint;
-
     private final  double[][] staticMatrix;
     private final  double[][] fieldValueMatrix;
     private final  boolean[][] edgeMatrix;
-
-
     private final ArrayList<Position> specialFields = new ArrayList<>();
-
     private final double[][] multiplier; //[] phases, [] stones, moves, Field Values, Edges, Waves
     private final boolean[][] enables;
 
-
+    /**
+     * Constructor of the Static Heuristic for each Game Phase.
+     * @param map The Map
+     * @param multiplier Multipliers for each GamePhase
+     * @param extendedPrint If true, also prints the Created Value Maps
+     */
     public StaticHeuristicPerPhase(Map map, double[][] multiplier, boolean extendedPrint) {
         height = map.getHeight();
         width = map.getWidth();
-        this.extendedPrint = extendedPrint;
 
         //handle multiplier
         this.multiplier = multiplier;
         enables = new boolean[multiplier.length][multiplier[0].length];
 
         //fill enables
+        int wavesIndex = 4;
         for (int phase = 0; phase < multiplier.length; phase++){
             for (int indexOfMultiplier = 0; indexOfMultiplier < multiplier[0].length; indexOfMultiplier++){
                 if (indexOfMultiplier == wavesIndex) { //waves also get disables if Field Values and Edges are disabled
@@ -67,15 +61,22 @@ public class StaticHeuristicPerPhase {
             printMatrix(edgeMatrix);
         }
 
-        //create static Heurisics
+        //create static Heuristics
         for (int phase = 0; phase < multiplier.length; phase++){
             staticHeuristicPerPhase.add(new StaticHeurisic(map, specialFields, (int)multiplier[phase][wavesIndex]));
         }
 
-        //set infos in static Heurisics
+        //set infos in static Heuristics
         setStaticInfos();
     }
 
+    /**
+     * Returns the Value of a given Position according to the given GamePhase
+     * @param x X-Coordinate of the Position
+     * @param y Y-Coordinate of the Position
+     * @param phase Current GamePhase
+     * @return The Value of the Given Position in the given GamePhase
+     */
     public double getValueFromMatrix(int x, int y, int phase){
         if (phase-1 >= staticHeuristicPerPhase.size()){
             System.err.println("Phase it too high - getValueFromMatrix");
@@ -83,6 +84,13 @@ public class StaticHeuristicPerPhase {
         return staticHeuristicPerPhase.get(phase-1).matrix[y][x];
     }
 
+    /**
+     * Returns the Wave-Value of a given Position according to the given GamePhase
+     * @param pos Current Position
+     * @param map The Current Map
+     * @param phase Current GamePhase
+     * @return The Wave-Value of the Given Position in the given GamePhase
+     */
     public double getWaveValueForPos(Position pos, Map map, int phase) {
         if (phase-1 >= staticHeuristicPerPhase.size()){
             System.err.println("Phase it too high - getWaveValueForPos");
@@ -129,7 +137,7 @@ public class StaticHeuristicPerPhase {
             //TODO: only do this when multiplier says so
             staticHeurisic.setFieldsWithHighValues();
             staticHeurisic.createWaves();
-            //staticHeurisic.setFieldsForOverwriteMoves();
+            //staticHeuristic.setFieldsForOverwriteMoves();
         }
     }
 
@@ -171,7 +179,7 @@ public class StaticHeuristicPerPhase {
 
                 //edge Matrix
                 outgoingDirections = getOutgoingDirections(new Position(x, y), map);
-                edgeMatrix[y][x] = !isCapturable(outgoingDirections);
+                edgeMatrix[y][x] = !isCaptureAble(outgoingDirections);
 
 
                 //field value matrix
@@ -208,7 +216,7 @@ public class StaticHeuristicPerPhase {
         return outgoingDirections;
     }
 
-    private boolean isCapturable(boolean[] outgoingDirections){
+    private boolean isCaptureAble(boolean[] outgoingDirections){
 
         int blockedAxisCount = 0;
 
@@ -216,7 +224,7 @@ public class StaticHeuristicPerPhase {
             if (!outgoingDirections[r] || !outgoingDirections[(r+4)%8]) blockedAxisCount++;
         }
 
-        if (blockedAxisCount ==4) return false;
+        if (blockedAxisCount == 4) return false;
         else return true;
     }
 
@@ -273,7 +281,9 @@ public class StaticHeuristicPerPhase {
         }
         System.out.println();
     }
-
+    /**
+     * prints out the boolean matrix
+     */
     public void printMatrix(boolean[][] matrix){
         char currChar;
         for (int y = 0; y < matrix.length; y++){
