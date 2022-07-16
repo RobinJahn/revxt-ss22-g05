@@ -6,13 +6,19 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 
 public class ServerMessenger {
-    Socket server;
-    OutputStream out;
-    InputStream in;
-    int groupNumberAddition;
+    private final OutputStream out;
+    private final InputStream in;
+    private final int groupNumberAddition;
 
+    /**
+     * Constructs the Server Messenger
+     * @param ip Target IP-Address
+     * @param port Target Port-Number
+     * @param groupNumberAddition GroupNumberAddition
+     * @throws IOException Throws an IOException If no connection could be established
+     */
     public ServerMessenger(String ip, int port, int groupNumberAddition) throws IOException {
-        server = new Socket( ip, port ); //builds up a connection to the server socket
+        Socket server = new Socket(ip, port); //builds up a connection to the server socket
         // Get input and output stream:
         out = server.getOutputStream();
         in = server.getInputStream();
@@ -24,6 +30,10 @@ public class ServerMessenger {
 
     //receiver
 
+    /**
+     * Waits for Messages from the Server.
+     * @return Returns -1 if there was no Message, Otherwise the received Byte.
+     */
     public int waitForMessage(){
         int readByte;
         try {
@@ -35,6 +45,10 @@ public class ServerMessenger {
         }
     }
 
+    /**
+     * Reads the Rest of the MoveRequest
+     * @return Returns the Maximum Time and Depth for this Move
+     */
     public int[] readRestOfMoveRequest(){
         int time;
         int depth;
@@ -57,6 +71,10 @@ public class ServerMessenger {
         }
     }
 
+    /**
+     * Reads the Rest of the Move send by the Server
+     * @return Returns the Position and Additional Info of the Move and the PlayerNumber, which made the Move.
+     */
     public int[] readRestOfMove(){
 
         DataInputStream dis = new DataInputStream(in);
@@ -77,8 +95,12 @@ public class ServerMessenger {
         return result;
     }
 
+    /**
+     * Reads the Rest of the Disqualification
+     * @return Returns the Number of the Disqualified Player.
+     */
     public int readRestOfDisqualification(){
-        int player = -1;
+        int player;
         DataInputStream dis = new DataInputStream(in);
         try {
             in.readNBytes(4); //reads size and ignores it
@@ -91,6 +113,9 @@ public class ServerMessenger {
         return player;
     }
 
+    /**
+     * Reads the Rest and ignores it.
+     */
     public void readRestOfNextPhase(){
         try {
             in.readNBytes(4); //reads size and ignores it
@@ -99,6 +124,11 @@ public class ServerMessenger {
         }
     }
 
+    /**
+     * Reads the Input Stream and Returns the Map.
+     * @param serverLog Boolean to toggle ServerLog with.
+     * @return Returns the Map, send by the server.
+     */
     public StaticMap getMap(boolean serverLog){
         int readByte;
         byte[] readByteArray;
@@ -137,6 +167,10 @@ public class ServerMessenger {
         return sMap;
     }
 
+    /**
+     * Reads the Input Stream and Returns my Player Number.
+     * @return Returns my Player Number.
+     */
     public int getPlayerNumber() {
         int readByte;
 
@@ -159,6 +193,13 @@ public class ServerMessenger {
 
     //sender
 
+    /**
+     * Sends a Move to the Server with the given Parameters
+     * @param x X-Position of the Move
+     * @param y Y-Position of the Move
+     * @param additionalInfo Additional Info
+     * @param myPlayerNr My Player Number
+     */
     public void sendMove(int x, int y, int additionalInfo, int myPlayerNr){
         int[] arguments = new int[4];
 
@@ -187,7 +228,6 @@ public class ServerMessenger {
 
         switch (messageType){
             case 1:
-                message = new byte[6];
                 messageBuffer = ByteBuffer.allocate(6);
                 messageBuffer.put((byte)1); //MessageType
                 messageBuffer.putInt(1); //length of message
@@ -198,7 +238,6 @@ public class ServerMessenger {
                 message = messageBuffer.array();
                 break;
             case 5:
-                message = new byte[10];
                 messageBuffer = ByteBuffer.allocate(10);
                 messageBuffer.put((byte)5); //MessageType
                 messageBuffer.putInt(5); //length of message
