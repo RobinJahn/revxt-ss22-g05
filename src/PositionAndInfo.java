@@ -74,7 +74,7 @@ public class PositionAndInfo implements Comparable<PositionAndInfo> {
     }
 
     /**
-     * Generates a String with all the necessary Information off the Object
+     * Generates a String with all the necessary Information of the Object
      * @return Returns a String following this Pattern (x,y,info)
      */
     @Override
