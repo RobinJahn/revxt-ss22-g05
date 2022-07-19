@@ -1,8 +1,8 @@
 package src;
 
 public class Position {
-    private final int x;
-    private final int y;
+    int x;
+    int y;
 
     /**
      * This Function creates a Position Object given X and Y
@@ -21,22 +21,6 @@ public class Position {
     public Position(int[] pos) {
         this.x = pos[0];
         this.y = pos[1];
-    }
-
-    /**
-     * This Function returns the X-Value of the Position-Object
-     * @return The X-Value
-     */
-    public int getX() {
-        return x;
-    }
-
-    /**
-     * This Function returns the Y-Value of the Position-Object
-     * @return The Y-Value
-     */
-    public int getY() {
-        return y;
     }
 
     /**

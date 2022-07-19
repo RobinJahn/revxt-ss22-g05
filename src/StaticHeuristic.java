@@ -133,9 +133,9 @@ public class StaticHeuristic {
         Integer newR;
 
         if (specialFields.contains(pos)) originValue += 100;
-        if (fieldsWithHighValues.contains(pos)) originValue += matrix[pos.getY()][pos.getX()];
+        if (fieldsWithHighValues.contains(pos)) originValue += matrix[pos.y][pos.x];
 
-        posQ.add(new PositionAndInfo(pos.getX(),pos.getY(),distanceFromOriginForNewField));
+        posQ.add(new PositionAndInfo(pos.x,pos.y,distanceFromOriginForNewField));
 
         while (!posQ.isEmpty()){
             currPosAndDist = posQ.poll();
@@ -150,7 +150,7 @@ public class StaticHeuristic {
                 if (newR == null || specialFields.contains(posAfterStep) || fieldsWithHighValues.contains(posAfterStep)) continue;
 
                 //create position and value for this position
-                posAndVal = new PositionAndValue(pos.getX(), pos.getY(), originValue/Math.pow(-divisor, distanceFromOriginForNewField) );
+                posAndVal = new PositionAndValue(pos.x, pos.y, originValue/Math.pow(-divisor, distanceFromOriginForNewField) );
 
                 //check what's there
                 currList = wavesAndFields.get(posAfterStep);
@@ -161,13 +161,13 @@ public class StaticHeuristic {
                     wavesAndFields.put( posAfterStep, new LinkedList<>());
                     //add current positionAndValue to this field
                     wavesAndFields.get(posAfterStep).add(posAndVal);
-                    if (distanceFromOriginForNewField < waveCount) posQ.add(new PositionAndInfo(posAfterStep.getX(), posAfterStep.getY(), distanceFromOriginForNewField));
+                    if (distanceFromOriginForNewField < waveCount) posQ.add(new PositionAndInfo(posAfterStep.x, posAfterStep.y, distanceFromOriginForNewField));
                 }
                 //if the field was already visited but not from us (if we visited it already that route was faster and so would create a |higher| value)
                 else if (!currList.contains(posAndVal)) {
                     //add current positionAndValue to this field
                     currList.add(posAndVal);
-                    if (distanceFromOriginForNewField < waveCount) posQ.add(new PositionAndInfo(posAfterStep.getX(), posAfterStep.getY(), distanceFromOriginForNewField));
+                    if (distanceFromOriginForNewField < waveCount) posQ.add(new PositionAndInfo(posAfterStep.x, posAfterStep.y, distanceFromOriginForNewField));
                 }
             }
         }
