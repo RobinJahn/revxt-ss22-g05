@@ -2,7 +2,6 @@ package src;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.concurrent.TimeoutException;
 
 public class SearchTree {
@@ -12,50 +11,55 @@ public class SearchTree {
     private final boolean extendedPrint;
     private final boolean serverLog;
     private final int myPlayerNr;
-    private Heuristic heuristicForSimulation;
-
-    final private boolean useAB;
+    private final Heuristic heuristicForSimulation;
     final private boolean useMS;
     final private boolean useBRS;
     final private boolean useKH;
     final private boolean useRM = true;
     final private boolean useZH = true;
     final private boolean useAW = true;
-    final private boolean useMCTS;
+    final private boolean useMonteCarloTreeSearch;
+    final private ZobristHashing ZH;
+    final private TranspositionTable TT;
+    final private AspirationWindow AW;
+
 
     //change
     private  boolean timed;
     private int depth;
     private double approximation = 1;
-    int moveCounter;
-    boolean cancelNextDepth = false;
-    long upperTimeLimit;
-    long timeForLastDepth1 = 0;
+    private int moveCounter;
+    private boolean cancelNextDepth = false;
+    private long upperTimeLimit;
+    private long timeForLastDepth1 = 0;
+    private ArrayList<KillerArray> killerArrays;
+    private int[] returnedMove;
+    private double valueOfMove;
+    private int totalDepth = 0;
 
-    ArrayList<KillerArray> killerArrays;
-
-    int[] returnedMove;
-
-    MctsNode currRoot = null;
-
-    ZobristHashing ZH;
-    TranspositionTable TT;
-    AspirationWindow AW;
-
-    double valueOfMove;
-
-    int totalDepth = 0;
-
+    /**
+     * This Constructor lays the Foundation off our SearchTree, where most Functions can be enabled or disabled
+     * @param map The Current Map
+     * @param printOn Enables Basic Prints on the Console
+     * @param ServerLog Enables the most essential Prints on the Console
+     * @param extendedPrint Enables the extended Prints on the Console
+     * @param myPlayerNr The Number of our Client.
+     * @param useMS Enables MoveSorting
+     * @param useBRS Enables Best Reply Search
+     * @param useKH Enables Killer Heuristic
+     * @param useMonteCarloTreeSearch Enables MonteCarloTreeSearch
+     * @param multiplier Sets the Evaluation Multipliers to the given ones.
+     * @param shpp Sets the StaticHeuristic Part.
+     */
     public SearchTree(Map map,
                       boolean printOn,
                       boolean ServerLog,
                       boolean extendedPrint,
                       int myPlayerNr,
-                      boolean useAB,
                       boolean useMS,
                       boolean useBRS,
                       boolean useKH,
-                      boolean useMCTS,
+                      boolean useMonteCarloTreeSearch,
                       double[][] multiplier,
                       StaticHeuristicPerPhase shpp){
         this.printOn = printOn;
@@ -63,11 +67,10 @@ public class SearchTree {
         this.myPlayerNr = myPlayerNr;
         this.extendedPrint = extendedPrint;
 
-        this.useAB = useAB;
         this.useMS = useMS;
         this.useBRS = useBRS;
         this.useKH = useKH;
-        this.useMCTS = useMCTS;
+        this.useMonteCarloTreeSearch = useMonteCarloTreeSearch;
 
         heuristicForSimulation = new Heuristic(map, myPlayerNr, false, false, multiplier, shpp);
 
@@ -78,6 +81,16 @@ public class SearchTree {
         AW = new AspirationWindow(Double.MIN_VALUE,Double.MAX_VALUE,1000);
     }
 
+    /**
+     * This Function returns the currently best Move we can make given all the inputs.
+     * @param map The Current Map Situation
+     * @param timed Indicates if the Move is timed or not
+     * @param depth The Maximum Depth to search.
+     * @param phaseOne Indicates if we are in Phase One or not
+     * @param upperTimeLimit The Current Time Limit, where the Offset has already been included
+     * @param moveCounter The Number off Moves we already have done.
+     * @return Returns the Position to set a Stone, with Possible Additional Information.
+     */
     public int[] getMove(Map map, boolean timed, int depth, boolean phaseOne, long upperTimeLimit, int moveCounter){
 
         this.timed = timed;
@@ -91,7 +104,6 @@ public class SearchTree {
         killerArrays = new ArrayList<>();
 
         Statistic statistic;
-
 
         //calculate possible moves
         if (phaseOne) {
@@ -115,12 +127,11 @@ public class SearchTree {
             return moveToMake;
         }
 
-
         //get move to make
         if (timed){
-            if (useMCTS) {
+            if (useMonteCarloTreeSearch) {
                 moveToMake = getMoveWithMCTS(map, phaseOne, validMoves);
-                System.out.println("MCTS Move: " + Arrays.toString(moveToMake));
+                System.out.println("MonteCarloTreeSearch Move: " + Arrays.toString(moveToMake));
             }
             else {
                 moveToMake = getMoveByTime(map, phaseOne, validMoves);
@@ -147,6 +158,12 @@ public class SearchTree {
         return moveToMake;
     }
 
+    /**
+     * This Function returns the best Position to set a Bomb given the current circumstances.
+     * @param map Current Map-Situation
+     * @param upperTimeLimit The Current Time Limit, where the Offset has already been included.
+     * @return Returns the Position to set a Bomb.
+     */
     public int[] getBombPosition(Map map , long upperTimeLimit)
     {
         this.upperTimeLimit = upperTimeLimit;
@@ -190,9 +207,31 @@ public class SearchTree {
         return bestMove.toIntArray();
     }
 
+    /**
+     * This Functions Returns the Sum off all Depths visited until now.
+     * @return The Sum off all Depths visited.
+     */
     public int getTotalDepth()
     {
         return  totalDepth;
+    }
+
+    /**
+     * This Function prints the ZobristTable
+     */
+    public void printZobristTable()
+    {
+        ZH.printZobristTable();
+    }
+
+    /**
+     * This Function prints the Information of the Transposition Table
+     */
+    public void printTranspositionTable()
+    {
+        System.out.println("Transpositions Hits: " + TT.getTranspositionHits());
+        System.out.println("Transpositions Miss: " + TT.getTranspositionMiss());
+        System.out.println("Transposition Replacements: " + TT.getReplacements());
     }
 
     private int[] getMoveByDepth(Map map, boolean phaseOne, ArrayList<int[]> validMoves, Statistic statistic) throws TimeoutException{
@@ -228,7 +267,7 @@ public class SearchTree {
 
         //sort index list
         if (useMS) sortMove(indexList, validMoves, true, map, phaseOne);
-        if (useKH) useKillerheuristic(indexList, validMoves, depth);
+        if (useKH) useKillerHeuristic(indexList, validMoves, depth);
         if (useRM) useReturnedMove(indexList, validMoves, returnedMove);
 
         // Out of Time ?
@@ -256,7 +295,6 @@ public class SearchTree {
             //get values and reset values
             currIndex = indexList.get(i);
             posAndInfo = validMoves.get(currIndex);
-            evaluation = Double.NEGATIVE_INFINITY;
 
             // Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
@@ -319,13 +357,13 @@ public class SearchTree {
                         if(evaluation == Double.MIN_VALUE+1)
                         {
                             long hash = ZH.hash(nextMap);
-                            evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth+1, statistic, alphaAndBeta.clone(), brsCount + 1);
+                            evaluation = getValueForNode(nextMap, validMovesForNext, phaseOneAfterNextMove, depth+1, statistic, alphaAndBeta.clone(), brsCount + 1);
                             TT.add(hash,depth,evaluation);
                         }
                     }
                     else
                     {
-                        evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth+1, statistic, alphaAndBeta.clone(), brsCount + 1);
+                        evaluation = getValueForNode(nextMap, validMovesForNext, phaseOneAfterNextMove, depth+1, statistic, alphaAndBeta.clone(), brsCount + 1);
                     }
                 }
             }
@@ -338,10 +376,7 @@ public class SearchTree {
 
             //print infos
             if (extendedPrint){
-                System.out.print("NodeForDepth("+ depth +"): ");
-                if (phaseOneAfterNextMove) System.out.printf("[(%2d,%2d,%2d)= %.2f], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],evaluation);
-                else System.out.printf("[(%2d,%2d)= %.2f], ",posAndInfo[0],posAndInfo[1],evaluation);
-                System.out.println();
+                printNodeDepthInfo(posAndInfo,evaluation,phaseOne);
             }
 
             //get highest value
@@ -352,7 +387,7 @@ public class SearchTree {
                 valueOfMove = currBestValue;
             }
 
-            cutoff = useAlphaBetaPruning(alphaAndBeta, true, currBestValue, statistic, validMoves, i);
+            cutoff = useAlphaBetaPruning(alphaAndBeta, true, currBestValue, validMoves, i);
             if (cutoff){
                 //Killer Heuristic
                 if (useKH) {
@@ -380,9 +415,17 @@ public class SearchTree {
         return validMoves.get(indexOfBest);
     }
 
+    private void printNodeDepthInfo (int[] posAndInfo, double evaluation, boolean phaseOne)
+    {
+        System.out.print("NodeForDepth("+ depth +"): ");
+        if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %.2f], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],evaluation);
+        else System.out.printf("[(%2d,%2d)= %.2f], ",posAndInfo[0],posAndInfo[1],evaluation);
+        System.out.println();
+    }
+
     private int[] getMoveByTime(Map map, boolean phaseOne, ArrayList<int[]> validMoves){
         //declarations
-        Statistic statistic = null;
+        Statistic statistic;
         int[] currMove;
         int[] validPosition = validMoves.get(0);
         //Timing
@@ -502,11 +545,9 @@ public class SearchTree {
         MctsNode rootNode;
         rootNode = new MctsNode(map, null, null, (ArrayList<int[]>) validMoves.clone(), phaseOne);
         //TODO: get child of root Node in regards which path it took
-        MctsNode currV = null;
+        MctsNode currV;
         double delta;
         int loopCount = 0;
-
-        this.currRoot = rootNode;
 
         while (upperTimeLimit - System.nanoTime() > 0 && loopCount < 1000000) {
             try {
@@ -517,11 +558,11 @@ public class SearchTree {
             catch (TimeoutException e) {
                 break;
             }
-            //TODO: Add an additional break in while so that if we got the whole tree it stops
+            //TODO: Add an additional break in a while so that if we got the whole tree it stops
             loopCount++;
         }
 
-        System.out.println("MCTS loops: " + loopCount);
+        System.out.println("MonteCarloTreeSearch loops: " + loopCount);
         currV = bestChild(rootNode, 0);
 
         if (currV != null) {
@@ -612,7 +653,7 @@ public class SearchTree {
         if (phaseOne) {
             while (!map.isTerminal()) {
                 a = map.getRandomMove();  //TODO: check if player is set correctly
-                map = simulateMove(map, a, phaseOne);
+                map = simulateMove(map, a, true);
 
                 // Out of Time ?
                 if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
@@ -623,10 +664,9 @@ public class SearchTree {
             }
         }
         //second phase
-        phaseOne = false;
         while (!map.isTerminalSecondPhase()){
             a = map.getRandomBombMove();
-            map = simulateMove(map, a, phaseOne);
+            map = simulateMove(map, a, false);
 
             // Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime() < 0)) {
@@ -660,7 +700,7 @@ public class SearchTree {
 
 
     //recursive
-    private double getValueForNode(Map map, ArrayList<int[]> validMoves, int[] posAndInfo, boolean phaseOne, int depth, Statistic statistic, double[] alphaAndBeta, int brsCount) throws TimeoutException {
+    private double getValueForNode(Map map, ArrayList<int[]> validMoves, boolean phaseOne, int depth, Statistic statistic, double[] alphaAndBeta, int brsCount) throws TimeoutException {
         ArrayList<Integer> indexList;
 
         int currIndex;
@@ -705,7 +745,7 @@ public class SearchTree {
 
         //SORT MOVES
         if (useMS) mapList = sortMove(indexList, validMoves, isMax, map, phaseOne); //changes index List
-        if (useKH) useKillerheuristic(indexList, validMoves, depth);
+        if (useKH) useKillerHeuristic(indexList, validMoves, depth);
         if (useBRS) {
             indexList = useBRS1(indexList, isMax, brsCount);
             if (indexList.size() == 1) isPhiMove = true;
@@ -723,7 +763,7 @@ public class SearchTree {
 
             //set and reset variables
             currIndex = indexList.get(i);
-            posAndInfo = validMoves.get(currIndex);
+            int[] posAndInfo = validMoves.get(currIndex);
 
             //Out of Time ?
             if(timed && (upperTimeLimit - System.nanoTime()<0)) {
@@ -765,7 +805,7 @@ public class SearchTree {
 
 
             if (useBRS) {
-                if (!madePhiMove && !isPhiMove && useBRS2(isMax, brsCount, nextPlayer)) {
+                if (!madePhiMove && !isPhiMove && useBRS2(isMax, nextPlayer)) {
                     isPhiMove = true;
                     madePhiMove = true;
                 }
@@ -804,13 +844,13 @@ public class SearchTree {
                         if(evaluation == Double.MIN_VALUE+1)
                         {
                             long hash = ZH.hash(nextMap);
-                            evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth + 1, statistic, alphaAndBeta.clone(), nextBrsCount);
+                            evaluation = getValueForNode(nextMap, validMovesForNext, phaseOneAfterNextMove, depth + 1, statistic, alphaAndBeta.clone(), nextBrsCount);
                             TT.add(hash,depth,evaluation);
                         }
                     }
                     else
                     {
-                        evaluation = getValueForNode(nextMap, validMovesForNext, posAndInfo, phaseOneAfterNextMove, depth + 1, statistic, alphaAndBeta.clone(), nextBrsCount);
+                        evaluation = getValueForNode(nextMap, validMovesForNext, phaseOneAfterNextMove, depth + 1, statistic, alphaAndBeta.clone(), nextBrsCount);
                     }
                 }
             }
@@ -823,10 +863,7 @@ public class SearchTree {
 
             //print infos
             if (extendedPrint){
-                System.out.print("NodeForDepth("+ depth +"): ");
-                if (phaseOne) System.out.printf("[(%2d,%2d,%2d)= %.2f], ",posAndInfo[0],posAndInfo[1],posAndInfo[2],evaluation);
-                else System.out.printf("[(%2d,%2d)= %.2f], ",posAndInfo[0],posAndInfo[1],evaluation);
-                System.out.println();
+                printNodeDepthInfo(posAndInfo,evaluation,phaseOne);
             }
 
             //Get highest or lowest value
@@ -851,7 +888,7 @@ public class SearchTree {
                 }
             }
 
-            cutoff = useAlphaBetaPruning(alphaAndBeta, isMax, currBestValue, statistic, validMoves, i); //parameter i here because it needs to calculate how many branches were cut
+            cutoff = useAlphaBetaPruning(alphaAndBeta, isMax, currBestValue, validMoves, i); //parameter i here because it needs to calculate how many branches were cut
 
             if (cutoff) {
                 //Killer Heuristic
@@ -884,7 +921,7 @@ public class SearchTree {
 
         //Out of Time ?
         if(timed && (upperTimeLimit - System.nanoTime()<0)) {
-            if (printOn || serverLog) System.out.println("Out of Time - in zobrist after lookup");
+            if (printOn || serverLog) System.out.println("Out of Time - in Zobrist after lookup");
             throw new TimeoutException();
         }
 
@@ -904,14 +941,8 @@ public class SearchTree {
     //Helper functions for getValueForNode()
 
     private boolean isMax(Map map){
-        //	Maximizer
-        if (map.getCurrentlyPlayingI() == myPlayerNr) {
-            return true;
-        }
-        //	Minimizer
-        else {
-            return false;
-        }
+        //	Maximizer = True; Minimizer = False
+        return map.getCurrentlyPlayingI() == myPlayerNr;
     }
 
     //TODO: refine to return value according to placement
@@ -1002,7 +1033,7 @@ public class SearchTree {
 
 
     //Alpha Beta Pruning
-    private boolean useAlphaBetaPruning(double[] alphaAndBeta, boolean isMax, double currBestValue, Statistic statistic, ArrayList<int[]> validMoves, int currentIndex){
+    private boolean useAlphaBetaPruning(double[] alphaAndBeta, boolean isMax, double currBestValue, ArrayList<int[]> validMoves, int currentIndex){
         double currAlpha = alphaAndBeta[0];
         double currBeta = alphaAndBeta[1];
         boolean cutoff = false;
@@ -1018,9 +1049,6 @@ public class SearchTree {
             //Cutoff ?
             if (currBestValue >= currBeta) {
                 int countOfCutoffLeaves = validMoves.size() - currentIndex;
-                //delete nodes out of statistic
-                //statistic.reduceNodes(countOfCutoffLeaves, depth);
-
                 //Print before return
                 if (extendedPrint) {
                     System.out.println("Cutoff: Current highest value (" + currBestValue + ") >= current Beta (" + currBeta + ") - " + countOfCutoffLeaves + " values skipped");
@@ -1039,9 +1067,6 @@ public class SearchTree {
             //Cutoff ?
             if (currBestValue <= currAlpha) {
                 int countOfCutoffLeaves = validMoves.size()- currentIndex;
-                //delete nodes out of statistic
-                //statistic.reduceNodes(countOfCutoffLeaves, depth);
-
                 //Print before return
                 if (extendedPrint) {
                     System.out.println("Cutoff: Current lowest value (" + currBestValue + ") <= current Alpha (" + currAlpha + ") - " + countOfCutoffLeaves + " values skipped");
@@ -1063,16 +1088,13 @@ public class SearchTree {
         Map nextMap;
 
         if (Map.useArrows && phaseOne) {
-            indexList.sort(new Comparator<Integer>() {
-                @Override
-                public int compare(Integer i1, Integer i2) {
-                    int[] positionAndInfo1 = validMoves.get(i1);
-                    int[] positionAndInfo2 = validMoves.get(i2);
-                    double valueM1 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo1);
-                    double valueM2 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo2);
-                    if (isMax) return Double.compare(valueM2, valueM1);
-                    else return Double.compare(valueM1, valueM2);
-                }
+            indexList.sort((i1, i2) -> {
+                int[] positionAndInfo1 = validMoves.get(i1);
+                int[] positionAndInfo2 = validMoves.get(i2);
+                double valueM1 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo1);
+                double valueM2 = Map.getStoneCountAfterMove(map, myPlayerNr, positionAndInfo2);
+                if (isMax) return Double.compare(valueM2, valueM1);
+                else return Double.compare(valueM1, valueM2);
             });
             return null;
         }
@@ -1106,24 +1128,13 @@ public class SearchTree {
                 mapList.add(nextMap);
             }
 
-            indexList.sort(new Comparator<Integer>() {
-                @Override
-                public int compare(Integer i1, Integer i2) {
-					/*
-					if(i1>= mapList.size()|| i2>= mapList.size())
-					{
-						System.err.printf("IndexListSize: " + indexList.size() + "\nMapListSize: " + mapList.size());
-						System.err.println("\nI1: " + i1 +" \nI2" + i2);
-						return 0;
-					}
-					*/
-                    Map m1 = mapList.get(i1);
-                    Map m2 = mapList.get(i2);
-                    double valueM1 = Heuristic.fastEvaluate(m1, myPlayerNr);
-                    double valueM2 = Heuristic.fastEvaluate(m2, myPlayerNr);
-                    if (isMax) return Double.compare(valueM2, valueM1);
-                    else return Double.compare(valueM1, valueM2);
-                }
+            indexList.sort((i1, i2) -> {
+                Map m1 = mapList.get(i1);
+                Map m2 = mapList.get(i2);
+                double valueM1 = Heuristic.fastEvaluate(m1, myPlayerNr);
+                double valueM2 = Heuristic.fastEvaluate(m2, myPlayerNr);
+                if (isMax) return Double.compare(valueM2, valueM1);
+                else return Double.compare(valueM1, valueM2);
             });
 
             return mapList;
@@ -1142,18 +1153,15 @@ public class SearchTree {
         return newIndexList;
     }
 
-    private boolean useBRS2(boolean isMax, int brsCount, int nextPlayer){
+    private boolean useBRS2(boolean isMax, int nextPlayer){
         //TODO: either this could make the first move to a phi move or it could save all / keep the best or worst the possible phi moves and then add one of them to the end of the index list
-        if (!isMax && nextPlayer != myPlayerNr){
-            return true;
-        }
+        return !isMax && nextPlayer != myPlayerNr;
         //if is Max it's our move
         //if nextPlayer == myPlayerNr we're next
-        return false;
     }
 
     //Killer Heuristic
-    private void useKillerheuristic(ArrayList<Integer> indexList, ArrayList<int[]> validMoves, int depth) throws TimeoutException{
+    private void useKillerHeuristic(ArrayList<Integer> indexList, ArrayList<int[]> validMoves, int depth) throws TimeoutException{
 
         if (killerArrays.size()-1 < depth) return;
 

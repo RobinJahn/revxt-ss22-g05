@@ -254,7 +254,7 @@ public class Client{
 		StaticHeuristicPerPhase shpp = new StaticHeuristicPerPhase(map, multipliers, extendedPrint);
 		//	the heuristic here is only needed when the output is enabled
 		if (printOn) heuristic = new Heuristic(map, myPlayerNr, printOn, extendedPrint, multipliers, shpp);
-		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useAB, useMS, useBRS, useKH, useMCTS, multipliers, shpp);
+		searchTree = new SearchTree(map, printOn, serverLog, extendedPrint, myPlayerNr, useMS, useBRS, useKH, useMCTS, multipliers, shpp);
 
 		//Prints
 		if (printOn) {
@@ -603,10 +603,8 @@ public class Client{
 
 					if (printOn || serverLog) {
 						System.out.println("Average Depth hit: " + (searchTree.getTotalDepth()/(double) countOfOwnMoves));
-						System.out.println("Transpositions Hits: " + searchTree.TT.getTranspositionHits());
-						System.out.println("Transpositions Miss: " + searchTree.TT.getTranspositionMiss());
-						System.out.println("Transposition Replacements: " + searchTree.TT.getReplacements());
-						searchTree.ZH.printZobristTable();
+						searchTree.printTranspositionTable();
+						searchTree.printZobristTable();
 					}
 
 					break;
