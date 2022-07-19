@@ -2,9 +2,34 @@ package src;
 
 public class PositionAndValue implements Comparable<src.PositionAndValue>{
 
-    public int x;
-    public int y;
-    public double value;
+    private int x;
+    private int y;
+    private double value;
+
+    /**
+     * Returns the Value
+     * @return Returns the Value
+     */
+    public double getValue()
+    {
+        return value;
+    }
+
+    /**
+     * Returns the X-Position
+     * @return Returns the X-Position
+     */
+    public int getX() {
+        return x;
+    }
+
+    /**
+     * Returns the Y-Position
+     * @return Returns the Y-Position
+     */
+    public int getY() {
+        return y;
+    }
 
     /**
      * Creates a new PositionAndValue Object with the given Parameters

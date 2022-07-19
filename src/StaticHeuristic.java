@@ -92,10 +92,10 @@ public class StaticHeuristic {
             //go through every position that creates a wave that's affecting this position
             for (PositionAndValue pav : list) {
                 //get char at creating position
-                charAtPos = map.getCharAt(pav.x, pav.y);
+                charAtPos = map.getCharAt(pav.getX(), pav.getY());
                 //only use the value when the field is free
                 if (charAtPos == '0' || !Character.isDigit(charAtPos)) {
-                    result += pav.value;
+                    result += pav.getValue();
                 }
             }
         }
@@ -139,8 +139,8 @@ public class StaticHeuristic {
 
         while (!posQ.isEmpty()){
             currPosAndDist = posQ.poll();
-            currPos = new Position(currPosAndDist.x, currPosAndDist.y);
-            distanceFromOriginForNewField = currPosAndDist.info + 1;
+            currPos = new Position(currPosAndDist.getX(), currPosAndDist.getY());
+            distanceFromOriginForNewField = currPosAndDist.getInfo() + 1;
 
             //go in every possible direction
             for (int r = 0; r <= 7; r++) {

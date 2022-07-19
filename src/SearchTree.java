@@ -172,7 +172,7 @@ public class SearchTree {
         ArrayList<int[]> validMoves = Map.getPositionsToSetABomb(map);
 
         bestMove = new PositionAndInfo(validMoves.get(0));
-        bestMove.info = 0;
+        bestMove.setInfo(0);
         currMove = new Position(validMoves.get(0));
 
         long bestValue = Long.MIN_VALUE;
