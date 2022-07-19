@@ -289,6 +289,7 @@ public class Client{
 		int countOfOwnMoves = 0;
 		int cheeseCounter = 0;
 		Position followupPos = new Position(-1,-1);
+		Position startingPos = new Position(0,0);
 
 		if((printOn||serverLog)&&cheeseMode) System.out.println("Activate cheeseMode");
 		if (extendedPrint) System.out.println(map.toString(null,true,useColors));
@@ -334,11 +335,10 @@ public class Client{
 					//set me as the player
 					map.setPlayer(myPlayerNr);
 
-
 					//Cheese Move if one is found
 					if(cheeseMode) {
 						//first move
-						if (cheeseCounter == 0 && makeFirstCheeseMove(followupPos)) {
+						if (cheeseCounter == 0 && makeFirstCheeseMove(followupPos,startingPos)) {
 							firstMove = false;
 							cheeseCounter++;
 							continue;
@@ -347,20 +347,20 @@ public class Client{
 						//follow Up to Cheese Move
 						if (cheeseCounter == 1) {
 							cheeseMode = false;
-							if (followupPos.x != -1 && map.getCharAt(followupPos) == 'b') {
+							if (followupPos.x != -1 && map.getCharAt(followupPos) == 'b' && map.getCharAt(startingPos) == myPlayerNr + 48) {
 
 								if(map.getCountOfReachableBonusFields(map) > 1)
 								{
 									//If there are more BonusFields to acquire take an OverWrite Stone
 									cheeseMode = true;
 									cheeseCounter = 0;
-									if (printOn || serverLog) System.out.println("Cheese Move: " + followupPos + " - Aquire Bonus Field (Overwrite)");
+									if (printOn || serverLog) System.out.println("Cheese Move: " + followupPos + " - Acquire Bonus Field (Overwrite)");
 									serverM.sendMove(followupPos.x, followupPos.y, 21, myPlayerNr);
 								}
 								else
 								{
 									//If this is the last BonusField take a Bomb
-									if (printOn || serverLog) System.out.println("Cheese Move: " + followupPos + " - Aquire Bonus Field (Bomb) - Note: UR DOOMED");
+									if (printOn || serverLog) System.out.println("Cheese Move: " + followupPos + " - Acquire Bonus Field (Bomb) - Note: UR DOOMED");
 									serverM.sendMove(followupPos.x, followupPos.y, 20, myPlayerNr);
 								}
 								continue;
@@ -627,7 +627,7 @@ public class Client{
 		//if bonus fields are reachable
 		if(map.getOverwriteStonesForPlayer(myPlayerNr) >= 1 ) {
 			if (map.getCountOfReachableBonusFields(map) >= 1 ) {
-				//if approximatly 80% of the map can be bombed
+				//if approximately 80% of the map can be bombed
 				if (map.getCountOfReachableFields() <= ( (map.getBombsForPlayer(myPlayerNr) * map.getAnzPlayers() + map.getCountOfReachableBonusFields(map)) * ((map.getExplosionRadius()*2+1)*(map.getExplosionRadius()*2+1)) * 0.8))
 				{
 					return true;
@@ -638,7 +638,7 @@ public class Client{
 	}
 
 	//CheeseMode
-	private boolean makeFirstCheeseMove(Position followupPos)
+	private boolean makeFirstCheeseMove(Position followupPos, Position startingPos)
 	{
 		Position positionToSetTo = new Position(-1,-1);
 		int maxLength = 0;
@@ -676,6 +676,8 @@ public class Client{
 		if (printOn || serverLog) System.out.println("Cheese Move: " + positionToSetTo);
 
 		serverM.sendMove(positionToSetTo.x,positionToSetTo.y,0,myPlayerNr);
+		startingPos.x = positionToSetTo.x;
+		startingPos.y = positionToSetTo.y;
 		return true;
 	}
 
