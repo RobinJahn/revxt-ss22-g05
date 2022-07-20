@@ -9,7 +9,6 @@ public class Client{
 	//final variables
 	final private boolean calculateMove = true;
 
-
 	final private boolean printOn;
 	final private boolean extendedPrint;
 	final private boolean useColors;
@@ -35,11 +34,13 @@ public class Client{
 	double approximation = 1;
 	SearchTree searchTree;
 
+	Random random = new Random(1); //this is needed to make random moves when enabeld
 
-
-	Random random = new Random(1);
-
-
+	/**
+	 * The main method of the Client. This Method gets all the variables out of the args String array.
+	 * With these Varables the Client gets created.
+	 * @param args Array of Strings that contain all the input parameters
+	 */
 	public static void main(String[] args) {
 		boolean printOn = false;
 		boolean useColors = true;
@@ -183,9 +184,18 @@ public class Client{
 
 	/**
 	 * Constructor of the Client.
-	 * Connects to Server and starts playing
-	 * @param ip ip of the server
-	 * @param port port of the server
+	 * Connects to Server and starts playing.
+	 * @param ip The ip to connect to.
+	 * @param port The port to connect to.
+	 * @param multipliers a double array of multipliers. (See assignment in -h)
+	 * @param useAB boolen if alpha beta prouning should be used
+	 * @param printOn boolen if the Client should print the medium ammount of outputs.
+	 * @param useColors boolean if the Client should print in color.
+	 * @param compare_to_Server boolean if the client compares it's output to the servers. (needs special call)
+	 * @param extendedPrint boolen if the Client should print all the outputs.
+	 * @param useMS boolean if the Client should use Move Sorting
+	 * @param useMCTS boolean if the Client should use Monte-Carlo-Tree-Search.
+	 * @param groupNumberAddition If more clients with differen group numbers should be started this value can be used.
 	 */
 	public Client(String ip,
 				  int port,
