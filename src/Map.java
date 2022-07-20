@@ -1264,22 +1264,39 @@ public class Map{
         }
     }
 
+    /**
+     * increases the number of bombs the player currently playing has by 1
+     */
     public void increaseBombsOfPlayer(){
         bombsPerPlayer[currentlyPlaying-1]++;
     }
 
+    /**
+     * decreases the number of bombs the player currently playing has by 1
+     */
     public void decreaseBombsOfPlayer(){
         bombsPerPlayer[currentlyPlaying-1]--;
     }
 
+    /**
+     * increases the number of overwrite stones the player currently playing has by 1
+     */
     public void increaseOverrideStonesOfPlayer(){
         overwriteStonesPerPlayer[currentlyPlaying-1]++;
     }
 
+    /**
+     * decreases the number of overwrite stones the player currently playing has by 1
+     */
     public void decreaseOverrideStonesOfPlayer(){
         overwriteStonesPerPlayer[currentlyPlaying-1]--;
     }
 
+    /**
+     * sets the player currently playing to the next one.
+     * Regards only the disqulaified players and not if the player can make a move
+     * @return returns the number of skipped players
+     */
     public int nextPlayer(){
         int skippedPlayers = -1;
         //TODO: check if player can make a move
@@ -1292,17 +1309,18 @@ public class Map{
         return skippedPlayers;
     }
 
-    public  int getNextPlayer(){
-        int nextPlayer = currentlyPlaying + 1;
-        if (nextPlayer == staticMap.anzPlayers+1) nextPlayer = 1;
-        return nextPlayer;
-
-    }
-
+    /**
+     * sets the next player to the specified number
+     * @param PlayerID player number it gets set to
+     */
     public void setPlayer(int PlayerID) {
         currentlyPlaying = PlayerID;
     }
 
+    /**
+     * marks the specified player ass disqualified
+     * @param playerNr player number
+     */
     public void disqualifyPlayer(int playerNr){
         disqualifiedPlayers[playerNr-1] = false;
     }
@@ -1574,6 +1592,11 @@ public class Map{
         arrow.positionsWithDirection.add(new int[]{currPos.x, currPos.y, newR});
     }
 
+    /**
+     * Colors the map in regard to what move was made and what player has the turn.
+     * For this method the Arrows are used
+     * @param pos Position the currently playing player set to
+     */
     public void colorMapByArrows(Position pos){
         boolean isOverwriteMove;
         char charAtPos = getCharAt(pos);
@@ -1725,6 +1748,10 @@ public class Map{
         return  validArrowsInMap;
     }
 
+    /**
+     * Testing Method to check if every arrow has the correct reference in the affected arrow array
+     * @return true if everything is right and false otherwise
+     */
     public boolean checkForReferenceInAffectedArrows(){
         ArrayList<Arrow> allArrows = getAllArrows();
         boolean isOneOfThem;
@@ -1746,6 +1773,10 @@ public class Map{
         return true;
     }
 
+    /**
+     * Testing Method to check if every arrow that creates a valid move is considered
+     * @return true if everything is right and false otherwise
+     */
     public boolean checkValidMoves(){
         ArrayList<Arrow> validArrows = getAllValidArrows();
 
@@ -1786,6 +1817,10 @@ public class Map{
         return true;
     }
 
+    /**
+     * Testing Method to check if every arrow that creates overwrite moves is considered
+     * @return true if everything is right and false otherwise
+     */
     public boolean checkOverwriteMoves(){
         ArrayList<Arrow> allArrows = getAllArrows();
         int[] posAndR;
@@ -1840,6 +1875,10 @@ public class Map{
         return true;
     }
 
+    /**
+     * Testing Method to check if every overwrite move can be made has the corret ammount of arrows that create these moves
+     * @return true if everything is right and false otherwise
+     */
     public boolean checkOverwriteMovesTheOtherWay(){
         int counter;
         int[] currPosAndDir;
@@ -1898,7 +1937,14 @@ public class Map{
 
     // OTHER -----------------------------------------------------------------------------------------------------------
 
-    //  function to do a step on the map
+    /**
+     * By calling this method you can simulate a step on the map.
+     * This step is taken from the specified poition in the specified direction.
+     * The position that was given the method contains afterwards the new position after the step
+     * @param pos Position to do the step from
+     * @param r direction in wich to go
+     * @return Integer value wich direction you are now facing or null if the step wasn't possible
+     */
     public Integer doAStep(Position pos, int r){
         return staticMap.doAStep(pos,r);
     }
@@ -1908,7 +1954,12 @@ public class Map{
     //  functions to simulate a move
 
     /**
-     * Method to update the Map according to the move that was sent to the client
+     * This method simulates a move. The given map is updated in regard to the position the stone was set to.
+     * @param posToSetKeystone Position the keystone was set to
+     * @param additionalInfo Additional informatin that might be needed (1-9 for a choise move; 20, 21 for a bonus move)
+     * @param moveOfPlayer playernumber of the player that made the move
+     * @param map Map that is updated
+     * @param printOn boolean that specifies if the function should print an output
      */
     public static void updateMapWithMove(Position posToSetKeystone, int additionalInfo, int moveOfPlayer, Map map, boolean printOn) {
         char fieldValue;
@@ -2035,9 +2086,9 @@ public class Map{
     //  function to color the map
 
     /**
-     * colors the map when the keystone is placed in the specified position
+     * colors the map when the keystone is placed at the specified position
      * @param pos position where the keystone is placed
-     * @param map the map on which it is placed
+     * @param map the map on which it is placed on
      */
     public static void colorMap(Position pos, Map map){
 
@@ -2127,9 +2178,15 @@ public class Map{
     //  functions to calculate all possible moves
 
     /**
-     * returns the possible moves on the current map
-     * @param map map to check for possible moves
-     * @return returns an Array List of Positions
+     * returns the possible moves on the specified map for the current player
+     * @param map Map that possible moves are calculated on
+     * @param timed boolean if there is a time limit
+     * @param printOn boolean if the method should print information
+     * @param serverLog boolean if only the neccessary inforamtion should be printed
+     * @param upperTimeLimit if timed is enabled this is the time limit the method needs to considder
+     * @param heuristic heuristic to evaluate if overwrite moves should be made
+     * @return List of possible Moves. The moves are speccisfied in an int[] as (x,y,info)
+     * @throws ExceptionWithMove if the time is over this exception is thrown. It contains a move that can be made
      */
     public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit, Heuristic heuristic) throws ExceptionWithMove {
         ArrayList<int[]> everyPossibleMove;
@@ -2150,6 +2207,11 @@ public class Map{
         return everyPossibleMove;
     }
 
+    /**
+     * returns the possible bomb moves on the specified map for the current player
+     * @param map Map that possible moves are calculated on
+     * @return List of possible Moves. The moves are speccisfied in an int[] as (x,y,info)
+     */
     public static ArrayList<int[]> getPositionsToSetABomb(Map map) {
         ArrayList<int[]> validMoves = new ArrayList<>();
         char fieldValue;
@@ -2242,6 +2304,17 @@ public class Map{
         return false;
     }
 
+    /**
+     * returns the possible moves on the specified map for the current player. This is done by using the "By own color" Method
+     * @param map Map that possible moves are calculated on
+     * @param timed boolean if there is a time limit
+     * @param printOn boolean if the method should print information
+     * @param serverLog boolean if only the neccessary inforamtion should be printed
+     * @param upperTimeLimit if timed is enabled this is the time limit the method needs to considder
+     * @param heuristic heuristic to evaluate if overwrite moves should be made
+     * @return List of possible Moves. The moves are speccisfied in an int[] as (x,y,info)
+     * @throws ExceptionWithMove if the time is over this exception is thrown. It contains a move that can be made
+     */
     public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit, Heuristic heuristic) throws ExceptionWithMove{
         HashSet<PositionAndInfo> resultMovesSet = new HashSet<>();
         HashSet<PositionAndInfo> overwriteMovesSet = new HashSet<>();
@@ -2422,7 +2495,13 @@ public class Map{
         }
     }
 
-
+    /**
+     * This method calculates the stone count after a move was made. This is used by MCTS
+     * @param map Map that value is calculated on
+     * @param playerNr number of the player that would make the move
+     * @param posToMoveTo position the player would place the stone
+     * @return double that represents the relation between the own stones and the enemy ones
+     */
     public static double getStoneCountAfterMove(Map map, int playerNr, int[] posToMoveTo){
         int myStoneCount = 0; //start value are the current stones of the player and the one we're going to set to
         int enemyStoneCount = 0;
@@ -2476,6 +2555,14 @@ public class Map{
         return (double) myStoneCount / ((double)enemyStoneCount / (map.staticMap.anzPlayers - 1));
     }
 
+    /**
+     * This method returns the count of moves the current player can make
+     * @param map Map on wich that is calculated
+     * @param timed boolean if the method is times
+     * @param upperTimeLimit if timed is enabled this is the time limit the method needs to considder
+     * @return count of moves the current player can make
+     * @throws ExceptionWithMove throws exception when the time is up.
+     */
     public static int getCountOfMovesForPalyer(Map map, boolean timed, long upperTimeLimit) throws ExceptionWithMove {
         int count = 0;
 
