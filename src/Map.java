@@ -4,6 +4,7 @@ import java.util.*;
 
 public class Map{
 
+    //this class contains all the color codes
     private static class Colors {
         final static String ANSI_RESET = "\u001B[0m";
         final static String ANSI_BLACK = "\u001B[30m";
@@ -27,7 +28,8 @@ public class Map{
         final static String ANSI_WHITE_BACKGROUND = "\u001B[47m";
     }
 
-    static boolean useArrows = false; //needs to stay false because it can be set by parameter
+    //variables that controll the arrows
+    public static boolean useArrows = false; //needs to stay false because it can be set by parameter
     final static private boolean checkIfAllArrowsAreCorrect = false;
 
     //static Map
@@ -57,8 +59,11 @@ public class Map{
     private Arrow[][][] StartingArrows; //TODO: could be 2 elements shorter on each side
 
 
-    // CONSTRUCTOR
-
+    /**
+     * Constructor of the Map class.
+     * Creates a Map-object by reading the static map
+     * @param staticMap the static map the map class bases on
+     */
     public Map(StaticMap staticMap){
         //static Map
         this.staticMap = staticMap;
@@ -104,7 +109,8 @@ public class Map{
     }
 
     /**
-     * Copy constructor
+     * Copy constructor. Copys the given Map.
+     * Appart from the Arrow arrays it's a deep copy
      * @param mapToCopy map to copy
      * @param phaseOne phase the map is in
      */
@@ -173,12 +179,17 @@ public class Map{
     // TO STRING METHODS
 
     /**
-     * Returns Infos, Map and Transitions in a formatted String
+     * Prints Infos, Map and Transitions in a formatted way to the outputs
      */
     public String toString() {
         return this.toString(null,true,false);
     }
 
+    /**
+     * Retturns a map in a style that can be compared to the server output
+     * @param everyPossibleMove List of int[] (x, y, info) that specifys the possible positions a stone can be placed
+     * @return formatted string
+     */
     public String toString_Server(ArrayList<int[]> everyPossibleMove)
     {
         String mapString = "";
@@ -220,6 +231,13 @@ public class Map{
         return mapString;
     }
 
+    /**
+     * Advanced toString() Method. It returns the map in a formatted String that can be changed by the parameters.
+     * @param everyPossibleMove List of int[] (x, y, info) that specifys the possible positions a stone can be placed
+     * @param showTransitions boolean if the transitions should be appended.
+     * @param useColors boolean if the returnd string should have color inforamtions in it to print it.
+     * @return formatted string
+     */
     public String toString(List<int[]> everyPossibleMove, boolean showTransitions, boolean useColors){
 
         StringBuilder mapString = new StringBuilder();
@@ -320,6 +338,13 @@ public class Map{
         return mapString.toString();
     }
 
+    /**
+     * This Method returns the map in a formatted String. It shows all the possible routes you could go from the specified Positions by the positionsToMark List
+     * @param everyPossibleMove List of int[] (x, y, info) that specifys the possible positions a stone can be placed
+     * @param showTransitions boolean if the transitions should be appended.
+     * @param positionsToMark List of Position objects that specify wich positions should be marked.
+     * @return formatted string
+     */
     public String toString(List<int[]> everyPossibleMove, boolean showTransitions, ArrayList<Position> positionsToMark){
         boolean backGroundSet;
         int spaces = 6;
@@ -497,6 +522,13 @@ public class Map{
         return mapString.toString();
     }
 
+    /**
+     * This method is used when the Client compares it's output to the one of the server.
+     * It formats the output of the Server in a way that it can be compared to the Client's ouput.
+     * @param mapAsString The output of the Server in a string
+     * @param useColors Boolean if colors should be used
+     * @return formatted String
+     */
     public static String toString(String mapAsString, boolean useColors){
         StringBuilder mapString = new StringBuilder();
         String bufferString;
@@ -622,9 +654,10 @@ public class Map{
     // GETTER ----------------------------------------------------------------------------------------------------------
 
     /**
+     * Gets the Character at the given x and y position in the Map and returns it. If it is out of boundaries it returns '-'
      * @param x x coordinate
      * @param y y coordinate
-     * @return Returns the Character at the given x and y position in the Map. If it is out of boundaries it returns '-'
+     * @return the character at the position
      */
     public char getCharAt(int x, int y){
         //check boundaries
@@ -633,6 +666,11 @@ public class Map{
         return map[y][x];
     }
 
+    /**
+     * Gets the Character at the given Position in the Map and returns it. If it is out of boundaries it returns '-'
+     * @param pos position to specify coordinates
+     * @return the character at the position
+     */
     public char getCharAt(Position pos){
         //check boundaries
         if (pos.x >= staticMap.width || pos.y >= staticMap.height || pos.x < 0 || pos.y < 0) return '-';
@@ -640,41 +678,81 @@ public class Map{
         return map[pos.y][pos.x];
     }
 
+    /**
+     * @return returns the ammount of players that play on this map
+     */
     public int getAnzPlayers() {
         return staticMap.anzPlayers;
     }
 
+    /**
+     * @return returns the explosion radius
+     */
     public int getExplosionRadius() {
         return staticMap.explosionRadius;
     }
 
+    /**
+     * @return returns the height of the map
+     */
     public int getHeight() {
         return staticMap.height;
     }
 
+    /**
+     * @return returns the width of the map
+     */
     public int getWidth() {
         return staticMap.width;
     }
 
+    /**
+     * Checks if there's a transition when you would go one step in specified rotation
+     * @param pos position to go from
+     * @param rotation rotation to go in
+     * @return boolean when there is a transition
+     */
     public boolean checkForTransition(Position pos, int rotation){
         return staticMap.checkForTransition(pos, rotation);
     }
 
+    /**
+     * @return Returns the number of the player, that is currently playing
+     */
     public int getCurrentlyPlayingI() {
         return currentlyPlaying;
     }
+
+    /**
+     * @return Returns the number as a char of the player, that is currently playing
+     */
     public char getCurrentlyPlayingC() {
         return (char) ('0'+currentlyPlaying);
     }
 
+    /**
+     * returns the ammount of overwrite stones the specified player has
+     * @param playerId Number of the palyer
+     * @return ammount of overwrite stones
+     */
     public int getOverwriteStonesForPlayer(int playerId) {
         return overwriteStonesPerPlayer[playerId-1];
     }
 
+    /**
+     * returns the ammount of bombs the specified player has
+     * @param playerId Number of the palyer
+     * @return ammount of bombs
+     */
     public int getBombsForPlayer(int playerId) {
         return bombsPerPlayer[playerId-1];
     }
 
+    /**
+     * Returns all the Stones one player has.
+     * @param playerNr Player to get the stones from
+     * @return List of Positions the player has
+     */
     public ArrayList<Position> getStonesOfPlayer(int playerNr){
         if (playerNr < 1 || playerNr > staticMap.anzPlayers) {
             System.err.println("Player with that number isn't in the Game");
@@ -690,6 +768,11 @@ public class Map{
         return result;
     }
 
+    /**
+     * returns the ammount of stones one player has
+     * @param playerNr The player to get the ammount of stones from
+     * @return The ammount
+     */
     public int getCountOfStonesOfPlayer(int playerNr){
         if (playerNr > 0 && playerNr <= stonesPerPlayer.size()) {
             return stonesPerPlayer.get(playerNr - 1).size();
@@ -699,6 +782,9 @@ public class Map{
         }
     }
 
+    /**
+     * @return Retunrs a list of all expansion fields that are currently on the map.
+     */
     public ArrayList<Position> getExpansionFields(){
         ArrayList<Position> result = new ArrayList<>( expansionFields );
 
@@ -709,6 +795,11 @@ public class Map{
         return result;
     }
 
+    /**
+     * returns all the valid Moves the player currently playing can make. This is done by using arrows. (Does not work right 100%)
+     * @param heuristic heurisitc by wich it gets evaluated if an overwrite move should be made.
+     * @return List of all the possible Positions the player can move to
+     */
     public ArrayList<int[]> getValidMovesByArrows(Heuristic heuristic){
         return getValidMovesByArrows(currentlyPlaying, heuristic);
     }
@@ -765,20 +856,34 @@ public class Map{
         return resultList;
     }
 
+    /**
+     * @return returns an array of booleans that specifies wich players are disqualified.
+     */
     public boolean[] getDisqualifiedPlayers()
     {
         return disqualifiedPlayers;
     }
 
+    /**
+     * gets if the specified player is disqualified
+     * @param PlayerNum player number
+     * @return true when the player is disqualified and false otherwise
+     */
     public boolean getDisqualifiedPlayer(int PlayerNum)
     {
         return disqualifiedPlayers[PlayerNum-1];
     }
 
+    /**
+     * @return Returns the ammount of fields that can be reached in this map
+     */
     public int getCountOfReachableFields(){
         return staticMap.countOfReachableFields;
     }
 
+    /**
+     * @return Returns the ammount of bonus-fields that can be reached in this map
+     */
     public int getCountOfReachableBonusFields(Map map)
     {
         int erg = 0;
@@ -795,6 +900,11 @@ public class Map{
         return erg;
     }
 
+    /**
+     * Returns a list of positions where the bonus fields are that can be reached
+     * @param map Map this gets checked on
+     * @return List of Positions
+     */
     public ArrayList<Position> getReachableBonusFields(Map map)
     {
         ArrayList<Position> Fields = new ArrayList<>();
@@ -812,6 +922,9 @@ public class Map{
         return Fields;
     }
 
+    /**
+     * @return returns the percentage by wich the current map is filled
+     */
     public double getFillPercentage()
     {
         int occupiedFields = 0;
@@ -823,15 +936,16 @@ public class Map{
         return occupiedFields / (double) staticMap.countOfReachableFields;
     }
 
-    boolean checkForReachableField(int x, int y){
-        return staticMap.reachableFieldMatrix[y][x] == 'R';
-    }
-
+    /**
+     * Prints the map in the ouput in wich you can see wich fields are reachable and wich not
+     */
     public void printReachableFields(){
         System.out.println(Arrays.deepToString(staticMap.reachableFieldMatrix).replace("],", "\n"));
     }
 
-
+    /**
+     * @return returns if the map is in a terminal State - in the First Phase. Used by MCTS
+     */
     public boolean isTerminal(){
         for (int playerNR = 1; playerNR<=staticMap.anzPlayers; playerNR++){
             try {
@@ -847,6 +961,9 @@ public class Map{
         return true;
     }
 
+    /**
+     * @return returns if the map is in a terminal State - in the Second Phase. Used by MCTS
+     */
     public boolean isTerminalSecondPhase(){
         for (int playerNR = 1; playerNR<=staticMap.anzPlayers; playerNR++){
             if (getBombsForPlayer(getCurrentlyPlayingI()) > 0) return false;
@@ -855,6 +972,9 @@ public class Map{
         return true;
     }
 
+    /**
+     * @return Returns a random Move that can be made
+     */
     public int[] getRandomMove() {
         //-2 because we have a line of walls around all maps and -1 because we don't want to have the (widht-2) itself in the values
         int x = 1 + (int) (Math.random() * (this.getWidth() - 3));
@@ -940,6 +1060,9 @@ public class Map{
         }
     }
 
+    /**
+     * @return Returns a random Bomb move that can be made
+     */
     public int[] getRandomBombMove(){
         int x;
         int y;
@@ -952,6 +1075,11 @@ public class Map{
         return new int[]{x, y, 0};
     }
 
+    /**
+     * Gets the placement of the specified player in the curent map
+     * @param myPlayerNr player to get the placement for
+     * @return position
+     */
     public int getPlacement(int myPlayerNr){
         int placement = 1;
         int score;
