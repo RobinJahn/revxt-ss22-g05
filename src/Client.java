@@ -655,6 +655,7 @@ public class Client{
 		int length;
 		char currChar;
 
+		//Test if Position might be reachable
 		for (Position p : map.getReachableBonusFields(map))
 		{
 			for(int r = 0; r < 8; r++)
@@ -674,7 +675,7 @@ public class Client{
 					}
 					newR = map.doAStep(newPos,newR);
 					currChar = map.getCharAt(newPos);
-				} while (newR != null && (currChar=='x' || (Character.isDigit(currChar) && currChar != '0')));
+				} while (newR != null && (currChar =='x' || (Character.isDigit(currChar) && currChar != '0' && currChar != myPlayerNr+48)));
 			}
 		}
 		if (positionToSetTo.equals(new Position(-1, -1))){
