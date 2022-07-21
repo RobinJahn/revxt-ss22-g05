@@ -4,10 +4,12 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 public class Heuristic {
+    //prints
     private final boolean printOn;
 
+    //informations
     private Map map; //is automatically updated because of the reference here
-    //the color of the player for which the map is being evaluated
+    //  the number/ color of the player for which the map is being evaluated.
     private final int myColorI;
     private final char myColorC;
 
@@ -35,13 +37,12 @@ public class Heuristic {
 
 
     /**
-     * Constructor - initializes map and my color.
-     * Calculates static infos about the map
-     * @param map the map in any state. Only the static information are relevant
-     * @param myColor the number(color) of the player for which the map is rated - doesn't change for the client
-     * @param printOn boolean that defines if the heuristic should print relevant infos
-     * @param extendedPrint prints more information. Like the Matrix
-     * @param multiplier list of double values to define the multipliers for the different heuristically evaluations
+     * This Constructor creates a Heurisic object. Here all the necessarry inforamtion is set.
+     * @param map The map that the heuristic evaluats.
+     * @param myColor The number(color) of the player for which the map is rated.
+     * @param printOn boolean that defines if the heuristic should print the medium ammount of information.
+     * @param extendedPrint boolean that defines if the heuristic should print all the information.
+     * @param multiplier list of double values to define the multipliers for the different heuristically evaluations.
      */
     public Heuristic(Map map, int myColor, boolean printOn, boolean extendedPrint, double[][] multiplier, StaticHeuristicPerPhase shpp){
         this.printOn = printOn;
@@ -145,7 +146,7 @@ public class Heuristic {
     /**
      * Updates the Map object (if it was cloned for example).
      * Also updates th dynamic infos.
-     * The general Map needs to be the same as the one the heuristic got initialized with
+     * The general Map needs to be the same as the one the heuristic got initialized with.
      * @param mapToUpdateWith The new Map object to update the infos with
      */
     public void updateMap(Map mapToUpdateWith){
@@ -155,8 +156,8 @@ public class Heuristic {
     //GETTER -----------------------------------------------------------------------------------------------------------
 
     /**
-     * Function to evaluate the map that was given the constructor (call by reference)
-     * @return returns the value of the map
+     * Method to evaluate the current map of the heurisitc.
+     * @return returns the value of the map.
      */
     public double evaluate(boolean phaseOne,boolean timed, boolean ServerLog, long UpperTimeLimit) throws TimeoutException{
         double countOfStonesEvaluation = 0;
@@ -224,6 +225,12 @@ public class Heuristic {
         return result;
     }
 
+    /**
+     * Method to evaluate the current map of the heurisitc. Here only a verry fast evaluation is made so that it doesn't take as much time as evaluate().
+     * @param map Map that gets evaluated.
+     * @param myPlayerNr player the map gets evaluated for.
+     * @return returns the value of the map.
+     */
     public static double fastEvaluate(Map map, int myPlayerNr){
 
         int myStoneCount = map.getCountOfStonesOfPlayer(myPlayerNr);
@@ -239,38 +246,22 @@ public class Heuristic {
         return result;
     }
 
+    /**
+     * Method to evaluate the current map of the heurisitc in the bomb phase.
+     * @param map map that gets evaluated
+     * @return returns the value of the map.
+     */
     public long bombEvaluate(Map map)
     {
         this.map = map;
         return (long)countStonesBombPhase();
     }
 
-    public static ArrayList<Double> fastEvalAll(ArrayList<Map> mapList, int myPlayerNr){
-        ArrayList<Double> result = new ArrayList<>();
-        for (Map map : mapList){
-            result.add(fastEvaluate(map, myPlayerNr));
-        }
-        return result;
-    }
-
     /**
-     * Calculates placement of all players
-     * @return returns a value according to the placement of the player
+     * returns the current stage that the map is in.
+     * @param phaseOne boolean if the map is in phase one or not
+     * @return stage numeber.
      */
-    public double placePlayers(){
-        int placement = 1;
-        int myScore = map.getCountOfStonesOfPlayer(myColorI);
-
-        for (int playerNr = 1; playerNr <= map.getAnzPlayers(); playerNr++) {
-            if (playerNr == myColorI) continue;
-            if (map.getCountOfStonesOfPlayer(playerNr) > myScore){
-                placement++;
-            }
-        }
-
-        return 1 - ((double)placement - 1) / ((double)map.getAnzPlayers() -1);
-    }
-
     private int getStage(boolean phaseOne){
 
         int stageNumber = 1;
@@ -295,12 +286,21 @@ public class Heuristic {
         return stageNumber;
     }
 
+    /**
+     * Evaluation method to evaluate if a given overwrite move should be considered.
+     * @param pos position where the move would be made to.
+     * @return true if the overwrite-position should be considered. False otherwise
+     */
     public boolean evaluateOverwriteMove(Position pos) {
         return false;
     }
 
+    /**
+     * Evaluation method that evaluates if a bomb, or an overwrite-stone should be taken.
+     * @return 20 if a bomb should be taken and 21 if a overwrite-stone should be taken.
+     */
     public int selectBombOrOverwrite(){
-        if (map.getExplosionRadius() > 4){
+        if (map.getExplosionRadius() > 10){
             return 20;
         }
         else {
@@ -312,6 +312,7 @@ public class Heuristic {
 
     /**
      * prints out the evaluation matrix
+     * @param phase stage the map is in.
      */
     public void printMatrix(int phase){
         if (staticHeuristicPerPhase == null) return;
