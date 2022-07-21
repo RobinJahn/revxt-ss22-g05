@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 public class StaticMap {
-    //main data structure to store the Map Infos
+    //main data structure to store the Map Infos in
     public char[][] map;
     public char[][] reachableFieldMatrix;
 
@@ -447,9 +447,8 @@ public class StaticMap {
     /**
      * This function Calculates the Amount of Reachable Fields in the Map.
      * @param serverLog Indicates whether we compare to the Server or not.
-     * @return The Number of ReachableFields
+     * @return The amount of ReachableFields
      */
-
     private int findReachableFields(boolean serverLog)
     {
         char[][] map = new char[height][width];

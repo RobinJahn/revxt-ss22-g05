@@ -595,22 +595,6 @@ public class Client{
 					serverM.readRestOfNextPhase();
 					gameOngoing = false;
 
-					if(compare_to_Server && CSC != null)
-					{
-						try {
-							FileWriter FW = new FileWriter("ErrorCounts.txt", true);
-							BufferedWriter BW = new BufferedWriter(FW);
-							String toAdd = "ErrorCount: " + CSC.getErrorCount() + "\n";
-							BW.write(toAdd);
-							BW.close();
-							FW.close();
-						}
-						catch (Exception e)
-						{
-							e.printStackTrace();
-						}
-					}
-
 					if (printOn || serverLog) {
 						System.out.println("Average Depth hit: " + (searchTree.getTotalDepth()/(double) countOfOwnMoves));
 						searchTree.printTranspositionTable();

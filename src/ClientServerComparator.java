@@ -7,12 +7,17 @@ import java.util.concurrent.TimeUnit;
 public class ClientServerComparator {
 
     private String line;
-    private int ErrorCount = 0;
     private BufferedReader br;
+    private final int width;
     ArrayList<String> ServerLines = new ArrayList<>();
     ArrayList<String> ClientLines = new ArrayList<>();
-    int width;
 
+    /**
+     * This Constructor creates a clientServerComperator Object.
+     * With this it's possible to compare the output of the client to the one of the server.
+     * For this the server needs to direct its output in a File named "Server_View.txt"
+     * @param width the width of the playing field.
+     */
     public ClientServerComparator(int width) {
         this.width = width-2;
         try {
@@ -28,55 +33,20 @@ public class ClientServerComparator {
         }
     }
 
-    private void readServer()
-    {
-        String currLine;
-
-        try {
-            TimeUnit.MILLISECONDS.sleep(10);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        while (true)
-        {
-            try {
-                line = br.readLine();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            if (line == null) break;
-
-            try {
-                if(!line.isEmpty() && line.contains("|"))
-                {
-                    br.mark(2*width);
-
-                    currLine = line.substring( line.lastIndexOf("|") + 1 ).trim();
-
-                    if (currLine.length() < width) {
-                        br.reset();
-                        TimeUnit.MILLISECONDS.sleep(10);
-                        continue;
-                    }
-
-                    ServerLines.add(currLine);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
+    /**
+     * This method takes a String from the Client and processes it to later compare to the server.
+     * The string should come from the method Map.toString_Server()
+     * @param clientString The String that gets parsed
+     */
     public void setClientString(String clientString){
         ClientLines = new ArrayList<>( List.of(clientString.split("\n")) );
     }
 
-    public int getErrorCount()
-    {
-        return ErrorCount;
-    }
-
+    /**
+     * This method compares if the server, and the client have the same output.
+     * @param moveCounter This number indicates the number of the move.
+     * @return returns true if the two maps match and false otherwise
+     */
     public ArrayList<Position> compare(int moveCounter){
 
         int yIndexInServer;
@@ -135,6 +105,11 @@ public class ClientServerComparator {
         return differentPositions;
     }
 
+    /**
+     * This method returns the map that the server gave out in a formatted String.
+     * @param moveCounter This number indicates the number of the move.
+     * @return returns the map as a string
+     */
     public String getMapFromServer(int moveCounter){
         int indexInServer;
         StringBuilder sb = new StringBuilder();
@@ -147,4 +122,43 @@ public class ClientServerComparator {
         return sb.toString();
     }
 
+    private void readServer()
+    {
+        String currLine;
+
+        try {
+            TimeUnit.MILLISECONDS.sleep(10);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        while (true)
+        {
+            try {
+                line = br.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (line == null) break;
+
+            try {
+                if(!line.isEmpty() && line.contains("|"))
+                {
+                    br.mark(2*width);
+
+                    currLine = line.substring( line.lastIndexOf("|") + 1 ).trim();
+
+                    if (currLine.length() < width) {
+                        br.reset();
+                        TimeUnit.MILLISECONDS.sleep(10);
+                        continue;
+                    }
+
+                    ServerLines.add(currLine);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }

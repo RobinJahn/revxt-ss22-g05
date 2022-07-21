@@ -6,26 +6,29 @@ import java.util.concurrent.TimeoutException;
 
 public class SearchTree {
 
-    //don't change
-    private final boolean printOn;
-    private final boolean extendedPrint;
-    private final boolean serverLog;
-    private final int myPlayerNr;
-    private final Heuristic heuristicForSimulation;
+    //Varables that don't change
+        //printing
+    final private boolean printOn;
+    final private boolean extendedPrint;
+    final private boolean serverLog;
+        //enables or diables
     final private boolean useMS;
     final private boolean useBRS;
     final private boolean useKH;
-    final private boolean useRM = true;
-    final private boolean useZH = true;
-    final private boolean useAW = true;
+    final private boolean useRM = true; //enables or disables the use of the returned move in the layer above
+    final private boolean useZH = true; //enables or disabes zobrist hashing
+    final private boolean useAW = true; //enables or disables aspiration window
     final private boolean useMonteCarloTreeSearch;
+        //needed Objects or information
+    final private int myPlayerNr;
+    final private Heuristic heuristicForSimulation;
     final private ZobristHashing ZH;
     final private TranspositionTable TT;
     final private AspirationWindow AW;
 
 
-    //change
-    private  boolean timed;
+    //Varables that change
+    private boolean timed;
     private int depth;
     private double approximation = 1;
     private int moveCounter;
@@ -38,7 +41,7 @@ public class SearchTree {
     private int totalDepth = 0;
 
     /**
-     * This Constructor lays the Foundation off our SearchTree, where most Functions can be enabled or disabled
+     * This Constructor lays the Foundation off our SearchTree, where most Functions can be enabled or disabled.
      * @param map The Current Map
      * @param printOn Enables Basic Prints on the Console
      * @param ServerLog Enables the most essential Prints on the Console
