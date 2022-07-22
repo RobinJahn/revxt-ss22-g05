@@ -1123,10 +1123,14 @@ public class Map{
         //get what is there
         charAtPos = getCharAt(x,y);
 
+        //check if something changes
+        if (charAtPos == charToChangeTo) return true;
+
         //if there was a player remove stone from his stone set
         if (charAtPos != '0' && Character.isDigit(charAtPos)) {
             stonesPerPlayer.get(charAtPos-'0'-1).remove(posToSetChar); //-'0' to convert to int; -1 because of index shift
         }
+        //if thee was an expansion-field remove it from the list
         if (charAtPos == 'x') expansionFields.remove(posToSetChar);
 
         //set char
@@ -1375,7 +1379,7 @@ public class Map{
             secondPos = new Position(posAndR[0], posAndR[1]);
         }
 
-        //delete valid move created by this arrow
+        //delete the valid move created by this arrow
         if (oldArrow.createsValidMove){
             //get last element
             posAndR = oldArrow.positionsWithDirection.get(oldArrow.positionsWithDirection.size()-1);
@@ -1604,12 +1608,21 @@ public class Map{
         Position currPos;
         int[] posAndR;
 
-        isOverwriteMove = charAtPos != '0' && Character.isDigit(charAtPos);
+        isOverwriteMove = (charAtPos != '0' && Character.isDigit(charAtPos)) || getCharAt(pos) == 'x';
 
+        if (getCharAt(pos) == 'x'){
+            setCharAt(pos.x, pos.y, (char) ('0' + getCurrentlyPlayingI()));
+        }
+
+        //get and clone array and arrows
+        Arrow[] arrows = AffectedArrows[pos.y][pos.x][getCurrentlyPlayingI() - 1].clone();
+        for (int i = 0; i < arrows.length; i++){
+            if (arrows[i] == null) continue;
+            arrows[i] = arrows[i].clone(); //needs to be cloned because otherwise the list is changed because of the coloring
+        }
+
+        //normal move
         if (!isOverwriteMove) {
-
-            //normal move
-            Arrow[] arrows = AffectedArrows[pos.y][pos.x][getCurrentlyPlayingI() - 1].clone();
             for (int i = 0; i < arrows.length; i++) {
                 Arrow arrow = arrows[i];
                 if (arrow != null && arrow.createsValidMove) {
@@ -1619,21 +1632,27 @@ public class Map{
                 }
             }
         }
+
+        //overwrite move
         else {
-            //overwrite move
-            Arrow[] arrows = AffectedArrows[pos.y][pos.x][getCurrentlyPlayingI() - 1];
             for (int arrowIndex = 0; arrowIndex < arrows.length; arrowIndex++) {
+                //get arrow
                 Arrow arrow = arrows[arrowIndex];
                 if (arrow == null) continue;
                 //get second Pos
                 posAndR = arrow.positionsWithDirection.get(1);
                 secondPos = new Position(posAndR[0], posAndR[1]);
 
-                //go through positions
+                //go through positions to find the index of the position that was set on
                 for (int posIndex = 0; posIndex < arrow.positionsWithDirection.size(); posIndex++) {
+                    //get position
                     posAndR = arrow.positionsWithDirection.get(posIndex);
                     currPos = new Position(posAndR[0], posAndR[1]);
+
+                    //check position
                     if (posIndex >= 2 && currPos.equals(pos) && !currPos.equals(secondPos)) {
+
+                        //goes from the found position to the first position and colores the fields
                         for (int posToColorIndex = posIndex; posToColorIndex >= 0; posToColorIndex--) {
                             posAndR = arrow.positionsWithDirection.get(posToColorIndex);
                             setCharAt(posAndR[0], posAndR[1], (char) ('0' + getCurrentlyPlayingI()));
@@ -1879,11 +1898,11 @@ public class Map{
      * Testing Method to check if every overwrite move can be made has the corret ammount of arrows that create these moves
      * @return true if everything is right and false otherwise
      */
-    public boolean checkOverwriteMovesTheOtherWay(){
+    public Position checkOverwriteMovesTheOtherWay(){
         int counter;
         int[] currPosAndDir;
         Position currPos;
-        Position secondPos = null;
+        Position secondPos;
         char currStartChar;
 
         for (int playerNr = 1; playerNr <= getAnzPlayers(); playerNr++) {
@@ -1913,11 +1932,13 @@ public class Map{
                     }
                 }
                 if (counter != OverwriteMoves.get(playerNr-1).get(overwritePos)) {
-                    return false;
+                    System.out.println("checkOverwriteMovesTheOtherWay() failed with move: " + overwritePos + " for player " + playerNr);
+                    System.out.println("Found " + counter + " overwrite positions by the arrows, but the in the list " + OverwriteMoves.get(playerNr-1).get(overwritePos) + " is saved");
+                    return overwritePos;
                 }
             }
         }
-        return true;
+        return null;
     }
 
     //  INIT METHODS
@@ -2098,10 +2119,12 @@ public class Map{
         else {
             Set<Position> positionsToColor; //doesn't store duplicates
 
+            //if the move is a overwrite-move to an expansion-field
             if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
                 map.setCharAt(pos.x, pos.y, map.getCurrentlyPlayingC());
             }
 
+            //get positions to color
             positionsToColor = getPositionsToColor(pos, map);
 
             //colors the positions

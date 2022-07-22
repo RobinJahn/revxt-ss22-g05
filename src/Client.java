@@ -484,6 +484,8 @@ public class Client{
 
 							boolean isCorrect;
 							boolean allCorrect = true;
+							Position faildAtPos = null;
+							ArrayList<Position> faildPositions = new ArrayList<>();
 							//calculate possible moves
 							try {
 								validMovesByOwnColor = Map.getFieldsByOwnColor(map, timed, printOn, serverLog, Long.MAX_VALUE, heuristic);
@@ -524,12 +526,19 @@ public class Client{
 									isCorrect = map.checkOverwriteMoves();
 									if (!isCorrect) allCorrect = false;
 									System.out.println("All overwrite Moves are correct: " + isCorrect);
-									isCorrect = map.checkOverwriteMovesTheOtherWay();
-									if (!isCorrect) allCorrect = false;
-									System.out.println("All overwrite Moves are correct (other way): " + isCorrect);
+									faildAtPos = map.checkOverwriteMovesTheOtherWay();
+									if (faildAtPos != null) allCorrect = false;
+									System.out.println("All overwrite Moves are correct (other way): " + (faildAtPos == null));
 									System.out.println();
 
-									if (!allCorrect) return;
+									if (!allCorrect) {
+										System.out.println("Map with the error:");
+										System.out.println(map.toString(map.getValidMovesByArrows(heuristic), false, useColors));
+										System.out.println("Map where the position is marked:");
+										faildPositions.add(faildAtPos);
+										System.out.println(map.toString(map.getValidMovesByArrows(heuristic), false, faildPositions));
+										return;
+									}
 								}
 							}
 
