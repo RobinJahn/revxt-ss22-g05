@@ -8,6 +8,10 @@ public class DialogWindow {
 
     static File savedPath = new File(Paths.get("./Maps").toAbsolutePath().normalize().toString());
 
+    /**
+     * This method opens a File-Dialog-Window.
+     * @return Returns the complete file path of the selected File as a string.
+     */
     public String open() {
         final JFileChooser chooser = new JFileChooser("Select Path");
         chooser.setDialogType(JFileChooser.OPEN_DIALOG);
