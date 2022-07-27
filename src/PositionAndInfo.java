@@ -23,8 +23,8 @@ public class PositionAndInfo implements Comparable<PositionAndInfo> {
     }
 
     /**
-     * This Function returns the Information
-     * @return Returns the Information
+     * This function returns the information.
+     * @return Returns the information.
      */
     public int getInfo()
     {
@@ -32,16 +32,16 @@ public class PositionAndInfo implements Comparable<PositionAndInfo> {
     }
 
     /**
-     * This Function sets the Information
-     * @param info Sets the Information to the given one.
+     * This function sets the information.
+     * @param info Sets the information to the given one.
      */
     public void setInfo(int info) {
         this.info = info;
     }
 
     /**
-     * This Function returns the Value of X
-     * @return Returns the Value of X
+     * This function returns the value of x.
+     * @return Returns the value of x.
      */
     public int getX()
     {
@@ -49,8 +49,8 @@ public class PositionAndInfo implements Comparable<PositionAndInfo> {
     }
 
     /**
-     * This Function returns the Value of Y
-     * @return Returns the Value of Y
+     * This function returns the value of y.
+     * @return Returns the value of y.
      */
     public int getY()
     {
@@ -58,7 +58,7 @@ public class PositionAndInfo implements Comparable<PositionAndInfo> {
     }
 
     /**
-     * Generates a hash value for the given Object
+     * Generates a hash value for the given object.
      * @return Returns the hash value.
      */
     @Override
@@ -67,9 +67,9 @@ public class PositionAndInfo implements Comparable<PositionAndInfo> {
     }
 
     /**
-     * Evaluates if 2 PositionAndInfo are equal based on their Position alone
-     * @param obj Another PositionAndInfo Object
-     * @return Returns true if the 2 have the same Position
+     * Evaluates if 2 PositionAndInfo objects are equal based on their position alone.
+     * @param obj The second PositionAndInfo object.
+     * @return Returns true if the 2 have the same position.
      */
     @Override
     public boolean equals(Object obj) {
@@ -78,8 +78,8 @@ public class PositionAndInfo implements Comparable<PositionAndInfo> {
     }
 
     /**
-     * Generates a String with all the necessary Information of the Object
-     * @return Returns a String following this Pattern (x,y,info)
+     * Generates a string with all the necessary information of the object.
+     * @return Returns a string following this pattern: (x,y,info).
      */
     @Override
     public String toString() {
@@ -87,8 +87,8 @@ public class PositionAndInfo implements Comparable<PositionAndInfo> {
     }
 
     /**
-     * This Function clones the current Object by returning a new Object with the same Values.
-     * @return Returns the copied Object.
+     * This function clones the current object by returning a new object with the same values.
+     * @return Returns the copied object.
      */
     @Override
     protected PositionAndInfo clone() {
@@ -96,17 +96,17 @@ public class PositionAndInfo implements Comparable<PositionAndInfo> {
     }
 
     /**
-     * This Function returns the Values of the Object in an Int Array
-     * @return Returns an Int Array following this Pattern {x,y,info}
+     * This function returns the values of the object in an int array.
+     * @return Returns an int array following this pattern: {x,y,info}.
      */
     public int[] toIntArray(){
         return new int[]{x,y,info};
     }
 
     /**
-     * This Function compares two given PositionAndInfo Objects
-     * @param o the object to be compared.
-     * @return Returns true if the two Objects have the same x,y and Info. False Otherwise.
+     * This function compares two given PositionAndInfo objects
+     * @param o The second PositionAndInfo object.
+     * @return Returns true if the two objects have the same x,y and info and false otherwise.
      */
     @Override
     public int compareTo(PositionAndInfo o) {

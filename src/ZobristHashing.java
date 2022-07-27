@@ -3,7 +3,7 @@ package src;
 import java.util.Random;
 
 /**
- * This class provides the functionality needed to use the Zobrist-Hashing-method.
+ * This class provides the functionality needed to use the zobrist hashing method.
  */
 public class ZobristHashing {
 
@@ -18,10 +18,10 @@ public class ZobristHashing {
     final private long notMyTurn;
 
     /**
-     * Instantiates a Zobrist Table, of the size of height*width and depth 2, and fills it with random long Values. Also generates a random long Value for it being not my Turn.
-     * @param height The height of the Map for which to create a Zobrist Table for.
-     * @param width The width of the Map for which to create a Zobrist Table for.
-     * @param playerNumber The Player Number of the Client for this map.
+     * Instantiates a zobrist table, of the size of height * width and depth 2, and fills it with random long values. Also generates a random long value for it being not the own turn.
+     * @param height The height of the map for which to create a zobrist table for.
+     * @param width The width of the map for which to create a zobrist table for.
+     * @param playerNumber The player number of the client for this map.
      */
     public ZobristHashing(int height, int width, int playerNumber)
     {
@@ -43,9 +43,9 @@ public class ZobristHashing {
     }
 
     /**
-     * Given a map this function returns the hash Value for it by using the xor function, Zobrist Table and Map
-     * @param map Is the Map for which a hash is to generate.
-     * @return Returns the Hashed Value of a given Map.
+     * Given a map this function returns the hash value for it by using the xor function, zobrist table and map.
+     * @param map Is the map for which a hash is to generate.
+     * @return Returns the hashed value of a given map.
      */
     public long hash(Map map)
     {
@@ -75,7 +75,7 @@ public class ZobristHashing {
     }
 
     /**
-     * Prints the Values of the Zobrist Table in two Rows and the Value for being not my turn.
+     * Prints the values of the zobrist table in two rows and the value for being not my turn.
      */
     public void printZobristTable()
     {

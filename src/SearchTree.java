@@ -20,7 +20,7 @@ public class SearchTree {
     final private boolean useBRS;
     final private boolean useKH;
     final private boolean useRM = true; //enables or disables the use of the returned move in the layer above
-    final private boolean useZH = false; //enables or disables zobrist hashing
+    final private boolean useZH = true; //enables or disables zobrist hashing
     final private boolean useAW = false; //enables or disables aspiration window
     final private boolean useMonteCarloTreeSearch;
         //needed Objects or information
@@ -45,18 +45,18 @@ public class SearchTree {
     private int totalDepth = 0;
 
     /**
-     * This Constructor lays the Foundation off our SearchTree, where most Functions can be enabled or disabled.
-     * @param map The Current Map
-     * @param printOn Enables Basic Prints on the Console
-     * @param ServerLog Enables the most essential Prints on the Console
-     * @param extendedPrint Enables the extended Prints on the Console
-     * @param myPlayerNr The Number of our Client.
-     * @param useMS Enables MoveSorting
-     * @param useBRS Enables Best Reply Search
-     * @param useKH Enables Killer Heuristic
-     * @param useMonteCarloTreeSearch Enables MonteCarloTreeSearch
-     * @param multiplier Sets the Evaluation Multipliers to the given ones.
-     * @param shpp Sets the StaticHeuristic Part.
+     * This Constructor lays the foundation off our SearchTree object, where most functions can be enabled or disabled.
+     * @param map The current map.
+     * @param printOn Enables basic prints on the console.
+     * @param ServerLog Enables the most essential prints on the console.
+     * @param extendedPrint Enables the extended prints on the console.
+     * @param myPlayerNr The number of our client.
+     * @param useMS Enables move sorting.
+     * @param useBRS Enables best reply search.
+     * @param useKH Enables the killer heuristic.
+     * @param useMonteCarloTreeSearch Enables monte carlo tree search.
+     * @param multiplier Sets the evaluation multipliers to the given ones.
+     * @param shpp The static heuristic by which a heuristic object can be created.
      */
     public SearchTree(Map map,
                       boolean printOn,
@@ -89,14 +89,14 @@ public class SearchTree {
     }
 
     /**
-     * This Function returns the currently best Move we can make given all the inputs.
-     * @param map The Current Map Situation
-     * @param timed Indicates if the Move is timed or not
-     * @param depth The Maximum Depth to search.
-     * @param phaseOne Indicates if we are in Phase One or not
-     * @param upperTimeLimit The Current Time Limit, where the Offset has already been included
-     * @param moveCounter The Number off Moves we already have done.
-     * @return Returns the Position to set a Stone, with Possible Additional Information.
+     * This function returns the currently best move we can make given all the inputs.
+     * @param map The current map situation.
+     * @param timed Indicates if the move is timed or not.
+     * @param depth The maximum depth to search.
+     * @param phaseOne Indicates if we are in phase one or not.
+     * @param upperTimeLimit The current time limit, where the offset has already been included.
+     * @param moveCounter The number off moves we already have done.
+     * @return Returns the position to set a stone, with possible additional information.
      */
     public int[] getMove(Map map, boolean timed, int depth, boolean phaseOne, long upperTimeLimit, int moveCounter){
 
@@ -166,10 +166,10 @@ public class SearchTree {
     }
 
     /**
-     * This Function returns the best Position to set a Bomb given the current circumstances.
-     * @param map Current Map-Situation
-     * @param upperTimeLimit The Current Time Limit, where the Offset has already been included.
-     * @return Returns the Position to set a Bomb.
+     * This function returns the best position to set a bomb given the current circumstances.
+     * @param map Current map to evaluate the best bomb position on.
+     * @param upperTimeLimit The current time limit, where the offset has already been included.
+     * @return Returns the position to set a bomb.
      */
     public int[] getBombPosition(Map map , long upperTimeLimit)
     {
@@ -220,8 +220,8 @@ public class SearchTree {
     }
 
     /**
-     * This Functions Returns the Sum off all Depths visited until now.
-     * @return The Sum off all Depths visited.
+     * This functions returns the sum off all depths visited until now.
+     * @return The sum off all depths visited.
      */
     public int getTotalDepth()
     {
@@ -229,7 +229,7 @@ public class SearchTree {
     }
 
     /**
-     * This Function prints the ZobristTable
+     * This function prints the zobrist table.
      */
     public void printZobristTable()
     {
@@ -237,7 +237,7 @@ public class SearchTree {
     }
 
     /**
-     * This Function prints the Information of the Transposition Table
+     * This function prints the information of the transposition table.
      */
     public void printTranspositionTable()
     {
@@ -957,7 +957,6 @@ public class SearchTree {
         return map.getCurrentlyPlayingI() == myPlayerNr;
     }
 
-    //TODO: refine to return value according to placement
     private Double returnValueForWinOrLoss(Map map) {
         int myStoneCount = map.getCountOfStonesOfPlayer(myPlayerNr);
 

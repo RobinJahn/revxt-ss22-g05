@@ -4,8 +4,8 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 /**
- * The Client class is the Head of all. It contains the main method to play the game.
- * By creating a Client it connects to the specified server and starts playing.
+ * The client class is the head of all. It contains the main method to play the game.
+ * By creating a client it connects to the specified server and starts playing.
  */
 public class Client{
 	//final variables
@@ -39,9 +39,9 @@ public class Client{
 	Random random = new Random(1); //this is needed to make random moves when enabled
 
 	/**
-	 * The main method of the Client. This Method gets all the variables out of the args String array.
-	 * With these Variables the Client gets created.
-	 * @param args Array of Strings that contain all the input parameters
+	 * The main method of the client. This method gets all the variables out of the args string array.
+	 * With these variables the client gets created.
+	 * @param args Array of strings that contain all the input parameters.
 	 */
 	public static void main(String[] args) {
 		boolean printOn = false;
@@ -185,18 +185,18 @@ public class Client{
 	//functions that let the client play
 
 	/**
-	 * Constructor of the Client.
-	 * Connects to Server and starts playing.
+	 * Constructor of the client.
+	 * Connects to server and starts playing.
 	 * @param ip The ip to connect to.
 	 * @param port The port to connect to.
-	 * @param multipliers a double array of multipliers. (See assignment in -h)
-	 * @param useAB boolean if alpha beta pruning should be used
-	 * @param printOn boolean if the Client should print the medium amount of outputs.
-	 * @param useColors boolean if the Client should print in color.
-	 * @param compare_to_Server boolean if the client compares it's output to the servers. (needs special call)
-	 * @param extendedPrint boolean if the Client should print all the outputs.
-	 * @param useMS boolean if the Client should use Move Sorting
-	 * @param useMCTS boolean if the Client should use Monte-Carlo-Tree-Search.
+	 * @param multipliers A double array of multipliers. (See assignment in -h).
+	 * @param useAB Boolean if alpha beta pruning should be used.
+	 * @param printOn Boolean if the client should print the medium amount of outputs.
+	 * @param useColors Boolean if the client should print in color.
+	 * @param compare_to_Server Boolean if the client compares it's output to the servers. (needs special call which is defined in the ClientServerComparator class ).
+	 * @param extendedPrint Boolean if the client should print all the outputs.
+	 * @param useMS Boolean if the client should use move sorting.
+	 * @param useMCTS Boolean if the client should use monte carlo tree search.
 	 * @param groupNumberAddition If more clients with different group numbers should be started this value can be used.
 	 */
 	public Client(String ip,
@@ -281,7 +281,7 @@ public class Client{
 
 
 	/**
-	 * Plays the Game. Get Messages from server and calls methods to handle the different kinds
+	 * This method is used to play the game. It reacts according to the messages send from the server.
 	 */
 	private void play()
 	{
@@ -622,6 +622,7 @@ public class Client{
 			}
 		}
 	}
+
 	//Cheese Detection
 	private boolean isMapCheeseAble()
 	{
@@ -685,8 +686,8 @@ public class Client{
 
 	//phase 1
 	/**
-	 * Method to make a move after a move request was sent to the Client
-	 * @param upperTimeLimit the time limit there is for the move.
+	 * Method to make a move after a move request was sent to the client.
+	 * @param upperTimeLimit The time limit there is for the move.
 	 */
 	private void makeAMove(long upperTimeLimit){
 		//calculated Move

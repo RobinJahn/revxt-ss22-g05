@@ -1,8 +1,8 @@
 package src;
 
 /**
- * This class is used to store all the information needed for the aspiration window technique.
- * Also, it provides the methods to modify the values.
+ * This class is used to store all the information needed for the aspiration window method.
+ * It also provides the methods to modify the values.
  */
 public class AspirationWindow {
 
@@ -11,10 +11,10 @@ public class AspirationWindow {
     private int windowSize;
 
     /**
-     * This class contains the Information to use the Aspiration Window Technique.
-     * @param alpha the alpha from alpha beta pruning.
-     * @param beta the beta from alpha beta pruning.
-     * @param windowSize the desired window size
+     * This class contains the information to use the aspiration window method.
+     * @param alpha The alpha from alpha beta pruning.
+     * @param beta The beta from alpha beta pruning.
+     * @param windowSize the desired window size.
      */
     public AspirationWindow(double alpha,double beta, int windowSize)
     {
@@ -54,8 +54,8 @@ public class AspirationWindow {
 
     /**
      * This method checks weather the given value is inside the window.
-     * @param value the value to check
-     * @return Returns true when inside the window and false otherwise
+     * @param value The value to check.
+     * @return Returns true when inside the window and false otherwise.
      */
     public boolean insideWindow(double value)
     {
@@ -70,7 +70,7 @@ public class AspirationWindow {
     }
 
     /**
-     * This Method resets the window-size to it's maximum
+     * This method resets the window-size to it's maximum.
      */
     public void resetWindow()
     {
@@ -79,8 +79,8 @@ public class AspirationWindow {
     }
 
     /**
-     * This method sets the window size to the given value
-     * @param windowSize the value it gets set to.
+     * This method sets the window size to the given value.
+     * @param windowSize The value it gets set to.
      */
     public void setWindowSize(int windowSize)
     {

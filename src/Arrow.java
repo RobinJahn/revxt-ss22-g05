@@ -12,8 +12,8 @@ public class Arrow {
     public boolean createsValidMove = false; //boolean if the Arrow creates a valid move
 
     /**
-     * Copy method. With exclusion of the Positions itself this method will create a deep copy of the Arrow.
-     * @return new Object of type arrow
+     * Copy method. With exclusion of the positions itself this method will create a deep copy of the arrow.
+     * @return Returns a new object of type arrow.
      */
     @Override
     protected Arrow clone(){

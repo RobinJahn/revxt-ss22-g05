@@ -1,7 +1,7 @@
 package src;
 
 /**
- * This class is used for the Killer-Heuristic. It stores all the necessary information for it.
+ * This class is used for the killer heuristic. It stores all the necessary information for it and provides the functionality to modify it.
  */
 public class KillerArray {
 
@@ -10,7 +10,7 @@ public class KillerArray {
     private final int maxLength = 10;
 
     /**
-     * This Constructor creates a new KillerArray of a given Size of 10.
+     * This constructor creates a new KillerArray of a given size of 10.
      */
     public KillerArray()
     {
@@ -18,9 +18,9 @@ public class KillerArray {
     }
 
     /**
-     * This Function returns the Position and Additional Information of a Move in the KillerArray
-     * @param index The Index of the Position to take
-     * @return Returns the Position and Information of an entry in the KillerArray.
+     * This function returns the position and additional information of a move in the KillerArray.
+     * @param index The index of the position to take.
+     * @return Returns the position and information of an entry in the KillerArray.
      */
     public int[] getPositionAndInfo(int index)
     {
@@ -31,8 +31,8 @@ public class KillerArray {
     }
 
     /**
-     * This Function returns the Length of the KillerArray.
-     * @return Returns the Length of the KillerArray.
+     * This function returns the length of the KillerArray.
+     * @return Returns the length of the KillerArray.
      */
     public int getLength()
     {
@@ -40,9 +40,9 @@ public class KillerArray {
     }
 
     /**
-     * This Function Adds a new Move to the KillerArray, if there is Space available or the move cuts more moves than the currently worst move saved.
-     * @param PositionAndInfo The New Move to Check
-     * @param NumberOfCutLeaves The Number of Leaves the Move cut.
+     * This function adds a new move to the KillerArray, if there is space available or the move cuts more moves than the currently worst move saved.
+     * @param PositionAndInfo The new move to check
+     * @param NumberOfCutLeaves The number of leaves the move cut.
      */
     public void add(PositionAndInfo PositionAndInfo, int NumberOfCutLeaves)
     {
@@ -79,6 +79,7 @@ public class KillerArray {
             }
         }
     }
+
     private static class KillerLine {
         private PositionAndInfo Pos;
         private int NumberOfCutLeaves;

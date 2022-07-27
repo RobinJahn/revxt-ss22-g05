@@ -1,7 +1,7 @@
 package src;
 
 /**
- * This method contains all the information of the Transposition-table of the Zobrist-Hashing-Method.
+ * This method contains all the information of the transposition table of the zobrist hashing method.
  * Also, it provides the needed methods to set, update or get this information.
  */
 public class TranspositionTable {
@@ -15,8 +15,8 @@ public class TranspositionTable {
     private long Replacements = 0;
 
     /**
-     * Creates a Transposition Table of the given Size.
-     * @param size The Size of the TranspositionTable
+     * Creates a transposition table of the given size.
+     * @param size The size of the transposition table.
      */
     public TranspositionTable(int size)
     {
@@ -25,7 +25,7 @@ public class TranspositionTable {
     }
 
     /**
-     * Empties the Transposition Table
+     * Empties the transposition table.
      */
     public void empty()
     {
@@ -33,10 +33,10 @@ public class TranspositionTable {
     }
 
     /**
-     * Tries to find the given hash in the Transposition Table and returns the Value of the Map in case of a Hit or in Case of a Miss a Default Value.
-     * @param hash The Hash Value to look up
-     * @param depth The Current Depth
-     * @return Returns the Value of the given Map or the Min Value of a Double + 1
+     * Tries to find the given hash in the transposition table and returns the value of the map in case of a hit or in case of a miss a default value.
+     * @param hash The hash value to look up.
+     * @param depth The current depth.
+     * @return Returns the value of the given map or the min value of a double + 1.
      */
     public double lookUp(long hash, int depth)
     {
@@ -59,10 +59,10 @@ public class TranspositionTable {
     }
 
     /**
-     * Adds the Value of a Map represented by the hash Value to the Transposition Table for a given depth.
-     * @param hash The Hash Value of the Map
-     * @param depth The Current Depth
-     * @param value The Value of the Map
+     * Adds the value of a map represented by the hash value to the transposition table for a given depth.
+     * @param hash The hash value of the map.
+     * @param depth The current depth.
+     * @param value The value of the map.
      */
     public void add(long hash, int depth, double value)
     {
@@ -83,8 +83,8 @@ public class TranspositionTable {
     }
 
     /**
-     * Returns the Number of Transposition Hits.
-     * @return The Number of Transposition Hits
+     * Returns the number of transposition hits.
+     * @return The number of transposition hits.
      */
     public long getTranspositionHits()
     {
@@ -92,14 +92,14 @@ public class TranspositionTable {
     }
 
     /**
-     * Returns the Number of Transposition Misses.
-     * @return The Number of Transposition Misses
+     * Returns the number of transposition misses.
+     * @return The number of transposition misses.
      */
     public long getTranspositionMiss() { return  TranspositionMiss;}
 
     /**
-     * Returns the Number of Entries which have been replaced.
-     * @return The Number of Replacements
+     * Returns the number of entries which have been replaced.
+     * @return The number of replacements.
      */
     public long getReplacements() { return Replacements;}
 

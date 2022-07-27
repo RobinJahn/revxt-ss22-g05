@@ -12,8 +12,8 @@ public class Statistic {
     private final int depth;
 
     /**
-     * Creates a new Statistic Object for a given depth
-     * @param depth depth given for the Statistic Object
+     * Creates a new Statistic object for a given depth.
+     * @param depth The depth given for the Statistic object.
      */
     public Statistic(int depth){
         leafNodes = 0;
@@ -25,17 +25,17 @@ public class Statistic {
     }
 
     /**
-     * This Function calculates the Average Computation Time for each Node
-     * @return Returns the Average Computation Time per Node
+     * This function calculates the average computation time for each node.
+     * @return Returns the average computation time per node.
      */
     public double getAverageComputationTime() {
         return (double) totalComputationTime / (double) (leafNodes + interiorNodes);
     }
 
     /**
-     * This Function Adds the given countOfNodes either to interior or Leaf Nodes depending on the depth given
-     * @param countOfNodes Count of Nodes to be added
-     * @param depth depth of the Counted Nodes
+     * This function adds the given count of nodes either to interior or leaf nodes depending on the depth given.
+     * @param countOfNodes Count of nodes to be added.
+     * @param depth Depth of the counted nodes.
      */
     public void addNodes(int countOfNodes, int depth){
         if (depth > 1) interiorNodes += countOfNodes;
@@ -45,17 +45,17 @@ public class Statistic {
     }
 
     /**
-     * Calculates the branching Factor per Node
-     * @return Returns the Branching Factor
+     * Calculates the branching factor per node.
+     * @return Returns the branching factor.
      */
     public double branchFactor(){
         return (double)(totalNodesSeen-1)/timesNodesGotAdded;
     }
 
     /**
-     * This Function reduces the Nodes in the Statistic by a given amount in either the InteriorNodes or the Leaf Nodes depending on the depth value.
-     * @param countOfCutoffLeaves Number off Cut Leaves
-     * @param currDepth The Current Depth
+     * This function reduces the nodes in the statistic by a given amount in either the interior nodes or the leaf nodes depending on the depth value.
+     * @param countOfCutoffLeaves The number off cut leaves.
+     * @param currDepth The current depth.
      */
     public void reduceNodes(int countOfCutoffLeaves, int currDepth) {
         if (depth == currDepth) interiorNodes -= countOfCutoffLeaves;
@@ -63,8 +63,8 @@ public class Statistic {
     }
 
     /**
-     * This Function returns the Count of Total Nodes seen.
-     * @return Count of Total Nodes seen
+     * This function returns the count of total nodes seen.
+     * @return Count of total nodes seen.
      */
     public int getTotalNodesSeen()
     {
@@ -72,8 +72,8 @@ public class Statistic {
     }
 
     /**
-     * This Function returns the total Computation Time.
-     * @return total Computation Time
+     * This function returns the total computation time.
+     * @return Total computation time.
      */
     public long getTotalComputationTime()
     {
@@ -81,8 +81,8 @@ public class Statistic {
     }
 
     /**
-     * This Function adds Time to the Total Computation Time.
-     * @param timeValue The Time Value which is added to the total Computation Time
+     * This function adds time to the total computation time.
+     * @param timeValue The time value which is added to the total computation time.
      */
     public void addTotalComputationTime(long timeValue)
     {
@@ -90,8 +90,8 @@ public class Statistic {
     }
 
     /**
-     * This Function overrides the standard toSting function in order to provide a better Representation of the Statistic.
-     * @return A formatted String with the Total Nodes Seen, Total Nodes visited, Leaf Nodes visited, Interior Nodes visited, Average Computation Time, Total Computation Time and Branching Factor
+     * This function overrides the standard toSting() function in order to provide a better representation of the statistic.
+     * @return A formatted string with the total nodes seen, total nodes visited, leaf nodes visited, interior nodes visited, average computation time, total computation time and branching factor.
      */
     @Override
     public String toString() {

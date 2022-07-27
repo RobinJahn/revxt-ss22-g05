@@ -3,8 +3,8 @@ package src;
 import java.util.*;
 
 /**
- * This class is used to store information for the HeuristicPerPhase by which it is used exclusively.
- * It contains the information for the field value and wave value for a specific phase of the game
+ * This class is used to store information for the HeuristicPerPhase object by which it is used exclusively.
+ * It contains the information for the field value and wave value for a specific phase of the game.
  */
 public class StaticHeuristic {
     public double[][] matrix;
@@ -15,10 +15,10 @@ public class StaticHeuristic {
     private final Map map;
 
     /**
-     * Constructor of the Static Heuristic, initializing various Values.
-     * @param map The Map
-     * @param specialFields An ArrayList of Positions of every Special Field
-     * @param waveCount The Expansion-Radius of the Waves.
+     * Constructor of the static heuristic, initializing various values.
+     * @param map The map.
+     * @param specialFields An array list of positions of every special field.
+     * @param waveCount The expansion radius of the waves.
      */
     public StaticHeuristic(Map map, ArrayList<Position> specialFields, int waveCount){
         matrix = new double[map.getHeight()][map.getWidth()];
@@ -32,7 +32,7 @@ public class StaticHeuristic {
     //  waves
 
     /**
-     * Goes over every field and adds it to a List of HighValue Fields if it's Value is in the top 5% of Values
+     * Goes over every field and adds it to a list of high value fields if it's value is in the top 5% of values.
      */
     public void setFieldsWithHighValues(){
         double percentageOfValues = 0.05;
@@ -80,10 +80,10 @@ public class StaticHeuristic {
     }
 
     /**
-     * Returns the Wave-Value of a given Position
-     * @param currPos Current Position
-     * @param map The Current Map
-     * @return The Wave-Value of the Given Position
+     * Returns the wave value of a given position.
+     * @param currPos The current position.
+     * @param map The current map.
+     * @return The wave value of the given position.
      */
     public double getWaveValueForPos(Position currPos, Map map){
         double result = 0;
@@ -108,7 +108,7 @@ public class StaticHeuristic {
     }
 
     /**
-     * Creates the Wave Matrix
+     * Creates the wave matrix
      */
     public void createWaves(){
         wavesAndFields = new HashMap<>();

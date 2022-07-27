@@ -12,8 +12,8 @@ public class DialogWindow {
     static File savedPath = new File(Paths.get("./Maps").toAbsolutePath().normalize().toString());
 
     /**
-     * This method opens a File-Dialog-Window.
-     * @return Returns the complete file path of the selected File as a string.
+     * This method opens a file dialog window.
+     * @return Returns the complete file path of the selected file as a string.
      */
     public String open() {
         final JFileChooser chooser = new JFileChooser("Select Path");

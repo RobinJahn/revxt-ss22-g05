@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * This class contains all the information of a map that stay the same over the whole game. it is exclusively used by the Map class.
+ * This class contains all the information of a map that stay the same over the whole game. it is exclusively used by the map class.
  * Also, it provides the functionality to import the map and to check which fields are reachable.
  */
 public class StaticMap {
@@ -33,9 +33,9 @@ public class StaticMap {
 
 
     /**
-     * This Constructor initializes the Static Map
-     * @param mapByteArray The Map in a ByteArray Format
-     * @param serverLog Indicates if we use Server Log
+     * This constructor initializes the static map.
+     * @param mapByteArray The map in a byte array format.
+     * @param serverLog Indicates if we use server log.
      */
     public StaticMap(byte[] mapByteArray, boolean serverLog){
         importedCorrectly = importMap(mapByteArray);
@@ -50,8 +50,8 @@ public class StaticMap {
     //PUBLIC METHODS
 
     /**
-     * Method Imports a Map from the given input Stream.
-     * @param mapByteArray byte array to import from
+     * Method imports a map from the given input stream.
+     * @param mapByteArray The byte array to import from.
      * @return Returns true if map was imported correctly and false otherwise.
      */
     public boolean importMap(byte[] mapByteArray) {
@@ -70,8 +70,8 @@ public class StaticMap {
     }
 
     /**
-     * imports Map after a stream tokenizer was created - which changes if you have a file or a stream
-     * @param st Stream Tokenizer that is set to read the map
+     * Imports the map after a stream tokenizer was created - which changes if you have a file or a stream.
+     * @param st StreamTokenizer object that is set to read the map.
      * @return Returns true if map was imported correctly and false otherwise.
      */
     private boolean importMapWithStreamTokenizer(StreamTokenizer st){
@@ -142,7 +142,7 @@ public class StaticMap {
     }
 
     /**
-     * Returns Infos, Map and Transitions in a formatted String
+     * Returns the infos, the map and the transitions in a formatted string
      */
     public String toString() {
         String mapString = "";
@@ -156,16 +156,16 @@ public class StaticMap {
 
         mapString += "\n\n";
 
-        mapString += Transitions.AllToString(transitions);
+        mapString += Transition.AllToString(transitions);
 
         return mapString;
     }
 
     /**
-     * goes one step in the specified direction. If there's a wall or the end of the map it returns null if there's a transition it goes through it
-     * @param pos start position
-     * @param r direction to do the step in
-     * @return returns null if move isn't possible and the direction after the move if it is possible. If a transition changes the direction this is where to get the new one
+     * Goes one step in the specified direction. If there's a wall or the end of the map it returns null if there's a transition it goes through it.
+     * @param pos The start position.
+     * @param r Direction to do the step in.
+     * @return Returns null if move isn't possible and the direction after the move if it is possible. If a transition changes the direction this is where to get the new one.
      */
     public Integer doAStep(Position pos, int r){
         char transitionLookup;
@@ -200,14 +200,14 @@ public class StaticMap {
         //check if there is a transition
         if (charAtPos == 't') {
             //check if the direction matches the current one
-            transitionLookup = Transitions.saveInChar(pos.x,pos.y,r); //pos is the old position
+            transitionLookup = Transition.saveInChar(pos.x,pos.y,r); //pos is the old position
             transitionEnd = transitions.get(transitionLookup);
             if (transitionEnd == null) return null; //if there isn't an entry
 
             //go through the transition
-            newPos.x = Transitions.getX(transitionEnd);
-            newPos.y= Transitions.getY(transitionEnd);
-            newR = Transitions.getR(transitionEnd);
+            newPos.x = Transition.getX(transitionEnd);
+            newPos.y= Transition.getY(transitionEnd);
+            newR = Transition.getR(transitionEnd);
             newR = (newR+4)%8; //flips direction because transition came out of that direction, so you go through the other way
 
             //if on the other side is a -
@@ -223,16 +223,16 @@ public class StaticMap {
     //GETTER
 
     /**
-     * Returns if the Map was Imported Correctly or not.
-     * @return Returns true if the Map was imported Correctly and false otherwise
+     * Returns if the map was imported correctly or not.
+     * @return Returns true if the map was imported correctly and false otherwise
      */
     public boolean wasImportedCorrectly() {
         return importedCorrectly;
     }
 
     /**
-     * This Function returns the Initial Stones Per Player in an ArrayList of Hashsets of Positions.
-     * @return Returns an Arraylist of one Hashset per Player with their Initial Stones.
+     * This function returns the initial stones per player in an ArrayList object of hashsets of positions.
+     * @return Returns an Arraylist Object of one hashset per player with their initial stones.
      */
     public ArrayList<HashSet<Position>> getInitialStonesPerPlayer(){
         ArrayList<HashSet<Position>> result = initialStonesPerPlayer;
@@ -241,8 +241,8 @@ public class StaticMap {
     }
 
     /**
-     * This Function returns the Initial ExpansionFields in a HashSet
-     * @return Returns a Hashset with the Initial ExpansionFields
+     * This function returns the initial expansion fields in a HashSet object.
+     * @return Returns a Hashset object with the initial expansion fields.
      */
     public HashSet<Position> getInitialExpansionFields(){
         HashSet<Position> result = initialExpansionFields;
@@ -251,13 +251,13 @@ public class StaticMap {
     }
 
     /**
-     * Checks for a Transition given the Position and Rotation.
-     * @param pos The Current Position
-     * @param rotation The Rotation in which we are going.
-     * @return Returns true if a Transition starts from the given Position in the given Direction
+     * Checks for a transition given the position and rotation.
+     * @param pos The current position.
+     * @param rotation The rotation in which we are going.
+     * @return Returns true if a transition starts from the given position in the given direction.
      */
     public boolean checkForTransition(Position pos, int rotation){
-        Character transitionStart = Transitions.saveInChar(pos.x, pos.y, rotation);
+        Character transitionStart = Transition.saveInChar(pos.x, pos.y, rotation);
         Character transitionEnd;
 
         transitionEnd = transitions.get(transitionStart);
@@ -414,8 +414,8 @@ public class StaticMap {
         //if one transition is complete
         if (posInTransitionBuffer == 8) {
             //convert transition infos into a char
-            buffer = Transitions.saveInChar(transitionsBuffer[0],transitionsBuffer[1],transitionsBuffer[2]);
-            buffer2 = Transitions.saveInChar(transitionsBuffer[6],transitionsBuffer[7],transitionsBuffer[8]);
+            buffer = Transition.saveInChar(transitionsBuffer[0],transitionsBuffer[1],transitionsBuffer[2]);
+            buffer2 = Transition.saveInChar(transitionsBuffer[6],transitionsBuffer[7],transitionsBuffer[8]);
             //Add transition to hash Map
             transitions.put(buffer, buffer2);
             transitions.put(buffer2, buffer);
@@ -449,9 +449,9 @@ public class StaticMap {
     //Helper
 
     /**
-     * This function Calculates the Amount of Reachable Fields in the Map.
-     * @param serverLog Indicates whether we compare to the Server or not.
-     * @return The amount of ReachableFields
+     * This function calculates the amount of reachable fields in the map.
+     * @param serverLog Indicates whether we compare to the server or not.
+     * @return The amount of reachable fields.
      */
     private int findReachableFields(boolean serverLog)
     {

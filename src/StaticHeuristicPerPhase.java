@@ -3,7 +3,7 @@ package src;
 import java.util.ArrayList;
 
 /**
- * This class is used to store information for the Heuristic.
+ * This class is used to store information for the heuristic.
  * It contains the information for the field value and wave value for all phases of the game
  */
 public class StaticHeuristicPerPhase {
@@ -21,10 +21,10 @@ public class StaticHeuristicPerPhase {
     private final boolean[][] enables;
 
     /**
-     * Constructor of the Static Heuristic for each Game Phase.
-     * @param map The Map
-     * @param multiplier Multipliers for each GamePhase
-     * @param extendedPrint If true, also prints the Created Value Maps
+     * Constructor of the static heuristic for each game phase.
+     * @param map The map.
+     * @param multiplier Multipliers for each game phase.
+     * @param extendedPrint If true, also prints the created value maps.
      */
     public StaticHeuristicPerPhase(Map map, double[][] multiplier, boolean extendedPrint) {
         height = map.getHeight();
@@ -75,11 +75,11 @@ public class StaticHeuristicPerPhase {
     }
 
     /**
-     * Returns the Value of a given Position according to the given GamePhase
-     * @param x X-Coordinate of the Position
-     * @param y Y-Coordinate of the Position
-     * @param phase Current GamePhase
-     * @return The Value of the Given Position in the given GamePhase
+     * Returns the value of a given position according to the given game phase.
+     * @param x The x coordinate of the position.
+     * @param y The y coordinate of the position.
+     * @param phase The current game phase.
+     * @return The value of the given position in the given game phase.
      */
     public double getValueFromMatrix(int x, int y, int phase){
         if (phase-1 >= staticHeuristicPerPhase.size()){
@@ -89,11 +89,11 @@ public class StaticHeuristicPerPhase {
     }
 
     /**
-     * Returns the Wave-Value of a given Position according to the given GamePhase
-     * @param pos Current Position
-     * @param map The Current Map
-     * @param phase Current GamePhase
-     * @return The Wave-Value of the Given Position in the given GamePhase
+     * Returns the wave value of a given position according to the given game phase.
+     * @param pos Current position.
+     * @param map The current map.
+     * @param phase Current game phase.
+     * @return The wave value of the given position in the given game phase.
      */
     public double getWaveValueForPos(Position pos, Map map, int phase) {
         if (phase-1 >= staticHeuristicPerPhase.size()){
@@ -275,7 +275,7 @@ public class StaticHeuristicPerPhase {
     /**
      * This method prints out the given matrix in a nicely readable way. Every value is formatted with %4.2f.
      * For negative and positive infinity a "+" or "-" gets printed.
-     * @param matrix the double matrix to print.
+     * @param matrix The double matrix to print.
      */
     public void printMatrix(double[][] matrix){
         for (int y = 0; y < matrix.length; y++){
@@ -291,7 +291,7 @@ public class StaticHeuristicPerPhase {
     /**
      * This method prints out the given matrix in a nicely readable way.
      * For "true" it prints a "+" and for "false" a "-".
-     * @param matrix the boolean matrix to print.
+     * @param matrix The boolean matrix to print.
      */
     public void printMatrix(boolean[][] matrix){
         char currChar;

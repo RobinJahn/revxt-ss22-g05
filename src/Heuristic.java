@@ -40,12 +40,12 @@ public class Heuristic {
 
 
     /**
-     * This Constructor creates a Heuristic object. Here all the necessary information is set.
+     * This constructor creates a heuristic object. This method takes all the information that is needed for the heuristic and creates the object.
      * @param map The map that the heuristic evaluates.
      * @param myColor The number(color) of the player for which the map is rated.
-     * @param printOn boolean that defines if the heuristic should print the medium amount of information.
-     * @param extendedPrint boolean that defines if the heuristic should print all the information.
-     * @param multiplier list of double values to define the multipliers for the different heuristically evaluations.
+     * @param printOn Boolean that defines if the heuristic should print the medium amount of information.
+     * @param extendedPrint Boolean that defines if the heuristic should print all the information.
+     * @param multiplier List of double values to define the multipliers for the different heuristically evaluations.
      * @param shpp The StaticHeuristicPerPhase object, that contains all the necessary information about the field values and waves per phase.
      */
     public Heuristic(Map map, int myColor, boolean printOn, boolean extendedPrint, double[][] multiplier, StaticHeuristicPerPhase shpp){
@@ -132,8 +132,8 @@ public class Heuristic {
     //UPDATES ----------------------------------------------------------------------------------------------------------
 
     /**
-     * Function updates the Heuristic Multipliers according to the current GameStage
-     * @param phaseOne Indicates if we are in phase one or not
+     * Function updates the heuristic multipliers according to the current game stage.
+     * @param phaseOne Indicates if we are in phase one or not.
      */
     public void updateHeuristicMultipliers(boolean phaseOne)
     {
@@ -149,10 +149,10 @@ public class Heuristic {
     }
 
     /**
-     * Updates the Map object (if it was cloned for example).
+     * Updates the map object (if it was cloned for example).
      * Also updates th dynamic infos.
      * The general Map needs to be the same as the one the heuristic got initialized with.
-     * @param mapToUpdateWith The new Map object to update the infos with
+     * @param mapToUpdateWith The new map object to update the infos with.
      */
     public void updateMap(Map mapToUpdateWith){
         this.map = mapToUpdateWith;
@@ -162,11 +162,11 @@ public class Heuristic {
 
     /**
      * Method to evaluate the current map of the heuristic.
-     * @param phaseOne indicates if we're in phase one
-     * @param timed indicates if there is a time limit
-     * @param ServerLog indicates if the method should output information
-     * @param UpperTimeLimit the time limit
-     * @return returns the value of the map.
+     * @param phaseOne Indicates if we're in phase one.
+     * @param timed Indicates if there is a time limit.
+     * @param ServerLog Indicates if the method should output information.
+     * @param UpperTimeLimit The time limit.
+     * @return Returns the value of the map.
      * @throws TimeoutException Throws TimeoutException if the method didn't get to finish in time.
      */
     public double evaluate(boolean phaseOne,boolean timed, boolean ServerLog, long UpperTimeLimit) throws TimeoutException{
@@ -238,8 +238,8 @@ public class Heuristic {
     /**
      * Method to evaluate the current map of the heuristic. Here only a very fast evaluation is made so that it doesn't take as much time as evaluate().
      * @param map Map that gets evaluated.
-     * @param myPlayerNr player the map gets evaluated for.
-     * @return returns the value of the map.
+     * @param myPlayerNr Player the map gets evaluated for.
+     * @return Returns the value of the map.
      */
     public static double fastEvaluate(Map map, int myPlayerNr){
 
@@ -258,8 +258,8 @@ public class Heuristic {
 
     /**
      * Method to evaluate the current map of the heuristic in the bomb phase.
-     * @param map map that gets evaluated
-     * @return returns the value of the map.
+     * @param map Map that gets evaluated
+     * @return Returns the value of the map.
      */
     public long bombEvaluate(Map map)
     {
@@ -268,9 +268,9 @@ public class Heuristic {
     }
 
     /**
-     * returns the current stage that the map is in.
-     * @param phaseOne boolean if the map is in phase one or not
-     * @return stage number.
+     * Returns the current stage that the map is in.
+     * @param phaseOne Boolean if the map is in phase one or not.
+     * @return Returns stage number.
      */
     private int getStage(boolean phaseOne){
 
@@ -307,7 +307,7 @@ public class Heuristic {
 
     /**
      * Evaluation method that evaluates if a bomb, or an overwrite-stone should be taken.
-     * @return 20 if a bomb should be taken and 21 if an overwrite-stone should be taken.
+     * @return Returns 20 if a bomb should be taken and 21 if an overwrite-stone should be taken.
      */
     public int selectBombOrOverwrite(){
         if (map.getExplosionRadius() > 10){
@@ -321,8 +321,8 @@ public class Heuristic {
     //PRINT ------------------------------------------------------------------------------------------------------------
 
     /**
-     * prints out the evaluation matrix
-     * @param phase stage the map is in.
+     * Prints out the evaluation matrix.
+     * @param phase Stage the map is in.
      */
     public void printMatrix(int phase){
         if (staticHeuristicPerPhase == null) return;

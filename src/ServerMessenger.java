@@ -6,7 +6,7 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 
 /**
- * This class is used as an Interface to the server. It provides all the functionality to communicate with the server.
+ * This class is used as an interface to the server. It provides all the functionality to communicate with the server.
  */
 public class ServerMessenger {
     private final OutputStream out;
@@ -14,11 +14,11 @@ public class ServerMessenger {
     private final int groupNumberAddition;
 
     /**
-     * Constructs the Server Messenger
-     * @param ip Target IP-Address
-     * @param port Target Port-Number
-     * @param groupNumberAddition GroupNumberAddition
-     * @throws IOException Throws an IOException If no connection could be established
+     * Constructs the server messenger
+     * @param ip Target ip address
+     * @param port Target port number
+     * @param groupNumberAddition A number to modify the group number by the formula of (50 + number).
+     * @throws IOException Throws an IOException if no connection could be established.
      */
     public ServerMessenger(String ip, int port, int groupNumberAddition) throws IOException {
         Socket server = new Socket(ip, port); //builds up a connection to the server socket
@@ -34,8 +34,8 @@ public class ServerMessenger {
     //receiver
 
     /**
-     * Waits for Messages from the Server.
-     * @return Returns -1 if there was no Message, Otherwise the received Byte.
+     * Waits for messages from the server.
+     * @return Returns -1 if there was no message, otherwise the received byte.
      */
     public int waitForMessage(){
         int readByte;
@@ -49,8 +49,8 @@ public class ServerMessenger {
     }
 
     /**
-     * Reads the Rest of the MoveRequest
-     * @return Returns the Maximum Time and Depth for this Move
+     * Reads the rest of the move request.
+     * @return Returns the maximum time and depth for this move.
      */
     public int[] readRestOfMoveRequest(){
         int time;
@@ -75,8 +75,8 @@ public class ServerMessenger {
     }
 
     /**
-     * Reads the Rest of the Move send by the Server
-     * @return Returns the Position and Additional Info of the Move and the PlayerNumber, which made the Move.
+     * Reads the rest of the move send by the server.
+     * @return Returns the position and additional info of the move and the player number, which made the move.
      */
     public int[] readRestOfMove(){
 
@@ -99,8 +99,8 @@ public class ServerMessenger {
     }
 
     /**
-     * Reads the Rest of the Disqualification
-     * @return Returns the Number of the Disqualified Player.
+     * Reads the rest of the disqualification
+     * @return Returns the number of the disqualified player.
      */
     public int readRestOfDisqualification(){
         int player;
@@ -117,7 +117,7 @@ public class ServerMessenger {
     }
 
     /**
-     * Reads the Rest and ignores it.
+     * Reads the rest of the next phase message and ignores it.
      */
     public void readRestOfNextPhase(){
         try {
@@ -128,9 +128,9 @@ public class ServerMessenger {
     }
 
     /**
-     * Reads the Input Stream and Returns the Map.
-     * @param serverLog Boolean to toggle ServerLog with.
-     * @return Returns the Map, send by the server.
+     * Reads the input stream and returns the map.
+     * @param serverLog Boolean to toggle server log with.
+     * @return Returns the map as a StaticMap object, send by the server.
      */
     public StaticMap getMap(boolean serverLog){
         int readByte;
@@ -171,8 +171,8 @@ public class ServerMessenger {
     }
 
     /**
-     * Reads the Input Stream and Returns my Player Number.
-     * @return Returns my Player Number.
+     * Reads the input stream and returns the own player number.
+     * @return Returns own player number.
      */
     public int getPlayerNumber() {
         int readByte;
@@ -197,11 +197,11 @@ public class ServerMessenger {
     //sender
 
     /**
-     * Sends a Move to the Server with the given Parameters
-     * @param x X-Position of the Move
-     * @param y Y-Position of the Move
-     * @param additionalInfo Additional Info
-     * @param myPlayerNr My Player Number
+     * Sends a move to the server with the given parameters.
+     * @param x The x position of the move.
+     * @param y The y position of the move.
+     * @param additionalInfo The additional info if some is needed for the move.
+     * @param myPlayerNr The own player number.
      */
     public void sendMove(int x, int y, int additionalInfo, int myPlayerNr){
         int[] arguments = new int[4];

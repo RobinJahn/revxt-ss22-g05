@@ -1,16 +1,16 @@
 package src;
 
 /**
- * This class is used to store the x and y coordinates of a position. Also, it provides functionality to compare two positions or to use the positions for a hash value
+ * This class is used to store the x and y coordinates of a position. Also, it provides functionality to compare two positions or to use the positions for a hash value.
  */
 public class Position {
     int x;
     int y;
 
     /**
-     * This Function creates a Position Object given X and Y
-     * @param x X-Value
-     * @param y Y-Value
+     * This function creates a position object given x and y.
+     * @param x The x value.
+     * @param y The y value.
      */
     public Position(int x, int y) {
         this.x = x;
@@ -18,8 +18,8 @@ public class Position {
     }
 
     /**
-     * This Function creates a Position Object given an Int Array of Length two
-     * @param pos An Int Array where the pos[0] = X and pos[1] = Y
+     * This function creates a position object given an int array of length two.
+     * @param pos An int array where the pos[0] = x and pos[1] = y.
      */
     public Position(int[] pos) {
         this.x = pos[0];
@@ -27,7 +27,7 @@ public class Position {
     }
 
     /**
-     * Generates a hash value for the given Object
+     * Generates a hash value for the given object.
      * @return Returns the hash value.
      */
     @Override
@@ -36,8 +36,8 @@ public class Position {
     }
 
     /**
-     * This Function evaluates if 2 Positions are the Same.
-     * @param obj Another Positions
+     * This function evaluates if 2 positions are the same.
+     * @param obj The second positions.
      * @return Returns true if the x and y value pairs are identically.
      */
     @Override
@@ -47,8 +47,8 @@ public class Position {
     }
 
     /**
-     * Generates a String with all the necessary Information of the Object
-     * @return Returns a String following this Pattern (x,y)
+     * Generates a string with all the necessary information of the object.
+     * @return Returns a string following this pattern: (x,y).
      */
     @Override
     public String toString() {
@@ -56,10 +56,10 @@ public class Position {
     }
 
     /**
-     * Returns a new Position Object with the Updated x and y Values after going 1 Step in the provided Direction.
-     * @param pos The Current Position
-     * @param r The Current Direction (0 stands for North, 1 stands for NE, ...)
-     * @return A new Position Object with the updated Position
+     * Returns a new position object with the updated x and y values after going 1 step in the provided direction.
+     * @param pos The current position.
+     * @param r The current direction (0 is up, 1 is up and right, ...).
+     * @return Returns a new position object with the updated position.
      */
     public static Position goInR(Position pos, int r) {
         int x = pos.x;
@@ -98,8 +98,8 @@ public class Position {
     }
 
     /**
-     * This Function clones the current Object by returning a new Object with the same Values.
-     * @return Returns the copied Object.
+     * This function clones the current object by returning a new object with the same values.
+     * @return Returns the copied object.
      */
     @Override
     protected Position clone() {

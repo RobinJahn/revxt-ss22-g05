@@ -2,7 +2,7 @@ package src;
 
 /**
  * This class is used to store the x and y coordinates of a position and also a double that can be used to save further information.
- * Also, it provides functionality to compare two positions or to use the positions for a hash value
+ * Also, it provides functionality to compare two positions or to use the positions for a hash value.
  */
 public class PositionAndValue implements Comparable<src.PositionAndValue>{
 
@@ -11,8 +11,8 @@ public class PositionAndValue implements Comparable<src.PositionAndValue>{
     private double value;
 
     /**
-     * Returns the Value
-     * @return Returns the Value
+     * Returns the value.
+     * @return Returns the value.
      */
     public double getValue()
     {
@@ -20,26 +20,26 @@ public class PositionAndValue implements Comparable<src.PositionAndValue>{
     }
 
     /**
-     * Returns the X-Position
-     * @return Returns the X-Position
+     * Returns the x position.
+     * @return Returns the x position.
      */
     public int getX() {
         return x;
     }
 
     /**
-     * Returns the Y-Position
-     * @return Returns the Y-Position
+     * Returns the y position.
+     * @return Returns the y position.
      */
     public int getY() {
         return y;
     }
 
     /**
-     * Creates a new PositionAndValue Object with the given Parameters
-     * @param x X-Position
-     * @param y Y-Position
-     * @param value Value for this Position
+     * Creates a new PositionAndValue object with the given parameters.
+     * @param x The x position.
+     * @param y The y position.
+     * @param value The value for this position.
      */
     public PositionAndValue(int x, int y, double value) {
         this.x = x;
@@ -48,8 +48,8 @@ public class PositionAndValue implements Comparable<src.PositionAndValue>{
     }
 
     /**
-     * Creates a new PositionAndValue Object given a PositionAndInfo Object
-     * @param posAndInfo A PositionAndInfo Object
+     * This is a copy constructor. It creates a new PositionAndValue object given a PositionAndInfo object.
+     * @param posAndInfo The PositionAndInfo object to clone.
      */
     public PositionAndValue(int[] posAndInfo) {
         if (posAndInfo.length != 3) return;
@@ -59,7 +59,7 @@ public class PositionAndValue implements Comparable<src.PositionAndValue>{
     }
 
     /**
-     * Generates a hash value for the given Object
+     * Generates a hash value for the given object.
      * @return Returns the hash value.
      */
     @Override
@@ -68,9 +68,9 @@ public class PositionAndValue implements Comparable<src.PositionAndValue>{
     }
 
     /**
-     * Evaluates if 2 PositionAndValues are equal based on their Position alone
-     * @param obj Another PositionAndValue Object
-     * @return Returns true if the 2 have the same Position
+     * Evaluates if 2 PositionAndValues objects are equal based on their position alone
+     * @param obj The second PositionAndValue object.
+     * @return Returns true if the 2 have the same position.
      */
     @Override
     public boolean equals(Object obj) {
@@ -79,8 +79,8 @@ public class PositionAndValue implements Comparable<src.PositionAndValue>{
     }
 
     /**
-     * Generates a String with all the necessary Information off the Object
-     * @return Returns a String following this Pattern (x,y,value)
+     * Generates a string with all the necessary information off the object.
+     * @return Returns a string following this pattern (x,y,value).
      */
     @Override
     public String toString() {
@@ -88,8 +88,8 @@ public class PositionAndValue implements Comparable<src.PositionAndValue>{
     }
 
     /**
-     * This Function clones the current Object by returning a new Object with the same Values.
-     * @return Returns the copied Object.
+     * This function clones the current object by returning a new object with the same values.
+     * @return Returns the copied object.
      */
     @Override
     protected src.PositionAndValue clone() {
@@ -97,9 +97,9 @@ public class PositionAndValue implements Comparable<src.PositionAndValue>{
     }
 
     /**
-     * This Function compares two given PositionAndValue Objects
-     * @param o the object to be compared.
-     * @return Returns true if the two Objects have the same x,y and Value. False Otherwise.
+     * This function compares two given PositionAndValue objects.
+     * @param o The second PositionAndInfo object.
+     * @return Returns true if the two objects have the same x,y and value and false otherwise.
      */
     @Override
     public int compareTo(src.PositionAndValue o) {

@@ -5,8 +5,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This class is used for bug-fixing. It provides the functionality to compare the Server output to the one of the Client.
- * For this the Server needs to direct its output (without color) in a File named "Server_View.txt" which must lay at the highest level in the project.
+ * This class is used for bug-fixing. It provides the functionality to compare the server output to the one of the client.
+ * For this the server needs to direct its output (without color) in a file named "Server_View.txt" which must lay at the highest level in the project.
  */
 public class ClientServerComparator {
 
@@ -17,9 +17,9 @@ public class ClientServerComparator {
     ArrayList<String> ClientLines = new ArrayList<>();
 
     /**
-     * This Constructor creates a clientServerComparator Object.
+     * This constructor creates a ClientServerComparator object.
      * With this it's possible to compare the output of the client to the one of the server.
-     * For this the server needs to direct its output in a File named "Server_View.txt"
+     * For this the server needs to direct its output in a file named "Server_View.txt".
      * @param width the width of the playing field.
      */
     public ClientServerComparator(int width) {
@@ -38,9 +38,9 @@ public class ClientServerComparator {
     }
 
     /**
-     * This method takes a String from the Client and processes it to later compare to the server.
-     * The string should come from the method Map.toString_Server()
-     * @param clientString The String that gets parsed
+     * This method takes a string from the client and processes it to later compare to the server.
+     * The string should come from the method map.toString_Server().
+     * @param clientString The string that gets parsed.
      */
     public void setClientString(String clientString){
         ClientLines = new ArrayList<>( List.of(clientString.split("\n")) );
@@ -49,7 +49,7 @@ public class ClientServerComparator {
     /**
      * This method compares if the server, and the client have the same output.
      * @param moveCounter This number indicates the number of the move.
-     * @return returns true if the two maps match and false otherwise
+     * @return Returns true if the two maps match and false otherwise.
      */
     public ArrayList<Position> compare(int moveCounter){
 
@@ -110,9 +110,9 @@ public class ClientServerComparator {
     }
 
     /**
-     * This method returns the map that the server gave out in a formatted String.
+     * This method returns the map that the server gave out in a formatted string.
      * @param moveCounter This number indicates the number of the move.
-     * @return returns the map as a string
+     * @return Returns the map as a string.
      */
     public String getMapFromServer(int moveCounter){
         int indexInServer;
