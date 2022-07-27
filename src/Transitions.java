@@ -103,26 +103,26 @@ public class Transitions {
 
     /**
      * Returns a formatted String containing all Transitions of the Map without our internal IndexShift.
-     * @param Hmap all Transitions in a Hash Map.
+     * @param HMap all Transitions in a Hash Map.
      * @return Returns a formatted Sting off all Transitions
      */
-    public static String AllToStringWithIndexShift(HashMap<Character,Character> Hmap)
+    public static String AllToStringWithIndexShift(HashMap<Character,Character> HMap)
     {
-        String ergebnis ="";
+        String result ="";
 
-        char[] tr = new char [Hmap.size()];
+        char[] tr = new char [HMap.size()];
         int num = 0;
-        for (Character kombi : Hmap.keySet())
+        for (Character comb : HMap.keySet())
         {
-            tr[num]=kombi;
+            tr[num]=comb;
             num++;
         }
         for(int i = 0;i<tr.length;i++)
         {
             if(tr[i]!= 0)
             {
-                char char2 = Hmap.get(tr[i]);
-                ergebnis += Transitions.pairToStringWithIndexShift(tr[i], char2);
+                char char2 = HMap.get(tr[i]);
+                result += Transitions.pairToStringWithIndexShift(tr[i], char2);
                 for(int j = 0;j<tr.length;j++)
                 {
                     if(char2 == tr[j])
@@ -133,7 +133,7 @@ public class Transitions {
                 }
             }
         }
-        return ergebnis;
+        return result;
     }
 
 }

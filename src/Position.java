@@ -1,5 +1,8 @@
 package src;
 
+/**
+ * This class is used to store the x and y coordinates of a position. Also, it provides functionality to compare two positions or to use the positions for a hash value
+ */
 public class Position {
     int x;
     int y;
@@ -35,7 +38,7 @@ public class Position {
     /**
      * This Function evaluates if 2 Positions are the Same.
      * @param obj Another Positions
-     * @return Returns true if the X & Y Value Pairs are identically.
+     * @return Returns true if the x and y value pairs are identically.
      */
     @Override
     public boolean equals(Object obj) {
@@ -53,7 +56,7 @@ public class Position {
     }
 
     /**
-     * Returns a new Position Object with the Updated X & Y Values after going 1 Step in the provided Direction.
+     * Returns a new Position Object with the Updated x and y Values after going 1 Step in the provided Direction.
      * @param pos The Current Position
      * @param r The Current Direction (0 stands for North, 1 stands for NE, ...)
      * @return A new Position Object with the updated Position

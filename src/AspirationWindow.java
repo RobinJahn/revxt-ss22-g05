@@ -1,5 +1,9 @@
 package src;
 
+/**
+ * This class is used to store all the information needed for the aspiration window technique.
+ * Also, it provides the methods to modify the values.
+ */
 public class AspirationWindow {
 
     private double alpha;
@@ -21,7 +25,7 @@ public class AspirationWindow {
 
     /**
      * This method returns the window size.
-     * @return Returns a double array of size 2 where the first element is the ajusted alpha, and the second element the ajusted beta.
+     * @return Returns a double array of size 2 where the first element is the adjusted alpha, and the second element the adjusted beta.
      */
     public double[] getWindow()
     {
@@ -49,7 +53,7 @@ public class AspirationWindow {
     }
 
     /**
-     * This method checks wether the given value is inside the window.
+     * This method checks weather the given value is inside the window.
      * @param value the value to check
      * @return Returns true when inside the window and false otherwise
      */

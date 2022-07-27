@@ -2,6 +2,9 @@ package src;
 
 import java.util.*;
 
+/**
+ * This class is used to store the information of a map. Also, it provides all the necessary functions to get information about the map, changing it or doing a step on the map.
+ */
 public class Map{
 
     //this class contains all the color codes
@@ -28,7 +31,7 @@ public class Map{
         final static String ANSI_WHITE_BACKGROUND = "\u001B[47m";
     }
 
-    //variables that controll the arrows
+    //variables that control the arrows
     public static boolean useArrows = false; //needs to stay false because it can be set by parameter
     final static private boolean checkIfAllArrowsAreCorrect = false;
 
@@ -109,8 +112,8 @@ public class Map{
     }
 
     /**
-     * Copy constructor. Copys the given Map.
-     * Appart from the Arrow arrays it's a deep copy
+     * Copy constructor. Copy the given Map.
+     * Apart from the Arrow arrays it's a deep copy
      * @param mapToCopy map to copy
      * @param phaseOne phase the map is in
      */
@@ -186,8 +189,8 @@ public class Map{
     }
 
     /**
-     * Retturns a map in a style that can be compared to the server output
-     * @param everyPossibleMove List of int[] (x, y, info) that specifys the possible positions a stone can be placed
+     * Returns a map in a style that can be compared to the server output
+     * @param everyPossibleMove List of int[] (x, y, info) that specify the possible positions a stone can be placed
      * @return formatted string
      */
     public String toString_Server(ArrayList<int[]> everyPossibleMove)
@@ -233,9 +236,9 @@ public class Map{
 
     /**
      * Advanced toString() Method. It returns the map in a formatted String that can be changed by the parameters.
-     * @param everyPossibleMove List of int[] (x, y, info) that specifys the possible positions a stone can be placed
+     * @param everyPossibleMove List of int[] (x, y, info) that specify the possible positions a stone can be placed
      * @param showTransitions boolean if the transitions should be appended.
-     * @param useColors boolean if the returnd string should have color inforamtions in it to print it.
+     * @param useColors boolean if the returned string should have color information in it to print it.
      * @return formatted string
      */
     public String toString(List<int[]> everyPossibleMove, boolean showTransitions, boolean useColors){
@@ -340,9 +343,9 @@ public class Map{
 
     /**
      * This Method returns the map in a formatted String. It shows all the possible routes you could go from the specified Positions by the positionsToMark List
-     * @param everyPossibleMove List of int[] (x, y, info) that specifys the possible positions a stone can be placed
+     * @param everyPossibleMove List of int[] (x, y, info) that specify the possible positions a stone can be placed
      * @param showTransitions boolean if the transitions should be appended.
-     * @param positionsToMark List of Position objects that specify wich positions should be marked.
+     * @param positionsToMark List of Position objects that specify which positions should be marked.
      * @return formatted string
      */
     public String toString(List<int[]> everyPossibleMove, boolean showTransitions, ArrayList<Position> positionsToMark){
@@ -524,7 +527,7 @@ public class Map{
 
     /**
      * This method is used when the Client compares it's output to the one of the server.
-     * It formats the output of the Server in a way that it can be compared to the Client's ouput.
+     * It formats the output of the Server in a way that it can be compared to the Client's output.
      * @param mapAsString The output of the Server in a string
      * @param useColors Boolean if colors should be used
      * @return formatted String
@@ -679,7 +682,7 @@ public class Map{
     }
 
     /**
-     * @return returns the ammount of players that play on this map
+     * @return returns the amount of players that play on this map
      */
     public int getAnzPlayers() {
         return staticMap.anzPlayers;
@@ -731,18 +734,18 @@ public class Map{
     }
 
     /**
-     * returns the ammount of overwrite stones the specified player has
-     * @param playerId Number of the palyer
-     * @return ammount of overwrite stones
+     * returns the amount of overwrite stones the specified player has
+     * @param playerId Number of the player
+     * @return amount of overwrite stones
      */
     public int getOverwriteStonesForPlayer(int playerId) {
         return overwriteStonesPerPlayer[playerId-1];
     }
 
     /**
-     * returns the ammount of bombs the specified player has
-     * @param playerId Number of the palyer
-     * @return ammount of bombs
+     * returns the amount of bombs the specified player has
+     * @param playerId Number of the player
+     * @return amount of bombs
      */
     public int getBombsForPlayer(int playerId) {
         return bombsPerPlayer[playerId-1];
@@ -769,9 +772,9 @@ public class Map{
     }
 
     /**
-     * returns the ammount of stones one player has
-     * @param playerNr The player to get the ammount of stones from
-     * @return The ammount
+     * returns the amount of stones one player has
+     * @param playerNr The player to get the amount of stones from
+     * @return The amount
      */
     public int getCountOfStonesOfPlayer(int playerNr){
         if (playerNr > 0 && playerNr <= stonesPerPlayer.size()) {
@@ -783,7 +786,7 @@ public class Map{
     }
 
     /**
-     * @return Retunrs a list of all expansion fields that are currently on the map.
+     * @return Returns a list of all expansion fields that are currently on the map.
      */
     public ArrayList<Position> getExpansionFields(){
         ArrayList<Position> result = new ArrayList<>( expansionFields );
@@ -797,7 +800,7 @@ public class Map{
 
     /**
      * returns all the valid Moves the player currently playing can make. This is done by using arrows. (Does not work right 100%)
-     * @param heuristic heurisitc by wich it gets evaluated if an overwrite move should be made.
+     * @param heuristic heuristic by which it gets evaluated if an overwrite-move should be made.
      * @return List of all the possible Positions the player can move to
      */
     public ArrayList<int[]> getValidMovesByArrows(Heuristic heuristic){
@@ -857,7 +860,7 @@ public class Map{
     }
 
     /**
-     * @return returns an array of booleans that specifies wich players are disqualified.
+     * @return returns an array of booleans that specifies which players are disqualified.
      */
     public boolean[] getDisqualifiedPlayers()
     {
@@ -875,14 +878,15 @@ public class Map{
     }
 
     /**
-     * @return Returns the ammount of fields that can be reached in this map
+     * @return Returns the amount of fields that can be reached in this map
      */
     public int getCountOfReachableFields(){
         return staticMap.countOfReachableFields;
     }
 
     /**
-     * @return Returns the ammount of bonus-fields that can be reached in this map
+     * @return Returns the amount of bonus-fields that can be reached in this map.
+     * @param map The map on which to count the bonus fields.
      */
     public int getCountOfReachableBonusFields(Map map)
     {
@@ -923,7 +927,7 @@ public class Map{
     }
 
     /**
-     * @return returns the percentage by wich the current map is filled
+     * @return returns the percentage by which the current map is filled
      */
     public double getFillPercentage()
     {
@@ -937,7 +941,7 @@ public class Map{
     }
 
     /**
-     * Prints the map in the ouput in wich you can see wich fields are reachable and wich not
+     * Prints the map in the output in which you can see which fields are reachable and which not
      */
     public void printReachableFields(){
         System.out.println(Arrays.deepToString(staticMap.reachableFieldMatrix).replace("],", "\n"));
@@ -976,7 +980,7 @@ public class Map{
      * @return Returns a random Move that can be made
      */
     public int[] getRandomMove() {
-        //-2 because we have a line of walls around all maps and -1 because we don't want to have the (widht-2) itself in the values
+        //-2 because we have a line of walls around all maps and -1 because we don't want to have the (width-2) itself in the values
         int x = 1 + (int) (Math.random() * (this.getWidth() - 3));
         int y = 1 + (int) (Math.random() * (this.getHeight() - 3));
         ArrayList<Integer> directions = new ArrayList<>() {
@@ -1064,7 +1068,7 @@ public class Map{
      * @return Returns a random Bomb move that can be made
      */
     public int[] getRandomBombMove(){
-        //-2 because we have a line of walls around all maps and -1 because we don't want to have the (widht-2) itself in the values
+        //-2 because we have a line of walls around all maps and -1 because we don't want to have the (width-2) itself in the values
         int x = 1 + (int) (Math.random() * (this.getWidth() - 3));
         int y = 1 + (int) (Math.random() * (this.getHeight() - 3));
         Position randomMove = new Position(x, y);
@@ -1106,7 +1110,7 @@ public class Map{
     }
 
     /**
-     * Gets the placement of the specified player in the curent map
+     * Gets the placement of the specified player in the current map
      * @param myPlayerNr player to get the placement for
      * @return position
      */
@@ -1254,7 +1258,7 @@ public class Map{
     }
 
     /**
-     * Die Farben aller Spieler werden um eins verschoben
+     * The colors of all players are shifted by one. This is done so that the Stones of player 2 are now the ones of player 1
      */
     public void Inversion() {
         HashSet<Position> posBuffer;
@@ -1328,7 +1332,7 @@ public class Map{
 
     /**
      * sets the player currently playing to the next one.
-     * Regards only the disqulaified players and not if the player can make a move
+     * Regards only the disqualified players and not if the player can make a move
      * @return returns the number of skipped players
      */
     public int nextPlayer(){
@@ -1563,7 +1567,7 @@ public class Map{
         //check if it continues the arrow
         if (arrow.positionsWithDirection.size() >= 2){
             firstStep = false;
-            //get second position if lenth of arrow is 2 or more
+            //get second position if length of arrow is 2 or more
             posAndR = arrow.positionsWithDirection.get(1);
             SecondPos = new Position(posAndR[0], posAndR[1]);
         }
@@ -1925,7 +1929,7 @@ public class Map{
     }
 
     /**
-     * Testing Method to check if every overwrite move can be made has the corret ammount of arrows that create these moves
+     * Testing Method to check if every overwrite move can be made has the correct amount of arrows that create these moves
      * @return true if everything is right and false otherwise
      */
     public Position checkOverwriteMovesTheOtherWay(){
@@ -1990,11 +1994,11 @@ public class Map{
 
     /**
      * By calling this method you can simulate a step on the map.
-     * This step is taken from the specified poition in the specified direction.
+     * This step is taken from the specified position in the specified direction.
      * The position that was given the method contains afterwards the new position after the step
      * @param pos Position to do the step from
-     * @param r direction in wich to go
-     * @return Integer value wich direction you are now facing or null if the step wasn't possible
+     * @param r direction in which to go
+     * @return Integer value which direction you are now facing or null if the step wasn't possible
      */
     public Integer doAStep(Position pos, int r){
         return staticMap.doAStep(pos,r);
@@ -2007,8 +2011,8 @@ public class Map{
     /**
      * This method simulates a move. The given map is updated in regard to the position the stone was set to.
      * @param posToSetKeystone Position the keystone was set to
-     * @param additionalInfo Additional informatin that might be needed (1-9 for a choise move; 20, 21 for a bonus move)
-     * @param moveOfPlayer playernumber of the player that made the move
+     * @param additionalInfo Additional information that might be needed (1-9 for a choice-move; 20, 21 for a bonus move)
+     * @param moveOfPlayer player number of the player that made the move
      * @param map Map that is updated
      * @param printOn boolean that specifies if the function should print an output
      */
@@ -2066,9 +2070,11 @@ public class Map{
     }
 
     /**
-     * Updates Map by breadth-first search
-     * @param x x coordinate where the bomb was set
-     * @param y y coordinate where the bomb was set
+     * Updates Map by breadth-first search.
+     * @param x x coordinate where the bomb was set.
+     * @param y y coordinate where the bomb was set.
+     * @param moveOfPlayer the player number of the player that set the bomb.
+     * @param map the map on which the bomb move should be made.
      */
     public static void updateMapAfterBombingBFS(int x, int y, int moveOfPlayer, Map map){
         char charAtPos;
@@ -2149,7 +2155,7 @@ public class Map{
         else {
             Set<Position> positionsToColor; //doesn't store duplicates
 
-            //if the move is a overwrite-move to an expansion-field
+            //if the move is an overwrite-move to an expansion-field
             if (map.getCharAt(pos) == 'x' && map.getOverwriteStonesForPlayer(map.getCurrentlyPlayingI()) > 0) {
                 map.setCharAt(pos.x, pos.y, map.getCurrentlyPlayingC());
             }
@@ -2235,10 +2241,10 @@ public class Map{
      * @param map Map that possible moves are calculated on
      * @param timed boolean if there is a time limit
      * @param printOn boolean if the method should print information
-     * @param serverLog boolean if only the neccessary inforamtion should be printed
-     * @param upperTimeLimit if timed is enabled this is the time limit the method needs to considder
+     * @param serverLog boolean if only the necessary information should be printed
+     * @param upperTimeLimit if timed is enabled this is the time limit the method needs to consider
      * @param heuristic heuristic to evaluate if overwrite moves should be made
-     * @return List of possible Moves. The moves are speccisfied in an int[] as (x,y,info)
+     * @return List of possible Moves. The moves are specified in an int[] as (x,y,info)
      * @throws ExceptionWithMove if the time is over this exception is thrown. It contains a move that can be made
      */
     public static ArrayList<int[]> getValidMoves(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit, Heuristic heuristic) throws ExceptionWithMove {
@@ -2263,7 +2269,7 @@ public class Map{
     /**
      * returns the possible bomb moves on the specified map for the current player
      * @param map Map that possible moves are calculated on
-     * @return List of possible Moves. The moves are speccisfied in an int[] as (x,y,info)
+     * @return List of possible Moves. The moves are specified in an int[] as (x,y,info)
      */
     public static ArrayList<int[]> getPositionsToSetABomb(Map map) {
         ArrayList<int[]> validMoves = new ArrayList<>();
@@ -2358,10 +2364,10 @@ public class Map{
      * @param map Map that possible moves are calculated on
      * @param timed boolean if there is a time limit
      * @param printOn boolean if the method should print information
-     * @param serverLog boolean if only the neccessary inforamtion should be printed
-     * @param upperTimeLimit if timed is enabled this is the time limit the method needs to considder
+     * @param serverLog boolean if only the necessary information should be printed
+     * @param upperTimeLimit if timed is enabled this is the time limit the method needs to consider
      * @param heuristic heuristic to evaluate if overwrite moves should be made
-     * @return List of possible Moves. The moves are speccisfied in an int[] as (x,y,info)
+     * @return List of possible Moves. The moves are specified in an int[] as (x,y,info)
      * @throws ExceptionWithMove if the time is over this exception is thrown. It contains a move that can be made
      */
     public static ArrayList<int[]> getFieldsByOwnColor(Map map, boolean timed, boolean printOn, boolean serverLog, long upperTimeLimit, Heuristic heuristic) throws ExceptionWithMove{
@@ -2606,9 +2612,9 @@ public class Map{
 
     /**
      * This method returns the count of moves the current player can make
-     * @param map Map on wich that is calculated
+     * @param map Map on which that is calculated
      * @param timed boolean if the method is times
-     * @param upperTimeLimit if timed is enabled this is the time limit the method needs to considder
+     * @param upperTimeLimit if timed is enabled this is the time limit the method needs to consider
      * @return count of moves the current player can make
      * @throws ExceptionWithMove throws exception when the time is up.
      */

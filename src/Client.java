@@ -1,10 +1,12 @@
 package src;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * The Client class is the Head of all. It contains the main method to play the game.
+ * By creating a Client it connects to the specified server and starts playing.
+ */
 public class Client{
 	//final variables
 	final private boolean calculateMove = true;
@@ -34,11 +36,11 @@ public class Client{
 	double approximation = 1;
 	SearchTree searchTree;
 
-	Random random = new Random(1); //this is needed to make random moves when enabeld
+	Random random = new Random(1); //this is needed to make random moves when enabled
 
 	/**
 	 * The main method of the Client. This Method gets all the variables out of the args String array.
-	 * With these Varables the Client gets created.
+	 * With these Variables the Client gets created.
 	 * @param args Array of Strings that contain all the input parameters
 	 */
 	public static void main(String[] args) {
@@ -188,14 +190,14 @@ public class Client{
 	 * @param ip The ip to connect to.
 	 * @param port The port to connect to.
 	 * @param multipliers a double array of multipliers. (See assignment in -h)
-	 * @param useAB boolen if alpha beta prouning should be used
-	 * @param printOn boolen if the Client should print the medium ammount of outputs.
+	 * @param useAB boolean if alpha beta pruning should be used
+	 * @param printOn boolean if the Client should print the medium amount of outputs.
 	 * @param useColors boolean if the Client should print in color.
 	 * @param compare_to_Server boolean if the client compares it's output to the servers. (needs special call)
-	 * @param extendedPrint boolen if the Client should print all the outputs.
+	 * @param extendedPrint boolean if the Client should print all the outputs.
 	 * @param useMS boolean if the Client should use Move Sorting
 	 * @param useMCTS boolean if the Client should use Monte-Carlo-Tree-Search.
-	 * @param groupNumberAddition If more clients with differen group numbers should be started this value can be used.
+	 * @param groupNumberAddition If more clients with different group numbers should be started this value can be used.
 	 */
 	public Client(String ip,
 				  int port,
@@ -684,6 +686,7 @@ public class Client{
 	//phase 1
 	/**
 	 * Method to make a move after a move request was sent to the Client
+	 * @param upperTimeLimit the time limit there is for the move.
 	 */
 	private void makeAMove(long upperTimeLimit){
 		//calculated Move

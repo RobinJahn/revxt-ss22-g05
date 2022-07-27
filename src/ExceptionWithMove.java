@@ -2,6 +2,10 @@ package src;
 
 import java.util.concurrent.TimeoutException;
 
+/**
+ * This exception is a TimeoutException which contains an int array where information can be handed over.
+ * The information mainly is used to hand over a possible move if the time is up.
+ */
 public class ExceptionWithMove extends TimeoutException {
     public int[] PosAndInfo;
 

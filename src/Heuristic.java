@@ -3,6 +3,9 @@ package src;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * This class provides all the necessary functionality to evaluate a specific map.
+ */
 public class Heuristic {
     //prints
     private final boolean printOn;
@@ -37,12 +40,13 @@ public class Heuristic {
 
 
     /**
-     * This Constructor creates a Heurisic object. Here all the necessarry inforamtion is set.
-     * @param map The map that the heuristic evaluats.
+     * This Constructor creates a Heuristic object. Here all the necessary information is set.
+     * @param map The map that the heuristic evaluates.
      * @param myColor The number(color) of the player for which the map is rated.
-     * @param printOn boolean that defines if the heuristic should print the medium ammount of information.
+     * @param printOn boolean that defines if the heuristic should print the medium amount of information.
      * @param extendedPrint boolean that defines if the heuristic should print all the information.
      * @param multiplier list of double values to define the multipliers for the different heuristically evaluations.
+     * @param shpp The StaticHeuristicPerPhase object, that contains all the necessary information about the field values and waves per phase.
      */
     public Heuristic(Map map, int myColor, boolean printOn, boolean extendedPrint, double[][] multiplier, StaticHeuristicPerPhase shpp){
         this.printOn = printOn;
@@ -129,6 +133,7 @@ public class Heuristic {
 
     /**
      * Function updates the Heuristic Multipliers according to the current GameStage
+     * @param phaseOne Indicates if we are in phase one or not
      */
     public void updateHeuristicMultipliers(boolean phaseOne)
     {
@@ -156,8 +161,13 @@ public class Heuristic {
     //GETTER -----------------------------------------------------------------------------------------------------------
 
     /**
-     * Method to evaluate the current map of the heurisitc.
+     * Method to evaluate the current map of the heuristic.
+     * @param phaseOne indicates if we're in phase one
+     * @param timed indicates if there is a time limit
+     * @param ServerLog indicates if the method should output information
+     * @param UpperTimeLimit the time limit
      * @return returns the value of the map.
+     * @throws TimeoutException Throws TimeoutException if the method didn't get to finish in time.
      */
     public double evaluate(boolean phaseOne,boolean timed, boolean ServerLog, long UpperTimeLimit) throws TimeoutException{
         double countOfStonesEvaluation = 0;
@@ -226,7 +236,7 @@ public class Heuristic {
     }
 
     /**
-     * Method to evaluate the current map of the heurisitc. Here only a verry fast evaluation is made so that it doesn't take as much time as evaluate().
+     * Method to evaluate the current map of the heuristic. Here only a very fast evaluation is made so that it doesn't take as much time as evaluate().
      * @param map Map that gets evaluated.
      * @param myPlayerNr player the map gets evaluated for.
      * @return returns the value of the map.
@@ -247,7 +257,7 @@ public class Heuristic {
     }
 
     /**
-     * Method to evaluate the current map of the heurisitc in the bomb phase.
+     * Method to evaluate the current map of the heuristic in the bomb phase.
      * @param map map that gets evaluated
      * @return returns the value of the map.
      */
@@ -260,7 +270,7 @@ public class Heuristic {
     /**
      * returns the current stage that the map is in.
      * @param phaseOne boolean if the map is in phase one or not
-     * @return stage numeber.
+     * @return stage number.
      */
     private int getStage(boolean phaseOne){
 
@@ -297,7 +307,7 @@ public class Heuristic {
 
     /**
      * Evaluation method that evaluates if a bomb, or an overwrite-stone should be taken.
-     * @return 20 if a bomb should be taken and 21 if a overwrite-stone should be taken.
+     * @return 20 if a bomb should be taken and 21 if an overwrite-stone should be taken.
      */
     public int selectBombOrOverwrite(){
         if (map.getExplosionRadius() > 10){

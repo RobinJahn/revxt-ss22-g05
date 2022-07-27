@@ -4,20 +4,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * This class provides all the functionality needed to get a move to make.
+ * It contains all the information in which way the move should be calculated.
+ */
 public class SearchTree {
 
-    //Varables that don't change
+    //Variables that don't change
         //printing
     final private boolean printOn;
     final private boolean extendedPrint;
     final private boolean serverLog;
-        //enables or diables
+        //enables or disables
     final private boolean useMS;
     final private boolean useBRS;
     final private boolean useKH;
     final private boolean useRM = true; //enables or disables the use of the returned move in the layer above
-    final private boolean useZH = true; //enables or disabes zobrist hashing
-    final private boolean useAW = true; //enables or disables aspiration window
+    final private boolean useZH = false; //enables or disables zobrist hashing
+    final private boolean useAW = false; //enables or disables aspiration window
     final private boolean useMonteCarloTreeSearch;
         //needed Objects or information
     final private int myPlayerNr;
@@ -27,7 +31,7 @@ public class SearchTree {
     final private AspirationWindow AW;
 
 
-    //Varables that change
+    //Variables that change
     private boolean timed;
     private int depth;
     private double approximation = 1;
@@ -641,7 +645,7 @@ public class SearchTree {
         double currValue;
         MctsNode bestChild = null;
 
-        for (MctsNode vChild : v.getChilds()){
+        for (MctsNode vChild : v.getChildNodes()){
             currValue = (vChild.getTotalReward() / vChild.getCountOfVisits()) + c * Math.sqrt( (2* Math.log(v.getCountOfVisits())) / vChild.getCountOfVisits() );
             if (currValue > maxValue){
                 maxValue = currValue;

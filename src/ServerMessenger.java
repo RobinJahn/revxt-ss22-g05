@@ -5,6 +5,9 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 
+/**
+ * This class is used as an Interface to the server. It provides all the functionality to communicate with the server.
+ */
 public class ServerMessenger {
     private final OutputStream out;
     private final InputStream in;

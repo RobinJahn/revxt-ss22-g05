@@ -3,6 +3,10 @@ package src;
 import java.io.*;
 import java.util.*;
 
+/**
+ * This class contains all the information of a map that stay the same over the whole game. it is exclusively used by the Map class.
+ * Also, it provides the functionality to import the map and to check which fields are reachable.
+ */
 public class StaticMap {
     //main data structure to store the Map Infos in
     public char[][] map;

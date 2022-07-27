@@ -1,5 +1,8 @@
 package src;
 
+/**
+ * This class contains all the statistical information for a calculation in a certain depth. Also, it provides methods to update and get the information.
+ */
 public class Statistic {
     private int leafNodes;
     private int interiorNodes;

@@ -2,8 +2,12 @@ package src;
 
 import java.util.ArrayList;
 
+/**
+ * This class is used to save possible moves. It saves all the position from the start to the field it points to.
+ * Also is saves if the arrow creates a valid move.
+ */
 public class Arrow {
-    //Varables - public because of the better performance - acceptable because it's only used by the map class
+    //Variables - public because of the better performance - acceptable because it's only used by the map class
     public ArrayList<int[]> positionsWithDirection = new ArrayList<>(); //inclusive start and pointing to //int[]{x,y,r}
     public boolean createsValidMove = false; //boolean if the Arrow creates a valid move
 

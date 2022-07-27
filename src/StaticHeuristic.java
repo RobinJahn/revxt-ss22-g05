@@ -2,6 +2,10 @@ package src;
 
 import java.util.*;
 
+/**
+ * This class is used to store information for the HeuristicPerPhase by which it is used exclusively.
+ * It contains the information for the field value and wave value for a specific phase of the game
+ */
 public class StaticHeuristic {
     public double[][] matrix;
     private HashMap<Position, LinkedList<PositionAndValue>> wavesAndFields;

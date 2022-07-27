@@ -1,5 +1,9 @@
 package src;
 
+/**
+ * This method contains all the information of the Transposition-table of the Zobrist-Hashing-Method.
+ * Also, it provides the needed methods to set, update or get this information.
+ */
 public class TranspositionTable {
 
     private final int size;

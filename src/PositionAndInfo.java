@@ -1,5 +1,9 @@
 package src;
 
+/**
+ * This class is used to store the x and y coordinates of a position and also an integer that can be used to save further information.
+ * Also, it provides functionality to compare two positions or to use the positions for a hash value
+ */
 public class PositionAndInfo implements Comparable<PositionAndInfo> {
     private int x;
     private int y;

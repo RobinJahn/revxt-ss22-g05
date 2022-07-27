@@ -2,6 +2,10 @@ package src;
 
 import java.util.ArrayList;
 
+/**
+ * This class is used to store information for the Heuristic.
+ * It contains the information for the field value and wave value for all phases of the game
+ */
 public class StaticHeuristicPerPhase {
 
     private final ArrayList<StaticHeuristic> staticHeuristicPerPhase;
@@ -267,8 +271,11 @@ public class StaticHeuristicPerPhase {
     }
 
     //helper
+
     /**
-     * prints out the evaluation matrix
+     * This method prints out the given matrix in a nicely readable way. Every value is formatted with %4.2f.
+     * For negative and positive infinity a "+" or "-" gets printed.
+     * @param matrix the double matrix to print.
      */
     public void printMatrix(double[][] matrix){
         for (int y = 0; y < matrix.length; y++){
@@ -282,7 +289,9 @@ public class StaticHeuristicPerPhase {
         System.out.println();
     }
     /**
-     * prints out the boolean matrix
+     * This method prints out the given matrix in a nicely readable way.
+     * For "true" it prints a "+" and for "false" a "-".
+     * @param matrix the boolean matrix to print.
      */
     public void printMatrix(boolean[][] matrix){
         char currChar;

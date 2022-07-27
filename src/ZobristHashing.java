@@ -2,6 +2,9 @@ package src;
 
 import java.util.Random;
 
+/**
+ * This class provides the functionality needed to use the Zobrist-Hashing-method.
+ */
 public class ZobristHashing {
 
     final private int size;

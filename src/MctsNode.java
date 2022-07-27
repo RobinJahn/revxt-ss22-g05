@@ -1,13 +1,15 @@
 package src;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
+/**
+ * This class is used to store all the information for the Monte-Carlo-Tree-Search-Algorithm. Also, it provides the methods to change or get this information.
+ */
 public class MctsNode {
 
     //final
     private final Map map;
-    private final ArrayList<MctsNode> childs = new ArrayList<>();
+    private final ArrayList<MctsNode> childNodes = new ArrayList<>();
     private final MctsNode parent;
     private final int[] actionLeadingToThis;
     private final ArrayList<int[]> possibleMoves;
@@ -56,15 +58,15 @@ public class MctsNode {
     }
 
     /**
-     * This method addes a child node to the node it is called on.
+     * This method adds a child node to the node it is called on.
      * @param newChild The child that should be added.
      */
     public void addChild(MctsNode newChild){
-        childs.add(newChild);
+        childNodes.add(newChild);
     }
 
     /**
-     * This method returns a random move that wasn't checked already. Also it marks the move it returns as used.
+     * This method returns a random move that wasn't checked already. Also, it marks the move it returns as used.
      * Before calling this method it needs to be checked if the node is fully expanded.
      * @return Move that wasn't checked already.
      */
@@ -83,7 +85,7 @@ public class MctsNode {
     }
 
     /**
-     * This method returns the ammount of visits this node had.
+     * This method returns the amount of visits this node had.
      * @return number of visits.
      */
     public int getCountOfVisits(){
@@ -91,11 +93,11 @@ public class MctsNode {
     }
 
     /**
-     * This Method returns a list of all childs the node has.
-     * @return List of childs.
+     * This Method returns a list of all children the node has.
+     * @return List of children.
      */
-    public ArrayList<MctsNode> getChilds() {
-        return childs;
+    public ArrayList<MctsNode> getChildNodes() {
+        return childNodes;
     }
 
     /**
@@ -114,7 +116,7 @@ public class MctsNode {
     }
 
     /**
-     * This method addes delta to the reward of the node
+     * This method adds delta to the reward of the node
      * @param delta the value that gets added to the reward.
      */
     public void updateReward(double delta){

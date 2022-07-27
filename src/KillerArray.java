@@ -1,5 +1,8 @@
 package src;
 
+/**
+ * This class is used for the Killer-Heuristic. It stores all the necessary information for it.
+ */
 public class KillerArray {
 
     private final KillerLine[] killerLineArray;

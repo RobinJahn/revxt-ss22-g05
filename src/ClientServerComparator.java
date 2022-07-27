@@ -4,6 +4,10 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * This class is used for bug-fixing. It provides the functionality to compare the Server output to the one of the Client.
+ * For this the Server needs to direct its output (without color) in a File named "Server_View.txt" which must lay at the highest level in the project.
+ */
 public class ClientServerComparator {
 
     private String line;
@@ -13,7 +17,7 @@ public class ClientServerComparator {
     ArrayList<String> ClientLines = new ArrayList<>();
 
     /**
-     * This Constructor creates a clientServerComperator Object.
+     * This Constructor creates a clientServerComparator Object.
      * With this it's possible to compare the output of the client to the one of the server.
      * For this the server needs to direct its output in a File named "Server_View.txt"
      * @param width the width of the playing field.

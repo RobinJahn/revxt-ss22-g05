@@ -4,6 +4,9 @@ import java.io.File;
 import java.nio.file.Paths;
 import javax.swing.JFileChooser;
 
+/**
+ * This class provides the functionality so that a file-window is opened in which the user can select a file which then is returned.
+ */
 public class DialogWindow {
 
     static File savedPath = new File(Paths.get("./Maps").toAbsolutePath().normalize().toString());
