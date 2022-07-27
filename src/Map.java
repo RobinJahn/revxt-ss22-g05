@@ -1064,15 +1064,45 @@ public class Map{
      * @return Returns a random Bomb move that can be made
      */
     public int[] getRandomBombMove(){
-        int x;
-        int y;
+        //-2 because we have a line of walls around all maps and -1 because we don't want to have the (widht-2) itself in the values
+        int x = 1 + (int) (Math.random() * (this.getWidth() - 3));
+        int y = 1 + (int) (Math.random() * (this.getHeight() - 3));
+        Position randomMove = new Position(x, y);
+        char charAtPos = getCharAt(randomMove);
+        int length = 1;
+        int direction = 0;
 
-        do {
-            x = 1 + (int) (Math.random() * (this.getWidth() - 2)); //needs to be -1 because random can be almost 1 and therefore be rounded to the multiplier //-1 because we have an edge of invalid positions
-            y = 1 + (int) (Math.random() * (this.getHeight() - 2));
-        } while (getCharAt(x,y) == '-' || getCharAt(x,y) == 't');
+        if (charAtPos != '-' && charAtPos != 't') {
+            return new int[]{randomMove.x, randomMove.y, 0};
+        }
 
-        return new int[]{x, y, 0};
+        for (int loopCount = 0; loopCount < 5 * getWidth() * getHeight(); loopCount++) {
+            for(int i = 0; i < length; i++) {
+                randomMove = Position.goInR(randomMove, direction);
+                charAtPos = getCharAt(randomMove);
+                if (charAtPos != '-' && charAtPos != 't') {
+                    return new int[]{randomMove.x, randomMove.y, 0};
+                }
+            }
+
+            direction = (direction+2)%8;
+
+            for(int i = 0; i < length; i++) {
+                randomMove = Position.goInR(randomMove, direction);
+                charAtPos = getCharAt(randomMove);
+                if (charAtPos != '-' && charAtPos != 't') {
+                    return new int[]{randomMove.x, randomMove.y, 0};
+                }
+            }
+
+            direction = (direction+2)%8;
+            length++;
+
+            if (length > 2 + 2 * Math.max(getHeight(), getWidth())) return new int[]{-1, -1, -1};
+        }
+
+        System.err.println("Something went wrong - getRandomBombMove didn't find a bomb move");
+        return new int[]{-1,-1,-1};
     }
 
     /**
@@ -2239,20 +2269,16 @@ public class Map{
         ArrayList<int[]> validMoves = new ArrayList<>();
         char fieldValue;
 
-        //if player has no bomb's return empty array
-        if (map.getBombsForPlayer(map.getCurrentlyPlayingI()) == 0) {
-            return validMoves; //returns empty array
-        }
-
-            //gets the possible positions to set a bomb at
-            for (int y = 0; y < map.getHeight(); y ++) {
-                for (int x = 0; x < map.getWidth(); x ++) {
-                    fieldValue = map.getCharAt(x, y);
-                    if (fieldValue != '-' && fieldValue != 't') {
-                        validMoves.add(new int[]{x, y});
-                    }
+        //gets the possible positions to set a bomb at
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+                fieldValue = map.getCharAt(x, y);
+                if (fieldValue != '-' && fieldValue != 't') {
+                    validMoves.add(new int[]{x, y});
                 }
             }
+        }
+
         return validMoves;
     }
 
@@ -2586,7 +2612,7 @@ public class Map{
      * @return count of moves the current player can make
      * @throws ExceptionWithMove throws exception when the time is up.
      */
-    public static int getCountOfMovesForPalyer(Map map, boolean timed, long upperTimeLimit) throws ExceptionWithMove {
+    public static int getCountOfMovesForPlayer(Map map, boolean timed, long upperTimeLimit) throws ExceptionWithMove {
         int count = 0;
 
         if (useArrows){

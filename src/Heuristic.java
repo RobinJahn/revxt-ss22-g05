@@ -7,7 +7,7 @@ public class Heuristic {
     //prints
     private final boolean printOn;
 
-    //informations
+    //information
     private Map map; //is automatically updated because of the reference here
     //  the number/ color of the player for which the map is being evaluated.
     private final int myColorI;
@@ -357,9 +357,9 @@ public class Heuristic {
             }
 
             if (myColorI == map.getCurrentlyPlayingI()) {
-                myPossibleMoves = Map.getCountOfMovesForPalyer(map, timed, UpperTimeLimit);
+                myPossibleMoves = Map.getCountOfMovesForPlayer(map, timed, UpperTimeLimit);
             } else {
-                possibleMovesOfEnemies += Map.getCountOfMovesForPalyer(map, timed, UpperTimeLimit);
+                possibleMovesOfEnemies += Map.getCountOfMovesForPlayer(map, timed, UpperTimeLimit);
             }
             map.nextPlayer();
         } //resets to currently playing

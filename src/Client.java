@@ -542,8 +542,8 @@ public class Client{
 
 						}
 						else {
-							ArrayList<int[]> validMoves;
-							validMoves = null;
+							ArrayList<int[]> validMoves = null;
+
 							if (firstPhase) {
 								try {
 									validMoves = Map.getValidMoves(map, timed, printOn, serverLog, Long.MAX_VALUE, heuristic);

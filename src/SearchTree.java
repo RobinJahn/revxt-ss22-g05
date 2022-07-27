@@ -174,6 +174,11 @@ public class SearchTree {
         Position currMove;
         ArrayList<int[]> validMoves = Map.getPositionsToSetABomb(map);
 
+        if (validMoves.isEmpty()){
+            System.err.println("Something went wrong - getPositionsToSetABomb() returned a empty list. Trying to get a random move.");
+            validMoves.add(map.getRandomBombMove());
+        }
+
         bestMove = new PositionAndInfo(validMoves.get(0));
         bestMove.setInfo(0);
         currMove = new Position(validMoves.get(0));
