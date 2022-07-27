@@ -1652,7 +1652,7 @@ public class Map{
                     //check position
                     if (posIndex >= 2 && currPos.equals(pos) && !currPos.equals(secondPos)) {
 
-                        //goes from the found position to the first position and colores the fields
+                        //goes from the found position to the first position and colors the fields
                         for (int posToColorIndex = posIndex; posToColorIndex >= 0; posToColorIndex--) {
                             posAndR = arrow.positionsWithDirection.get(posToColorIndex);
                             setCharAt(posAndR[0], posAndR[1], (char) ('0' + getCurrentlyPlayingI()));
@@ -1933,7 +1933,7 @@ public class Map{
                 }
                 if (counter != OverwriteMoves.get(playerNr-1).get(overwritePos)) {
                     System.out.println("checkOverwriteMovesTheOtherWay() failed with move: " + overwritePos + " for player " + playerNr);
-                    System.out.println("Found " + counter + " overwrite positions by the arrows, but the in the list " + OverwriteMoves.get(playerNr-1).get(overwritePos) + " is saved");
+                    System.out.println("Found " + counter + " overwrite positions by the arrows, but in the list there is: " + OverwriteMoves.get(playerNr-1).get(overwritePos));
                     return overwritePos;
                 }
             }

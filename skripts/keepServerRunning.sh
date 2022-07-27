@@ -3,14 +3,14 @@
 cd ..
 cd serverAndAi
 
-mapName=${1?"argument 1 needs to be map name"}
+mapName=${1?"skript: argument 1 needs to be map name"}
 
-depth=${2?"argument 2 needs to be the depth"}
+depth=${2?"skript: argument 2 needs to be the depth"}
 
-time=${3?"argument 3 needs to be the time"}
+time=${3?"skript: argument 3 needs to be the time"}
 
 if [[ ! -f "$mapName" ]]; then
-    echo "$mapName doesn't exists."
+    echo "skript: $mapName doesn't exists."
 	exit
 fi
 
@@ -39,19 +39,19 @@ do
 	if (( $(echo "$time==0" | bc -l) ))
 	then
 		if [ $depth -eq 0 ]; then
-			echo "./server_nogl -m $mapName"
+			echo "skript: ./server_nogl -m $mapName"
 			./server_nogl -m $mapName # --moves "replay.txt"
 		else
-			echo "./server_nogl -m $mapName -d $depth"
+			echo "skript: ./server_nogl -m $mapName -d $depth"
 			./server_nogl -m $mapName -d $depth # --moves "replay.txt"
 		fi
 	else
 		if [ $depth -eq 0 ]; then
-			echo "./server_nogl -m $mapName -t $time"
+			echo "skript: ./server_nogl -m $mapName -t $time"
 			./server_nogl -m $mapName -t $time # --moves "replay.txt"
 
 		else
-      echo "./server_nogl -m $mapName -d $depth -t $time"
+      echo "skript: ./server_nogl -m $mapName -d $depth -t $time"
       ./server_nogl -m $mapName -d $depth -t $time # --moves "replay.txt"
 		fi
 	fi

@@ -421,12 +421,14 @@ public class Client{
 					posToSetKeystone.y = moveInfos[1] + 1; //index shift
 					int additionalInfo = moveInfos[2];
 					int moveOfPlayer = moveInfos[3];
-					boolean byColorAndByArrowMatch = true;
-					final boolean check = false;
+					boolean byColorAndByArrowMatch;
+					final boolean check = true;
 
 					if (printOn) System.out.println("Player " + moveOfPlayer + " set keystone to " + posToSetKeystone + ". Additional: " + additionalInfo);
 
+					//compare output of server to the client one
 					if (compare_to_Server) {
+						//variables only needed for this
 						ArrayList<int[]> validMoves = null;
 						ArrayList<Position> differentPositions;
 						map.setPlayer(moveOfPlayer);
@@ -470,22 +472,16 @@ public class Client{
 					if (firstPhase) Map.updateMapWithMove(posToSetKeystone, additionalInfo, moveOfPlayer, map, printOn);
 					else Map.updateMapAfterBombingBFS(posToSetKeystone.x, posToSetKeystone.y, moveOfPlayer, map);
 
-					if (serverLog && Map.useArrows && firstPhase && check){
-						byColorAndByArrowMatch = compareValidMoves(map, null);
-						System.out.println("Moves by color and moves by arrow match: " + byColorAndByArrowMatch);
-						if (!byColorAndByArrowMatch){
-							return;
-						}
-					}
-
+					//prints map
 					if (printOn) {
 						if (firstPhase && Map.useArrows) {
+							//variables only needed for this
 							ArrayList<int[]> validMovesByOwnColor = null;
-
 							boolean isCorrect;
 							boolean allCorrect = true;
-							Position faildAtPos = null;
-							ArrayList<Position> faildPositions = new ArrayList<>();
+							Position failedAtPos;
+							ArrayList<Position> failedPositions = new ArrayList<>();
+
 							//calculate possible moves
 							try {
 								validMovesByOwnColor = Map.getFieldsByOwnColor(map, timed, printOn, serverLog, Long.MAX_VALUE, heuristic);
@@ -494,8 +490,10 @@ public class Client{
 								System.err.println("Something went wrong - timeout exception was thrown even if no time limit was set");
 							}
 
+							//test if the arrows produce the same valid moves as the normal method
 							byColorAndByArrowMatch = compareValidMoves(map, heuristic);
 							System.out.println("Moves by color and moves by arrow match: " + byColorAndByArrowMatch);
+
 							//prints map
 							if (!byColorAndByArrowMatch) {
 								System.out.println("With own color");
@@ -526,17 +524,17 @@ public class Client{
 									isCorrect = map.checkOverwriteMoves();
 									if (!isCorrect) allCorrect = false;
 									System.out.println("All overwrite Moves are correct: " + isCorrect);
-									faildAtPos = map.checkOverwriteMovesTheOtherWay();
-									if (faildAtPos != null) allCorrect = false;
-									System.out.println("All overwrite Moves are correct (other way): " + (faildAtPos == null));
+									failedAtPos = map.checkOverwriteMovesTheOtherWay();
+									if (failedAtPos != null) allCorrect = false;
+									System.out.println("All overwrite Moves are correct (other way): " + (failedAtPos == null));
 									System.out.println();
 
 									if (!allCorrect) {
 										System.out.println("Map with the error:");
 										System.out.println(map.toString(map.getValidMovesByArrows(heuristic), false, useColors));
 										System.out.println("Map where the position is marked:");
-										faildPositions.add(faildAtPos);
-										System.out.println(map.toString(map.getValidMovesByArrows(heuristic), false, faildPositions));
+										failedPositions.add(failedAtPos);
+										System.out.println(map.toString(map.getValidMovesByArrows(heuristic), false, failedPositions));
 										return;
 									}
 								}
